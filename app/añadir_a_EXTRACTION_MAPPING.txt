@@ -1,0 +1,3 @@
+    "desguaceseduardo": "extractors.desguaceseduardo_extractor.DesguaceseduardoExtractor",
+    "desguaceseduardo": "extractors.desguaceseduardo_extractor.DesguaceseduardoExtractor",
+    "macarena": "extractors.macarena_extractor.MacarenaExtractor",
