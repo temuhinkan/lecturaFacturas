@@ -1,0 +1,11 @@
+ejecutar windows power sel (boton windows)
+
+copiar direccion carpeta
+
+ponerla en msdos
+luego ir con cd hasta app
+
+ejecutar python main_extractor.py ..\ (ojo espacio)
+
+
+C:\Users\cobip\OneDrive\Escritorio\Imprimir\'.\programa nuevo\app\'
