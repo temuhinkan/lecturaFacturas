@@ -17,16 +17,14 @@ import re
 
 EXTRACTION_MAPPING: Dict[str, Dict[str, Any]] = {
     'TIPO': {'type': 'FIXED_VALUE', 'value': 'Venta'},
-    'FECHA': {'type': 'VARIABLE', 'segment': 1, 'ref_text': 'FECHA', 'offset': 0},
-    'NUM_FACTURA': {'type': 'VARIABLE', 'segment': 2, 'ref_text': 'N*FACTURA', 'offset': 0},
-    'EMISOR': {'type': 'FIXED_VALUE', 'value': 'GESTORIA PRADILLA, S.L.'},
-    'CLIENTE': {'type': 'FIXED_VALUE', 'value': 'NEW SATELITE SL'},
-    'CIF': {'type': 'FIXED_VALUE', 'value': 'B-80481369'},
-    'MATRICULA': {'type': 'VARIABLE', 'segment': 1, 'ref_text': 'Matrícula', 'offset': 10},
-    'BASE': {'type': 'VARIABLE', 'segment': 1, 'ref_text': 'BASE', 'offset': 3},
-    'IVA': {'type': 'FIXED_VALUE', 'value': '21'},
-    'IMPORTE': {'type': 'VARIABLE', 'segment': 1, 'ref_text': 'TOTAL APAGAR', 'offset': 1},
-    'TASAS': {'type': 'VARIABLE', 'segment': 1, 'ref_text': 'SUPLIDOS', 'offset': 5},
+    'FECHA': {'type': 'FIXED', 'segment': 1, 'line': 8},
+    'EMISOR': {'type': 'FIXED_VALUE', 'value': 'New Satélite, S.L.'},
+    'CLIENTE': {'type': 'FIXED', 'segment': 1, 'line': 11},
+    'CIF': {'type': 'FIXED_VALUE', 'value': 'B85629020'},
+    'MODELO': {'type': 'FIXED', 'segment': 1, 'line': 22},
+    'MATRICULA': {'type': 'FIXED', 'segment': 1, 'line': 25},
+    'BASE': {'type': 'FIXED', 'segment': 2, 'line': 28},
+    'IMPORTE': {'type': 'FIXED', 'segment': 3, 'line': 30},
 
 }
 

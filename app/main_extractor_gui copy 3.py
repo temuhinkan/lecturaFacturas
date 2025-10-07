@@ -104,7 +104,7 @@ EXTRACTION_MAPPING = {
     "kiauto": "extractors.kiauto_extractor.KiautoExtractor",
     "sumauto": "extractors.sumauto_extractor.SumautoExtractor",
     "amor": "extractors.hermanas_extractor.HermanasExtractor", 
-    "pinchete": "extractors.pinchete_extractor.GeneratedExtractor",
+    "pinchete": "extractors.pinchete_extractor.PincheteExtractor",
     "refialias": "extractors.refialias_extractor.RefialiasExtractor",
     "leroy": "extractors.leroy_extractor.LeroyExtractor",
     "poyo": "extractors.poyo_extractor.PoyoExtractor",
@@ -134,7 +134,7 @@ EXTRACTION_MAPPING = {
     "amazon": "extractors.amazon_extractor.AmazonExtractor",
     "coslauto": "extractors.coslauto_extractor.CoslautoExtractor",
     "autolux": "extractors.autolux_extractor.GeneratedExtractor",
-    "eduardo": "extractors.desguaceseduardo_extractor.GeneratedExtractor"
+    "eduardo": "extractors.desguaceseduardo_extractor.DesguaceseduardoExtractor"
 }
 
 VAT_RATE = "21%" 

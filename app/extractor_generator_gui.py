@@ -5,47 +5,97 @@ import tkinter as tk
 from tkinter import filedialog, messagebox, scrolledtext, Menu, ttk
 from typing import Dict, List, Tuple, Any, Optional
 import fitz # PyMuPDF
+from PIL import Image    # <-- AÑADIR
+import pytesseract       # <-- AÑADIR
 import importlib.util
 import importlib
 import subprocess
 import json
 import traceback
 
+
+# --- Configuración de OCR (Tesseract) ---
+# Colocar esto después de todas las instrucciones 'import'
+try:
+    # Aseguramos que los módulos existen antes de usarlos
+    if 'pytesseract' in sys.modules and sys.platform == "win32":
+        # ¡AJUSTA ESTA RUTA SI ES NECESARIO!
+        # Si Tesseract no está en el PATH, debe especificarse aquí
+        pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe' 
+    
+except Exception as e:
+    print(f"Advertencia: No se pudo configurar pytesseract. El OCR podría no funcionar. Error: {e}")
+
+
 # --- CONFIGURACIÓN DE RUTAS ---
 EXTRACTORS_DIR = 'extractors'
 
-# --- LÓGICA DE LECTURA DE PDF UNIFICADA ---
+# --- LÓGICA DE LECTURA DE PDF UNIFICADA CORREGIDA (CON FALLBACK OCR) ---
 def _get_pdf_lines(pdf_path: str) -> List[str]:
     """
-    Lee un PDF usando fitz (PyMuPDF) y devuelve una lista de líneas de texto.
+    Lee un PDF usando fitz (PyMuPDF). Si no encuentra texto, intenta OCR (Tesseract).
     """
     lines: List[str] = []
+    file_extension = os.path.splitext(pdf_path)[1].lower()
+
+    # --- Intento 1: Extracción directa de texto (capa de texto) ---
     try:
         doc = fitz.open(pdf_path)
         texto = ''
         for page in doc:
             texto += page.get_text() or ''
         doc.close()
+        
         lines = [line.rstrip() for line in texto.splitlines() if line.strip()]
-        return lines
+        
+        # Si encuentra texto, retorna inmediatamente.
+        if lines:
+            print("✅ Texto extraído correctamente de la capa de texto del PDF.")
+            return lines
+
     except Exception as e:
-        print(f"❌ Error al leer PDF con fitz: {e}")
-        return []
+        print(f"❌ Error al intentar extracción directa de texto con fitz: {e}")
+        pass # Continúa al intento de OCR
 
-# Se necesita la clase BaseInvoiceExtractor en la misma carpeta o accesible en sys.path
-try:
-    # Intenta cargar la base real
-    from base_invoice_extractor import BaseInvoiceExtractor
-except ImportError:
-    # Si falla, define un stub robusto
-    class BaseInvoiceExtractor:
-        """Clase base de simulación (stub)."""
-        # Debe ser compatible con la llamada de __init__ en el extractor generado
-        def __init__(self, lines: List[str] = None, pdf_path: str = None):
-            pass 
-        def extract_data(self, lines: List[str]) -> Dict[str, Any]:
-            return {}
+    # --- Intento 2: OCR si la extensión es PDF y no se encontró texto ---
+    if file_extension == ".pdf" and not lines:
+        print("⚠️ No se encontró capa de texto. Intentando OCR...")
+        try:
+            # Comprobamos que los módulos de OCR estén disponibles
+            if 'pytesseract' in sys.modules and hasattr(sys.modules['pytesseract'], 'image_to_string') and Image is not None:
+                
+                # Reabrimos el documento para la rasterización
+                doc = fitz.open(pdf_path)
+                full_ocr_text = ""
+                
+                # Solo procesamos la primera página para optimizar
+                if len(doc) > 0:
+                    page = doc[0]
+                    # Renderizar la página como imagen (pixmap) a una resolución alta (Matrix(2, 2))
+                    pix = page.get_pixmap(matrix=fitz.Matrix(2, 2))
+                    
+                    # Convertir a imagen de PIL
+                    img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+                    
+                    # Aplicar Tesseract OCR con idioma español
+                    full_ocr_text = pytesseract.image_to_string(img, lang='spa')
+                    
+                    doc.close()
+                    
+                    if full_ocr_text.strip():
+                        lines = [line.rstrip() for line in full_ocr_text.splitlines() if line.strip()]
+                        print("✅ Texto extraído correctamente mediante OCR.")
+                        return lines
+                    else:
+                        print("❌ OCR no pudo extraer ningún texto.")
+            else:
+                print("❌ Módulos PIL/pytesseract no disponibles o Tesseract no configurado. El OCR no se ejecutará.")
 
+        except Exception as e:
+            print(f"❌ Error durante el proceso de OCR: {e}")
+    
+    # Si todo falla o no es un PDF
+    return []
 # --- PLANTILLA DEL EXTRACTOR BASE (SIN IMPORTACIÓN, CON COMENTARIO DE REGISTRO) ---
 BASE_EXTRACTOR_TEMPLATE = r"""
 # 🚨 MAPPING SUGERIDO PARA main_extractor_gui.py

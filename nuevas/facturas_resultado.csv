@@ -1,10 +1,19 @@
 ﻿Archivo;Tipo;Fecha;Número de Factura;Emisor;Cliente;CIF;Modelo;Matricula;Base;IVA;Importe;Tasas
-269720_autolux.pdf;COMPRA;29-07-2025;25.068.427;AUTOLUX RECAMBIOS S.L.;NEWSATELITE;B02819530;PARACHOQUES;Referencia;86,51;21,00;104,68 €;No encontrado
-278411_autolux.pdf;COMPRA;29-07-2025;25.077.098;AUTOLUX RECAMBIOS S.L.;NEWSATELITE;B02819530;ESPEJO;Referencia;43,15;21,00;52,21 €;No encontrado
-3519.0825_desguaces eduardo.pdf;COMPRA;25/08/2025;3519.0825;DesguacesEduardo S.L.;NEW SATELITE, S.L.;B-09420274;No encontrado;No encontrado;24,79;No encontrado;24,79 €;No encontrado
-877584_pinchete.pdf;COMPRA;No encontrada;FC I25 0100000940;RECAMBIOS PINCHETE S.L;NEW SATELITE, S.L.;B86898384;No encontrado;NEWSATELITE;51,52;No encontrado;62,34 €;No encontrado
+269720_autolux.pdf;COMPRA;30-07-2025;25.068.427;AUTOLUX RECAMBIOS S.L.;NEW SATELITE, S.L.;B02819530;PARACHOQUES;No encontrado;86,51;21,00;104,68 €;No encontrado
+278411_autolux.pdf;COMPRA;28-08-2025;25.077.098;AUTOLUX RECAMBIOS S.L.;NEW SATELITE, S.L.;B02819530;ESPEJO;No encontrado;43,15;21,00;52,21 €;No encontrado
+3519.0825_desguaces eduardo.pdf;COMPRA;25/08/2025;3519.0825;Desguaces Eduardo S.L.;NEWSATELITE;B-09420274;No encontrado;No encontrado;24,79;21,00;30,00 €;No encontrado
+877584_pinchete.pdf;COMPRA;15/09/2025;FC I25 0100000940;RECAMBIOS PINCHETE S.L;NEW SATELITE, S.L.;B86898384;No encontrado;No encontrado;51,52;21,00;62,34 €;No encontrado
 EMITIDA 25026 FACTURA 9451KWG.pdf;COMPRA;No encontrada;FACTURA;FACTURA;NEW SATELITE, S.L.;B06768873;No encontrado;FACTURA;No encontrado;No encontrado;9.795,00;No encontrado
-FRA JULIO 25 NEW SATELITE_PRADILLA_page_1.pdf;PRADILLA;No encontrada;No encontrado;GESTORIA PRADILLA, S.L.;NEW SATELITE SL;No encontrado;No encontrado;No encontrado;No encontrado;No encontrado;No encontrado;No encontrado
+FRA JULIO 25 NEW SATELITE_PRADILLA_page_1.pdf;COMPRA;15/07/2025;N;PRADILLA;NEW SATELITE, S.L.;B80481369;No encontrado;PRADILLA;No encontrado;No encontrado;No encontrado;No encontrado
+FRA JULIO 25 NEW SATELITE_PRADILLA_page_4.pdf;COMPRA;15/07/2025;N;ps;NEW SATELITE, S.L.;B80481369;No encontrado;gestiona;No encontrado;No encontrado;No encontrado;No encontrado
+FRA JULIO 25 NEW SATELITE_PRADILLA_page_5.pdf;COMPRA;22/07/2025;N;PRADILLA;NEW SATELITE, S.L.;B80481369;No encontrado;PRADILLA;No encontrado;No encontrado;No encontrado;No encontrado
+FRA JULIO 25 NEW SATELITE_PRADILLA_page_6.pdf;COMPRA;22/07/2025;N;efectos de;NEW SATELITE, S.L.;B80481369;No encontrado;geriesas;No encontrado;No encontrado;No encontrado;No encontrado
+FRA JULIO 25 NEW SATELITE_PRADILLA_page_7.pdf;COMPRA;30/07/2025;NOFACTURA;PRADILLA;NEW SATELITE, S.L.;B80481369;No encontrado;PRADILLA;No encontrado;No encontrado;No encontrado;No encontrado
+FRA JUNIO 25 NEW SATELITE_pradilla_page_1.pdf;COMPRA;30/06/2025;N;PRADILLA;NEW SATELITE, S.L.;B80481369;No encontrado;PRADILLA;No encontrado;No encontrado;No encontrado;No encontrado
+FRA JUNIO 25 NEW SATELITE_pradilla_page_2.pdf;COMPRA;30/06/2025;N;PRADILLA;NEW SATELITE, S.L.;B80481369;No encontrado;PRADILLA;17,36;No encontrado;21,00 €;No encontrado
+FRAS AGOSTO 25 NEW SATELITE_PRADILLA_page_1.pdf;COMPRA;26/08/2025;N;PRADILLA;NEW SATELITE, S.L.;B80481369;No encontrado;PRADILLA;No encontrado;No encontrado;No encontrado;No encontrado
+FRAS AGOSTO 25 NEW SATELITE_PRADILLA_page_2.pdf;COMPRA;08/08/2025;N;PRADILLA;NEW SATELITE, S.L.;B80481369;No encontrado;PRADILLA;No encontrado;No encontrado;No encontrado;No encontrado
+FRAS AGOSTO 25 NEW SATELITE_PRADILLA_page_4.pdf;COMPRA;31/08/2025;N;PRADILLA;NEW SATELITE, S.L.;B80481369;No encontrado;PRADILLA;No encontrado;No encontrado;No encontrado;No encontrado
 FV-CR-02-2025-000509_AEMA.pdf;COMPRA;No encontrada;No encontrado;NEUMÁTICOS AEMA, S.A.;NEW SATELITE, S.L.;A28625036;No encontrado;No encontrado;No encontrado;No encontrado;No encontrado;No encontrado
 Minuta 2025_031.pdf;COMPRA;No encontrada;N;CL LAGASCA,;NEW SATELITE, S.L.;07502258A;No encontrado;factura;No encontrado;No encontrado;No encontrado;No encontrado
 RECICLADOS AUTO4 SL_FACTURAV_2025005738FRU_recoautos.pdf;COMPRA;No encontrada;FACTURA;RECOAUTOS DESGUACE PREMIUM, S.L.;NEW SATELITE, S.L.;B40243719;No encontrado;Incrita;No encontrado;No encontrado;No encontrado;No encontrado

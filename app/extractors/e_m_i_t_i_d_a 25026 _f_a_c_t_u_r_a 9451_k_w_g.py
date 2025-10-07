@@ -16,16 +16,15 @@ import re
 # 'segment': Posición de la palabra en la línea (1-based), o un rango (ej. "3-5").
 
 EXTRACTION_MAPPING: Dict[str, Dict[str, Any]] = {
-    'TIPO': {'type': 'FIXED_VALUE', 'value': 'COMPRA'},
-    'FECHA': {'type': 'FIXED', 'segment': 1, 'line': 37},
-    'NUM_FACTURA': {'type': 'FIXED', 'segment': 1, 'line': 36},
-    'EMISOR': {'type': 'FIXED_VALUE', 'value': 'AUTOLUX RECAMBIOS S.L.'},
-    'CLIENTE': {'type': 'FIXED_VALUE', 'value': 'NEW SATELITE, S.L.'},
-    'CIF': {'type': 'FIXED_VALUE', 'value': 'B02819530'},
-    'MODELO': {'type': 'FIXED', 'segment': 2, 'line': 14},
-    'BASE': {'type': 'FIXED', 'segment': 1, 'line': 50},
-    'IVA': {'type': 'FIXED', 'segment': 1, 'line': 52},
-    'IMPORTE': {'type': 'FIXED', 'segment': 1, 'line': 54},
+    'TIPO': {'type': 'FIXED_VALUE', 'value': 'Venta'},
+    'FECHA': {'type': 'FIXED', 'segment': 1, 'line': 8},
+    'EMISOR': {'type': 'FIXED_VALUE', 'value': 'New Satélite, S.L.'},
+    'CLIENTE': {'type': 'FIXED', 'segment': 1, 'line': 11},
+    'CIF': {'type': 'FIXED_VALUE', 'value': 'B85629020'},
+    'MODELO': {'type': 'FIXED', 'segment': 1, 'line': 22},
+    'MATRICULA': {'type': 'FIXED', 'segment': 1, 'line': 25},
+    'BASE': {'type': 'FIXED', 'segment': 2, 'line': 28},
+    'IMPORTE': {'type': 'FIXED', 'segment': 3, 'line': 30},
 
 }
 
