@@ -1,52 +1,36 @@
 
-# 🚨 MAPPING SUGERIDO PARA main_extractor_gui.py
-# Copie la siguiente línea y péguela en el diccionario EXTRACTION_MAPPING en main_extractor_gui.py:
-#
-# "nueva_clave": "extractors.nombre_archivo_extractor.GeneratedExtractor", 
-#
-# Ejemplo (si el archivo generado es 'autolux_extractor.py'):
-# "autolux": "extractors.autolux_extractor.GeneratedExtractor",
-
 from typing import Dict, Any, List, Optional
 import re
-# La clase BaseInvoiceExtractor será INYECTADA en tiempo de ejecución (soluciona ImportError en main_extractor_gui.py).
+# 🚨 IMPORTACIÓN DE BASE INVOICE EXTRACTOR ELIMINADA. 
+# La clase será inyectada en tiempo de ejecución.
 
 # 🚨 EXTRACTION_MAPPING: Define la lógica de extracción.
 # 'type': 'FIXED' (línea absoluta 1-based), 'VARIABLE' (relativa a un texto), o 'FIXED_VALUE' (valor constante).
-# 'segment': Posición de la palabra en la línea (1-based), o un rango (ej. "3-5").
+# 'segment': Posición de la palabra en la línea (1-based).
 
 EXTRACTION_MAPPING: Dict[str, Dict[str, Any]] = {
     'TIPO': {'type': 'FIXED_VALUE', 'value': 'COMPRA'},
     'FECHA': {'type': 'FIXED_VALUE', 'value': '29-07-2025'},
     'NUM_FACTURA': {'type': 'FIXED', 'segment': 1, 'line': 36},
-    'EMISOR': {'type': 'FIXED', 'segment': '3-5', 'line': 64},
-    'CLIENTE': {'type': 'FIXED', 'segment': 1, 'line': 23},
+    'EMISOR': {'type': 'FIXED', 'segment': 1, 'line': 64},
+    'CLIENTE': {'type': 'FIXED_VALUE', 'value': 'NEW SATELITE, S.L.'},
     'CIF': {'type': 'FIXED_VALUE', 'value': 'B02819530'},
     'MODELO': {'type': 'FIXED', 'segment': 1, 'line': 14},
-    'MATRICULA': {'type': 'FIXED_VALUE', 'value': 'Referencia'},
     'BASE': {'type': 'FIXED', 'segment': 1, 'line': 50},
     'IVA': {'type': 'FIXED', 'segment': 1, 'line': 52},
     'IMPORTE': {'type': 'FIXED', 'segment': 1, 'line': 54},
-    'TASAS': {'type': 'FIXED_VALUE', 'value': 'No encontrado'},
 
 }
 
 class GeneratedExtractor(BaseInvoiceExtractor):
     
-    # 🚨 CORRECCIÓN: ACEPTAR explícitamente lines y pdf_path.
-    # Usamos *args y **kwargs para máxima compatibilidad con el __init__ de BaseInvoiceExtractor.
-    def __init__(self, lines: List[str] = None, pdf_path: str = None, *args, **kwargs):
-        # En el extractor generado, toda la lógica de extracción se realiza en extract_data, 
-        # pero es buena práctica llamar al constructor del padre si existe.
+    # FIX: Asegura que el constructor no requiera argumentos, previniendo el error.
+    def __init__(self):
         try:
-             # Intentamos llamar al padre con los argumentos necesarios
-             super().__init__(lines=lines, pdf_path=pdf_path, *args, **kwargs)
+            super().__init__()
         except TypeError:
-             # Si el padre tiene un constructor simple, lo llamamos sin argumentos 
-             try:
-                 super().__init__()
-             except:
-                 pass
+             # Si BaseInvoiceExtractor no tiene __init__ o requiere argumentos que no tenemos, ignoramos.
+             pass
 
     def extract_data(self, lines: List[str]) -> Dict[str, Any]:
         
@@ -87,30 +71,16 @@ class GeneratedExtractor(BaseInvoiceExtractor):
             if line_index is None or not (0 <= line_index < len(lines)):
                 return None
                 
-            # 3. Obtener el segmento (Soporte para rangos "3-5" o índice simple)
-            segment_input = mapping['segment'] # Puede ser int (ej. 3) o str (ej. "3-5")
+            # 3. Obtener el segmento
+            segment_index_0based = mapping['segment'] - 1
             
             try:
                 line_segments = re.split(r'\s+', lines[line_index].strip())
                 line_segments = [seg for seg in line_segments if seg]
                 
-                if isinstance(segment_input, int):
-                    # Caso de segmento único (por índice numérico)
-                    segment_index_0based = segment_input - 1
-                    if 0 <= segment_index_0based < len(line_segments):
-                        return line_segments[segment_index_0based].strip()
-                
-                elif isinstance(segment_input, str) and re.match(r'^\d+-\d+$', segment_input):
-                    # Caso de rango (ej. "3-5")
-                    start_s, end_s = segment_input.split('-')
-                    start_idx = int(start_s) - 1 # 0-based start
-                    end_idx = int(end_s) # 0-based exclusive end
-                    
-                    # Validación de límites
-                    if 0 <= start_idx < end_idx and end_idx <= len(line_segments):
-                        return ' '.join(line_segments[start_idx:end_idx]).strip()
-                    
-            except (ValueError, IndexError, AttributeError):
+                if segment_index_0based < len(line_segments):
+                    return line_segments[segment_index_0based].strip()
+            except Exception:
                 return None
                 
             return None

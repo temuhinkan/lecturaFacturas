@@ -1,12 +1,11 @@
 import os
 import csv
-import PyPDF2
+import PyPDF2 # Usado para contar páginas en la lógica de división
 import shutil
 import fitz # Motor principal para lectura de PDF y rasterización para OCR
 import tempfile 
 import sys 
 import importlib 
-import importlib.util # ¡NECESARIO PARA LA CARGA DINÁMICA!
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk 
 from tkinter.scrolledtext import ScrolledText 
@@ -15,7 +14,7 @@ import subprocess
 import re 
 from PIL import Image
 import pytesseract
-import traceback # Añadido para mejor manejo de errores
+
 
 # --- Configuración de OCR (Tesseract) ---
 try:
@@ -51,51 +50,12 @@ except ImportError:
         def extract_all(self): 
             return ("Tipo_BASE", "Fecha_BASE", "NºFactura_BASE", "Emisor_BASE", "Cliente_BASE", "CIF_BASE", "Modelo_BASE", "Matricula_BASE", 100.0, 82.64, 17.36, 0.0)
         def is_valid(self): return True
-        # Añadir extract_data para la simulación de extractores generados
-        def extract_data(self, lines: List[str]) -> Dict[str, Any]:
-            return {'tipo': 'Tipo_STUB', 'importe': 99.99}
     
     def split_pdf_into_single_page_files(a, b): return [a]
     print("ADVERTENCIA: Usando stubs para BaseInvoiceExtractor y utilidades.")
 
 
-# ----------------------------------------------------------------------
-# 🚨 NUEVA FUNCIÓN: CARGA DINÁMICA CON INYECCIÓN DE DEPENDENCIAS
-# ----------------------------------------------------------------------
-def _load_extractor_class_dynamic(extractor_path_str: str):
-    """
-    Carga dinámicamente una clase de extractor (compatible con extractores generados)
-    inyectando BaseInvoiceExtractor en su namespace para resolver el error 'is not defined'.
-    """
-    try:
-        parts = extractor_path_str.split('.')
-        module_name = ".".join(parts[:-1]) 
-        class_name = parts[-1] 
-
-        module_spec = importlib.util.find_spec(module_name)
-        if not module_spec or not module_spec.origin:
-            raise ImportError(f"No se encontró el archivo del módulo: {module_name}")
-
-        module = importlib.util.module_from_spec(module_spec)
-
-        # 🚨 INYECTAR LA CLASE BASE EN EL ÁMBITO DEL MÓDULO GENERADO
-        BaseInvoiceExtractor_Class = globals().get('BaseInvoiceExtractor')
-        if BaseInvoiceExtractor_Class is None:
-            raise RuntimeError("BaseInvoiceExtractor no está definida en el ámbito global.")
-            
-        module.__dict__['BaseInvoiceExtractor'] = BaseInvoiceExtractor_Class
-
-        sys.modules[module_name] = module
-        module_spec.loader.exec_module(module)
-
-        return getattr(module, class_name)
-
-    except Exception as e:
-        # Relanzar para ser capturado por extraer_datos
-        raise RuntimeError(f"Fallo al cargar la clase {extractor_path_str}. Error: {e}")
-
-
-# --- Mapeo de Clases de Extracción (SIN CAMBIOS) ---
+# --- Mapeo de Clases de Extracción ---
 EXTRACTION_MAPPING = {
     "autodoc": "extractors.autodoc_extractor.AutodocExtractor",
     "stellantis": "extractors.stellantis_extractor.StellantisExtractor",
@@ -133,7 +93,7 @@ EXTRACTION_MAPPING = {
     "adevinta": "extractors.adevinta_extractor.AdevintaExtractor",
     "amazon": "extractors.amazon_extractor.AmazonExtractor",
     "coslauto": "extractors.coslauto_extractor.CoslautoExtractor",
-    "autolux": "extractors.autolux_extractor.GeneratedExtractor",
+    "autolux": "extractors.autolux_extractor.AutoluxExtractor",
     "eduardo": "extractors.desguaceseduardo_extractor.DesguaceseduardoExtractor"
 }
 
@@ -143,7 +103,7 @@ ERROR_DATA: Tuple[Any, ...] = (
 )
 
 # ----------------------------------------------------------------------
-# FUNCIONES AUXILIARES (SIN CAMBIOS)
+# FUNCIONES AUXILIARES (MODIFICADA _get_pdf_lines)
 # ----------------------------------------------------------------------
 
 def _get_pdf_lines(pdf_path: str) -> List[str]:
@@ -166,8 +126,7 @@ def _get_pdf_lines(pdf_path: str) -> List[str]:
         return []
 
 def find_extractor_for_file(file_path: str) -> Optional[str]:
-    """Busca la clase de extractor adecuada para un archivo. (Se mantiene la importación estándar para CIF, 
-       pero se prioriza la búsqueda por palabra clave)."""
+    """Busca la clase de extractor adecuada para un archivo. (Sin cambios)"""
     
     nombre_archivo = os.path.basename(file_path).lower()
     for keyword, class_path in EXTRACTION_MAPPING.items():
@@ -188,8 +147,7 @@ def find_extractor_for_file(file_path: str) -> Optional[str]:
             for keyword, class_path in EXTRACTION_MAPPING.items():
                 try:
                     module_path, class_name = class_path.rsplit('.', 1)
-                    # ⚠️ ESTO PUEDE FALLAR PARA EXTRACTORES GENERADOS, PERO SÓLO ES LA LÓGICA DE CIF
-                    module = importlib.import_module(module_path) 
+                    module = importlib.import_module(module_path)
                     ExtractorClass = getattr(module, class_name)
                         
                     if hasattr(ExtractorClass, 'EMISOR_CIF') and ExtractorClass.EMISOR_CIF.upper() == cif_extraido_base:
@@ -203,12 +161,12 @@ def find_extractor_for_file(file_path: str) -> Optional[str]:
     return None
 
 # ----------------------------------------------------------------------
-# FUNCIÓN PRINCIPAL DE EXTRACCIÓN (extraer_datos CORREGIDA)
+# FUNCIÓN PRINCIPAL DE EXTRACCIÓN (CORREGIDA PARA OCR DIRECTO)
 # ----------------------------------------------------------------------
 
 def extraer_datos(pdf_path: str, debug_mode: bool = False) -> Tuple[Any, ...]:
     """ 
-    Extrae datos usando la nueva lógica de carga dinámica para extractores generados.
+    Extrae datos. Ahora usa PyMuPDF y OCR directo por rasterización (más robusto).
     """
     
     def _pad_data(data: Tuple) -> Tuple:
@@ -220,19 +178,17 @@ def extraer_datos(pdf_path: str, debug_mode: bool = False) -> Tuple[Any, ...]:
     debug_output: str = "" 
     extracted_data_raw: Tuple = tuple() 
     file_extension = os.path.splitext(pdf_path)[1].lower()
-    temp_img_to_delete: Optional[str] = None 
+    temp_img_to_delete: Optional[str] = None # Para la limpieza de imágenes temporales
 
     try:
-        # 1. Manejo de IMÁGENES / 2. Lectura Inicial del PDF con fitz / OCR (Lógica sin cambios)
-        # ... (CÓDIGO DE LECTURA Y OCR DEL PDF ORIGINAL) ...
-        
-        # --- (INICIO del CÓDIGO ORIGINAL de Lectura y OCR) ---
+        # 1. Manejo de IMÁGENES (Archivos .jpg, .png, etc.)
         if file_extension in ['.jpg', '.jpeg', '.png', '.tiff', '.tif']:
             if not Image or not pytesseract:
                  debug_output = "ERROR: OCR (Tesseract/PIL) no disponible para imágenes."
                  return (*_pad_data(extracted_data_raw), debug_output)
 
             try:
+                 # Ejecutar Tesseract directamente sobre la imagen (pdf_path es la ruta de la imagen)
                  ocr_text = pytesseract.image_to_string(Image.open(pdf_path), lang='spa')
                  lines = [line for line in ocr_text.splitlines() if line.strip()]
                  
@@ -246,29 +202,36 @@ def extraer_datos(pdf_path: str, debug_mode: bool = False) -> Tuple[Any, ...]:
                  debug_output = f"❌ ERROR: Falló el procesamiento OCR de la imagen: {e}"
                  return (*_pad_data(extracted_data_raw), debug_output)
         
-        else:
+        else: # Es un PDF (o extensión no soportada que intentaremos leer)
             if not os.path.exists(pdf_path):
                 debug_output = f"Error: El archivo '{pdf_path}' no existe."
                 return (*_pad_data(extracted_data_raw), debug_output)
             
+            # 2. Lectura Inicial del PDF con fitz (más robusto)
             lines = _get_pdf_lines(pdf_path)
 
+            # 🚨 NUEVA LÓGICA: Manejo de PDF basados en imagen (Sin texto)
             if not lines and file_extension == ".pdf":
                 debug_output += "⚠️ ADVERTENCIA: PDF sin capa de texto legible. Intentando con OCR (Rasterización)... \n"
                 
                 if Image and pytesseract:
                     try:
+                        # 1. Rasterizar (Convertir la primera página a Imagen PNG de alta resolución)
                         doc = fitz.open(pdf_path)
                         page = doc.load_page(0)
+                        
+                        # Matriz para 300 DPI (alta resolución)
                         zoom = 300 / 72  
                         mat = fitz.Matrix(zoom, zoom)
                         pix = page.get_pixmap(matrix=mat, alpha=False)
                         doc.close()
                         
+                        # Guardar la imagen temporalmente
                         temp_img_name = f"ocr_temp_{os.path.splitext(os.path.basename(pdf_path))[0]}.png"
                         temp_img_to_delete = os.path.join(tempfile.gettempdir(), temp_img_name)
                         pix.save(temp_img_to_delete)
 
+                        # 2. Ejecutar Tesseract sobre la imagen
                         ocr_text = pytesseract.image_to_string(Image.open(temp_img_to_delete), lang='spa')
                         
                         lines = [line for line in ocr_text.splitlines() if line.strip()]
@@ -285,14 +248,14 @@ def extraer_datos(pdf_path: str, debug_mode: bool = False) -> Tuple[Any, ...]:
                 else:
                     debug_output += "❌ ERROR: OCR (Tesseract/PIL) no disponible.\n"
                     return (*_pad_data(extracted_data_raw), debug_output)
-        
-        # --- (FIN del CÓDIGO ORIGINAL de Lectura y OCR) ---
-        
-        
+
+
+        # Si todavía no hay líneas (fallo total), salimos
         if not lines:
             debug_output += "Error: No se pudo leer texto del documento (después de todos los intentos)."
             return (*_pad_data(extracted_data_raw), debug_output)
 
+        # Captura de debug
         if debug_mode:
             debug_output += "🔍 DEBUG MODE ACTIVATED: Showing all lines in file\n\n"
             for i, linea in enumerate(lines):
@@ -300,63 +263,26 @@ def extraer_datos(pdf_path: str, debug_mode: bool = False) -> Tuple[Any, ...]:
             debug_output += "\n"
 
 
-        # 3. Mapeo y Carga DINÁMICA del Extractor
+        # 3. Mapeo e Importación Dinámica del Extractor
         full_class_path = find_extractor_for_file(pdf_path) 
+
         doc_path_for_extractor = pdf_path 
         
         if full_class_path:
             debug_output += f"➡️ Extractor encontrado en mapeo: {full_class_path}\n"
-            
-            ExtractorClass = None
             try:
-                # 🚨 USAR LA FUNCIÓN DE CARGA DINÁMICA CON INYECCIÓN
-                ExtractorClass = _load_extractor_class_dynamic(full_class_path)
+                module_path, class_name = full_class_path.rsplit('.', 1)
+                module = importlib.import_module(module_path)
+                ExtractorClass = getattr(module, class_name)
                 
-            except RuntimeError as e:
-                # Si falla la carga dinámica (por ejemplo, el archivo no existe o hay error de sintaxis)
-                debug_output += f"❌ ERROR en la carga dinámica del extractor: {e}\n"
-                print(f"Error de carga dinámica: {e}")
-                # traceback.print_exc() # Descomentar para ver el error completo
-                pass # Continúa al extractor genérico (Fallback)
-            
-            if ExtractorClass:
-                try:
-                    # Instanciar el extractor
-                    extractor = ExtractorClass(lines, doc_path_for_extractor)
-                    
-                    # 🚨 LÓGICA DE EXTRACCIÓN DUAL (Extractor Generado vs. Manual)
-                    if hasattr(extractor, 'extract_data') and callable(getattr(extractor, 'extract_data')):
-                        # Extractor Generado (usa extract_data y devuelve un diccionario)
-                        data_dict = extractor.extract_data(lines)
-                        
-                        # Mapear el diccionario a la tupla de retorno (12 campos requeridos)
-                        extracted_data_raw = (
-                            data_dict.get('tipo'),
-                            data_dict.get('fecha'),
-                            data_dict.get('num_factura'),
-                            data_dict.get('emisor'),
-                            data_dict.get('cliente'),
-                            data_dict.get('cif'),
-                            data_dict.get('modelo'),
-                            data_dict.get('matricula'),
-                            data_dict.get('importe'),
-                            data_dict.get('base'),
-                            data_dict.get('iva'),
-                            data_dict.get('tasas')
-                        )
-                    else:
-                        # Extractor Manual (usa extract_all y devuelve la tupla directamente)
-                        extracted_data_raw = extractor.extract_all()
-                    
-                    debug_output += f"✅ Extracción exitosa con {full_class_path}.\n"
-                    return (*_pad_data(extracted_data_raw), debug_output)
-                    
-                except Exception as e:
-                    # Si falla la ejecución del método (extract_all o extract_data)
-                    debug_output += f"❌ ERROR: Falló la ejecución del extractor para '{full_class_path}'. Error: {e}\n"
-                    print(f"Error de ejecución del extractor: {e}")
-                    # traceback.print_exc() # Descomentar para ver el error completo
-                    # Continúa al extractor genérico
+                extractor = ExtractorClass(lines, doc_path_for_extractor) 
+                extracted_data_raw = extractor.extract_all()
+                
+                return (*_pad_data(extracted_data_raw), debug_output)
+                
+            except Exception as e:
+                debug_output += f"❌ ERROR: Falló la ejecución del extractor para '{full_class_path}'. Error: {e}\n"
+                pass 
         
         # 4. Extractor Genérico (Fallback)
         debug_output += "➡️ No specific invoice type detected or specific extractor failed. Using generic extraction function.\n"
@@ -374,9 +300,8 @@ def extraer_datos(pdf_path: str, debug_mode: bool = False) -> Tuple[Any, ...]:
                 print(f"Advertencia: No se pudo eliminar la imagen temporal OCR: {temp_img_to_delete}. Error: {e}")
 
 # ----------------------------------------------------------------------
-# FUNCIÓN DE EJECUCIÓN (run_extraction) Y CLASE GUI (InvoiceApp)
+# FUNCIÓN DE EJECUCIÓN (run_extraction)
 # ----------------------------------------------------------------------
-# ... (El resto del código de run_extraction e InvoiceApp permanece igual) ...
 
 def run_extraction(ruta_input: str, debug_mode: bool) -> Tuple[List[Dict[str, Any]], str]:
     """ Procesa archivos, incluyendo la división condicional de PDFs. """
@@ -385,7 +310,6 @@ def run_extraction(ruta_input: str, debug_mode: bool) -> Tuple[List[Dict[str, An
         messagebox.showerror("Error", "Debe seleccionar un archivo o directorio para procesar.")
         return [], "" 
 
-    # ... (Resto de la lógica de run_extraction sin cambios) ...
     all_pdfs_to_process: List[str] = [] 
     SUPPORTED_EXTENSIONS = ('.pdf', '.jpg', '.jpeg', '.png', '.tiff', '.tif')
 
@@ -467,7 +391,6 @@ def run_extraction(ruta_input: str, debug_mode: bool) -> Tuple[List[Dict[str, An
         if value is None:
             return 'No encontrado'
         try:
-            # Primero intentar obtener un float, si falla, puede ser porque ya es una cadena formateada
             numeric_val = float(str(value).replace(',', '.').replace('€', '').strip()) 
             formatted = f"{numeric_val:.2f}"
             if is_currency:
@@ -567,8 +490,7 @@ class InvoiceApp:
         self.debug_text_area: Optional[ScrolledText] = None
         self.button_call_generator: Optional[tk.Button] = None 
         self.button_launch_file: Optional[tk.Button] = None    
-        # 🚨 CAMBIO 1: Incluir todos los campos en la tabla
-        self.columns = ['Archivo', 'Tipo', 'Fecha', 'Número de Factura', 'Emisor', 'Cliente', 'CIF', 'Modelo', 'Matricula', 'Base', 'IVA', 'Importe', 'Tasas'] 
+        self.columns = ['Archivo', 'Fecha', 'Número de Factura', 'Emisor', 'Importe', 'Base', 'Modelo'] 
 
         self.results_data: List[Dict[str, Any]] = []
 
@@ -595,8 +517,7 @@ class InvoiceApp:
         self.tree = ttk.Treeview(results_frame, columns=self.columns, show='headings', selectmode='browse')
         for col in self.columns:
             self.tree.heading(col, text=col); 
-            # 🚨 CAMBIO 2: Ajustar anchos para más columnas
-            width = 150 if col == 'Archivo' else (60 if col in ['Tipo', 'IVA', 'Tasas'] else (80 if col in ['Base', 'Importe', 'Fecha'] else 100))
+            width = 150 if col == 'Archivo' else (80 if col in ['Importe', 'Base'] else 120)
             self.tree.column(col, anchor='w', width=width)
         
         vsb = ttk.Scrollbar(results_frame, orient="vertical", command=self.tree.yview)
@@ -672,7 +593,6 @@ class InvoiceApp:
             self.results_data = all_extracted_rows_with_debug 
             
             for i, row in enumerate(self.results_data):
-                # Usar todas las columnas definidas
                 display_values = [row.get(col, 'N/A') for col in self.columns]
                 self.tree.insert('', tk.END, iid=i, values=display_values)
 
@@ -778,22 +698,12 @@ class InvoiceApp:
                 messagebox.showerror("Error", f"Ruta de archivo no válida o inexistente: {ruta_archivo}")
                 return
             
-            # 🚨 CAMBIO 3: Recuperar todos los campos y DebugLines
-            tipo = str(row.get('Tipo', ''))
-            fecha = str(row.get('Fecha', ''))
             num_factura = str(row.get('Número de Factura', ''))
-            emisor = str(row.get('Emisor', ''))
-            cliente = str(row.get('Cliente', ''))
-            cif = str(row.get('CIF', '')) 
-            modelo = str(row.get('Modelo', ''))
-            matricula = str(row.get('Matricula', ''))
+            emisor_extraido = str(row.get('Emisor', ''))
+            cif_extraido = str(row.get('CIF', '')) 
             base = str(row.get('Base', ''))
-            iva = str(row.get('IVA', ''))
             importe = str(row.get('Importe', ''))
-            tasas = str(row.get('Tasas', ''))
-            debug_lines = str(row.get('DebugLines', '')) # AHORA PASAMOS EL TEXTO COMPLETO
             nombre_base_archivo = os.path.splitext(os.path.basename(ruta_archivo))[0]
-            
             
             confirmar = messagebox.askyesno(
                 "Confirmar llamada al Generador",
@@ -804,25 +714,16 @@ class InvoiceApp:
                 return 
             
             try:
-                # 🚨 ARGUMENTOS ACTUALIZADOS (15 TOTALES)
                 comando = [
                     sys.executable, 
                     'extractor_generator_gui.py', 
-                    ruta_archivo,              # 1
-                    nombre_base_archivo,       # 2 (Extractor Name Suggestion)
-                    debug_lines,               # 3 (Debug Lines)
-                    tipo,                      # 4
-                    fecha,                     # 5
-                    num_factura,               # 6
-                    emisor,                    # 7
-                    cliente,                   # 8
-                    cif,                       # 9
-                    modelo,                    # 10
-                    matricula,                 # 11
-                    base,                      # 12
-                    iva,                       # 13
-                    importe,                   # 14
-                    tasas                      # 15
+                    ruta_archivo,
+                    num_factura,
+                    emisor_extraido,
+                    cif_extraido,
+                    base,
+                    importe,
+                    nombre_base_archivo
                 ]
                 
                 subprocess.Popen(comando)

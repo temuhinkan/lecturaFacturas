@@ -1,13 +1,11 @@
-﻿Archivo,Tipo,Fecha,Número de Factura,Emisor,Cliente,CIF,Modelo,Matricula,Base,IVA,Importe,Tasas
-269720_autolux.pdf,COMPRA,30/07/2025,25.068.427,"AUTOLUX RECAMBIOS, S.L.","NEW SATELITE, S.L.",B02819530,KANGOO 13-> DEL.,No encontrado,"86,51",21%,"104,68 €",No encontrado
-278411_autolux.pdf,COMPRA,28/08/2025,25.077.098,"AUTOLUX RECAMBIOS, S.L.","NEW SATELITE, S.L.",B02819530,No encontrado,No encontrado,"43,15",21%,"52,21 €",No encontrado
-3519.0825_desguaces eduardo.pdf,COMPRA,25/08/2025,3519.0825,DesguacesEduardo S.L.,"NEW SATELITE, S.L.",B-09420274,No encontrado,No encontrado,"24,79",21%,"30,00 €",No encontrado
-877584_pinchete.pdf,COMPRA,15/09/2025,FC I25 0100000940,RECAMBIOS PINCHETE S.L,"NEW SATELITE, S.L.",B86898384,No encontrado,NEWSATELITE,"51,52",21%,"62,34 €",No encontrado
-EMITIDA 25026 FACTURA 9451KWG.pdf,COMPRA,01/09/2025,FACTURA,FACTURA,"NEW SATELITE, S.L.",B06768873,No encontrado,FACTURA,No encontrado,21%,"9.795,00",No encontrado
-FRA JULIO 25 NEW SATELITE_PRADILLA_page_1.pdf,COMPRA,No encontrada,No encontrado,No encontrado,"NEW SATELITE, S.L.",No encontrado,No encontrado,No encontrado,No encontrado,21%,No encontrado,No encontrado
-FV-CR-02-2025-000509_AEMA_page_1.pdf,COMPRA,01/07/2025,No encontrado,"NEUMÁTICOS AEMA, S.A.","NEW SATELITE, S.L.",A28625036,"KANGOO, CAPTUR, kangoo",No encontrado,No encontrado,21%,No encontrado,No encontrado
-FV-CR-02-2025-000509_AEMA_page_2.pdf,COMPRA,29/07/2025,No encontrado,"NEUMÁTICOS AEMA, S.A.","NEW SATELITE, S.L.",A28625036,"KANGOO, KANGOO",No encontrado,No encontrado,21%,No encontrado,No encontrado
-FV-CR-02-2025-000509_AEMA_page_3.pdf,COMPRA,14/08/2025,No encontrado,"NEUMÁTICOS AEMA, S.A.","NEW SATELITE, S.L.",A28625036,500,No encontrado,No encontrado,21%,No encontrado,No encontrado
-Minuta 2025_031.pdf,COMPRA,No encontrada,Fecha,"CL LAGASCA,","NEW SATELITE, S.L.",07502258A,No encontrado,2025Mac,"537,19",21%,"650,00 €",No encontrado
-RECICLADOS AUTO4 SL_FACTURAV_2025005738FRU_recoautos.pdf,COMPRA,09/09/2025,2025005738,"RECOAUTOS DESGUACE PREMIUM, S.L.","NEW SATELITE, S.L.",B40243719,No encontrado,3719REC,"0,83",21%,"1,00 €",No encontrado
-RECUPERACIONES VALDIZARBE SL_FACTURAV_2025008093F.pdf,COMPRA,No encontrada,FACTURA,FACTURA DE VENTA,"NEW SATELITE, S.L.",B31275837,No encontrado,FACTURA,No encontrado,21%,No encontrado,No encontrado
+﻿Archivo;Tipo;Fecha;Número de Factura;Emisor;Cliente;CIF;Modelo;Matricula;Base;IVA;Importe;Tasas
+269720_autolux.pdf;COMPRA;29-07-2025;25.068.427;AUTOLUX RECAMBIOS S.L.;NEWSATELITE;B02819530;PARACHOQUES;Referencia;86,51;21,00;104,68 €;No encontrado
+278411_autolux.pdf;COMPRA;29-07-2025;25.077.098;AUTOLUX RECAMBIOS S.L.;NEWSATELITE;B02819530;ESPEJO;Referencia;43,15;21,00;52,21 €;No encontrado
+3519.0825_desguaces eduardo.pdf;COMPRA;25/08/2025;3519.0825;DesguacesEduardo S.L.;NEW SATELITE, S.L.;B-09420274;No encontrado;No encontrado;24,79;No encontrado;24,79 €;No encontrado
+877584_pinchete.pdf;COMPRA;No encontrada;FC I25 0100000940;RECAMBIOS PINCHETE S.L;NEW SATELITE, S.L.;B86898384;No encontrado;NEWSATELITE;51,52;No encontrado;62,34 €;No encontrado
+EMITIDA 25026 FACTURA 9451KWG.pdf;COMPRA;No encontrada;FACTURA;FACTURA;NEW SATELITE, S.L.;B06768873;No encontrado;FACTURA;No encontrado;No encontrado;9.795,00;No encontrado
+FRA JULIO 25 NEW SATELITE_PRADILLA_page_1.pdf;PRADILLA;No encontrada;No encontrado;GESTORIA PRADILLA, S.L.;NEW SATELITE SL;No encontrado;No encontrado;No encontrado;No encontrado;No encontrado;No encontrado;No encontrado
+FV-CR-02-2025-000509_AEMA.pdf;COMPRA;No encontrada;No encontrado;NEUMÁTICOS AEMA, S.A.;NEW SATELITE, S.L.;A28625036;No encontrado;No encontrado;No encontrado;No encontrado;No encontrado;No encontrado
+Minuta 2025_031.pdf;COMPRA;No encontrada;N;CL LAGASCA,;NEW SATELITE, S.L.;07502258A;No encontrado;factura;No encontrado;No encontrado;No encontrado;No encontrado
+RECICLADOS AUTO4 SL_FACTURAV_2025005738FRU_recoautos.pdf;COMPRA;No encontrada;FACTURA;RECOAUTOS DESGUACE PREMIUM, S.L.;NEW SATELITE, S.L.;B40243719;No encontrado;Incrita;No encontrado;No encontrado;No encontrado;No encontrado
+RECUPERACIONES VALDIZARBE SL_FACTURAV_2025008093F.pdf;COMPRA;No encontrada;FACTURA;FACTURA DE VENTA;NEW SATELITE, S.L.;B31275837;No encontrado;FACTURA;No encontrado;No encontrado;No encontrado;No encontrado
