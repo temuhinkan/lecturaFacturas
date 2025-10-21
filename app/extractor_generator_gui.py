@@ -117,7 +117,7 @@ import re
 EXTRACTION_MAPPING: Dict[str, Dict[str, Any]] = {
 # MAPPINGS_GO_HERE
 }
-
+r
 class GeneratedExtractor(BaseInvoiceExtractor):
     
     # 🚨 CORRECCIÓN: ACEPTAR explícitamente lines y pdf_path.
