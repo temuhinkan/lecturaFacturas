@@ -521,6 +521,8 @@ def run_extraction(ruta_input: str, debug_mode: bool) -> Tuple[List[Dict[str, An
             'Tasas': format_numeric_value(tasas, is_currency=False),
             'DebugLines': debug_output 
         }
+        if current_row['IVA'] in ['No encontrado', '']:
+            current_row['IVA'] = '21%'  
         all_extracted_rows_with_debug.append(current_row)
 
     unique_rows_csv = []

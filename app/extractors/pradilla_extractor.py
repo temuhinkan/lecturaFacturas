@@ -1,4 +1,3 @@
-
 # 🚨 MAPPING SUGERIDO PARA main_extractor_gui.py
 # Copie la siguiente línea y péguela en el diccionario EXTRACTION_MAPPING en main_extractor_gui.py:
 #
@@ -33,25 +32,16 @@ EXTRACTION_MAPPING: Dict[str, Dict[str, Any]] = {
 class GeneratedExtractor(BaseInvoiceExtractor):
     
     # 🚨 CORRECCIÓN: ACEPTAR explícitamente lines y pdf_path.
-    # Usamos *args y **kwargs para máxima compatibilidad con el __init__ de BaseInvoiceExtractor.
     def __init__(self, lines: List[str] = None, pdf_path: str = None, *args, **kwargs):
-        # El constructor GeneratedExtractor no necesita llamar a super().__init__ 
-        # si BaseInvoiceExtractor maneja su propia inicialización o si el extractor 
-        # generado solo necesita la función extract_data. 
-        # Si BaseInvoiceExtractor TIENE lógica en __init__, DEBERÍAMOS LLAMARLA.
         try:
              # Intentamos llamar al padre con los argumentos necesarios
              super().__init__(lines=lines, pdf_path=pdf_path, *args, **kwargs)
         except TypeError:
-             # Si el padre tiene un constructor simple, lo llamamos sin argumentos 
-             # (o simplemente no hacemos nada si el padre es un stub vacío)
              try:
                  super().__init__()
              except:
                  pass
         
-        # En el extractor generado, toda la lógica de extracción se realiza en extract_data, 
-        # por lo que no necesitamos almacenar lines aquí.
 
     def extract_data(self, lines: List[str]) -> Dict[str, Any]:
         
@@ -61,7 +51,7 @@ class GeneratedExtractor(BaseInvoiceExtractor):
         def find_reference_line(ref_text: str) -> Optional[int]:
             ref_text_lower = ref_text.lower()
             for i, line in enumerate(lines):
-                if ref_text_lower in line.lower():
+                if line and ref_text_lower in line.lower():
                     return i
             return None
 
@@ -95,8 +85,15 @@ class GeneratedExtractor(BaseInvoiceExtractor):
             # 3. Obtener el segmento
             segment_input = mapping['segment'] # Puede ser int o str de rango ("3-5")
             
+            # 🚨 INICIO DE CORRECCIÓN: EVITAR 'NoneType' object has no attribute 'strip'
+            line_content = lines[line_index]
+            if line_content is None:
+                return None
+            # 🚨 FIN DE CORRECCIÓN
+            
             try:
-                line_segments = re.split(r'\s+', lines[line_index].strip())
+                # Usamos line_content, que está garantizado que no es None.
+                line_segments = re.split(r'\s+', line_content.strip())
                 line_segments = [seg for seg in line_segments if seg]
                 
                 # Check for range support
