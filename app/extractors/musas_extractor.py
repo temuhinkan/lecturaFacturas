@@ -1,7 +1,8 @@
 import re
 import os
 from extractors.base_invoice_extractor import BaseInvoiceExtractor
-from utils import _extract_amount, _extract_nif_cif, _calculate_base_from_total, VAT_RATE, _extract_from_line
+# Asegúrate de importar _calculate_total_from_base para el cálculo inverso
+from utils import _extract_amount, _extract_nif_cif, _calculate_base_from_total, VAT_RATE, _extract_from_line, _calculate_total_from_base
 
 class MusasExtractor(BaseInvoiceExtractor):
     def __init__(self, lines, pdf_path=None):
@@ -47,10 +48,11 @@ class MusasExtractor(BaseInvoiceExtractor):
             super()._extract_fecha()
     
     def _extract_modelo(self):
+        # Busca el modelo 7 líneas después de la etiqueta 'MODELO'
         for i, line in enumerate(self.lines):
             if re.search(r'MODELO', line, re.IGNORECASE):
-                if i + 1 < len(self.lines):
-                    data_line = self.lines[i+1].strip()
+                if i + 7 < len(self.lines):
+                    data_line = self.lines[i+7].strip()
                     if data_line:
                         partes = data_line.split()
                         if partes:
@@ -73,34 +75,45 @@ class MusasExtractor(BaseInvoiceExtractor):
     def _extract_importe_and_base(self):
         self.importe = None
         self.base_imponible = None
-
+        self.iva = None
+        
+        # 1. Búsqueda principal: Encontrar 'TOTAL A PAGAR' y extraer el valor 7 líneas después
         for i, line in enumerate(self.lines):
             if re.search(r"\bTOTAL\s*A\s*PAGAR\b", line, re.IGNORECASE):
-                if i + 1 < len(self.lines):
-                    data_line = self.lines[i+1]
-                    
-                    numeric_strings = re.findall(r'(\d+[,.]\d{2})', data_line)
-                    
-                    if numeric_strings:
-                        extracted_total_str = numeric_strings[-1]
-                        
-                        cleaned_str_from_util = _extract_amount(extracted_total_str)
-                        
-                        if isinstance(cleaned_str_from_util, str):
-                            # Convertir la cadena limpia a float, reemplazando la coma por el punto
-                            self.importe = float(cleaned_str_from_util.replace(',', '.'))
-                        else:
-                            # Si _extract_amount ya devolvió un float, usarlo directamente
-                            self.importe = cleaned_str_from_util
-                        
-                        break 
+                # El valor está consistentemente 7 líneas después de la etiqueta (e.g., 69 - 62 = 7)
+                target_index = i + 7 
                 
-        # Calcular la base a partir de este importe
-        if self.importe is not None and self.base_imponible is None:
-            # **CAMBIO CLAVE AQUÍ:** Convertimos self.importe a str antes de pasarlo a _calculate_base_from_total
-            # para satisfacer la expectativa de que el argumento sea una cadena de texto.
-            self.base_imponible = _calculate_base_from_total(str(self.importe), self.vat_rate) 
-        
-        # Fallback a la superclase si no se pudo extraer el importe o la base imponible
-        if self.importe is None or self.base_imponible is None:
-            super()._extract_importe_and_base()
+                if 0 <= target_index < len(self.lines):
+                    target_line = self.lines[target_index]
+                    
+                    # _extract_amount extrae la cadena numérica (ej. '70,60') ignorando 'EUROS'
+                    extracted_total_str = _extract_amount(target_line)
+                    
+                    if extracted_total_str:
+                        self.importe = extracted_total_str
+                        
+                        # Calcular Base y IVA usando la función de utils.py
+                        self.base_imponible = _calculate_base_from_total(self.importe, self.vat_rate)
+                        
+                        if self.base_imponible:
+                            # Re-ejecutar cálculo para obtener el IVA
+                            _, self.iva = _calculate_total_from_base(self.base_imponible, self.vat_rate)
+
+                        return
+                
+                break # Salir después de encontrar la etiqueta TOTAL A PAGAR
+
+        # 2. Fallback: Buscar Base Imponible y calcular totales
+        if self.base_imponible is None:
+            # La Base Imponible (valor) también está 7 líneas después de su etiqueta (e.g., 66 - 59 = 7)
+            base_pattern = r"Base\s*imponible"
+            for i, line in enumerate(self.lines):
+                if re.search(base_pattern, line, re.IGNORECASE):
+                    target_index = i + 7 
+                    if 0 <= target_index < len(self.lines):
+                        base_amount_str = _extract_amount(self.lines[target_index])
+                        if base_amount_str:
+                            self.base_imponible = base_amount_str
+                            # Calcular Importe y IVA desde la Base Imponible
+                            self.importe, self.iva = _calculate_total_from_base(self.base_imponible, self.vat_rate)
+                            return  

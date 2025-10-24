@@ -13,7 +13,7 @@ from tkinter.scrolledtext import ScrolledText
 from typing import Tuple, List, Optional, Any, Dict 
 import subprocess 
 import re 
-from PIL import Image
+from PIL import Image, ImageTk, ImageDraw # Añadido ImageDraw para crear iconos
 import pytesseract
 import traceback 
 import sqlite3 
@@ -30,9 +30,11 @@ try:
 except ImportError:
     Image = None
     pytesseract = None
+    ImageTk = None 
 except AttributeError:
     Image = None
     pytesseract = None
+    ImageTk = None 
 
 
 # --- Importaciones de Extractor y Utilidades (STUBS/MOCKUPS) ---
@@ -64,11 +66,11 @@ except ImportError:
 DB_NAME = 'facturas_procesadas.db'
 
 def setup_database():
-    """Conecta a la BBDD (o la crea) y asegura que la tabla existe y tiene 'log_data'."""
+    """Conecta a la BBDD (o la crea) y asegura que la tabla existe y tiene 'log_data' y 'is_validated'."""
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
     
-    # Intenta crear la tabla si no existe (sin la nueva columna, si la migración no se ha hecho)
+    # 1. Crear la tabla si no existe
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS processed_invoices (
             path TEXT PRIMARY KEY,
@@ -85,16 +87,25 @@ def setup_database():
             iva REAL,
             importe REAL,
             tasas REAL,
-            procesado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            procesado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            log_data TEXT,
+            is_validated INTEGER DEFAULT 0 -- Columna de validación
         )
     """)
     
-    # 🚨 MIGRACIÓN: Verifica si la columna 'log_data' existe y la añade si no (para bases de datos existentes)
+    # 🚨 MIGRACIÓN: Asegurar que 'log_data' existe
     try:
         cursor.execute("SELECT log_data FROM processed_invoices LIMIT 1")
     except sqlite3.OperationalError:
         print("Migrating DB: Adding 'log_data' column.")
         cursor.execute("ALTER TABLE processed_invoices ADD COLUMN log_data TEXT")
+        
+    # 🚨 NUEVA MIGRACIÓN: Asegurar que 'is_validated' existe
+    try:
+        cursor.execute("SELECT is_validated FROM processed_invoices LIMIT 1")
+    except sqlite3.OperationalError:
+        print("Migrating DB: Adding 'is_validated' column.")
+        cursor.execute("ALTER TABLE processed_invoices ADD COLUMN is_validated INTEGER DEFAULT 0") 
     
     conn.commit()
     conn.close()
@@ -105,7 +116,7 @@ def _clean_numeric_value(value: Any) -> float:
         return 0.0
     try:
         # Intenta convertir a string, reemplaza coma por punto, elimina símbolos y convierte a float.
-        return float(str(value).replace(',', '.').replace('€', '').replace('%', '').strip() or 0.0)
+        return float(str(value).replace(',', '.').replace('€', '').replace('%', '').strip() or 0.0) 
     except ValueError:
         return 0.0
 
@@ -124,8 +135,8 @@ def is_invoice_processed(file_path: str, force_reprocess: bool = False) -> bool:
     conn.close()
     return result is not None
 
-def insert_invoice_data(data: Dict[str, Any], original_path: str):
-    """Inserta o actualiza datos de la factura en la BBDD."""
+def insert_invoice_data(data: Dict[str, Any], original_path: str, is_validated: int = 0):
+    """Inserta o actualiza datos de la factura en la BBDD. Incluye el estado de validación."""
     
     base_val = _clean_numeric_value(data.get('Base'))
     iva_val = _clean_numeric_value(data.get('IVA'))
@@ -143,8 +154,11 @@ def insert_invoice_data(data: Dict[str, Any], original_path: str):
     matricula_val = data.get('Matricula') or ''
     file_name_val = data.get('Archivo') or os.path.basename(original_path)
     
-    # 🚨 NUEVA LÍNEA: Obtener el log/debug
+    # Obtener el log/debug
     log_data_val = data.get('DebugLines') or ''
+    
+    # Obtener el estado de validación
+    validation_status = data.get('is_validated', is_validated)
 
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
@@ -164,18 +178,60 @@ def insert_invoice_data(data: Dict[str, Any], original_path: str):
         iva_val,
         importe_val,
         tasas_val,
-        log_data_val # 🚨 NUEVO: Valor del log
+        log_data_val,
+        validation_status 
     )
     
-    # 🚨 QUERY ACTUALIZADA: Se añade 'log_data' a la lista de columnas
+    # QUERY ACTUALIZADA: Se añade 'is_validated'
     cursor.execute("""
         INSERT OR REPLACE INTO processed_invoices 
-        (path, file_name, tipo, fecha, numero_factura, emisor, cliente, cif, modelo, matricula, base, iva, importe, tasas, log_data)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        (path, file_name, tipo, fecha, numero_factura, emisor, cliente, cif, modelo, matricula, base, iva, importe, tasas, log_data, is_validated)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, invoice_data)
     
     conn.commit()
     conn.close()
+
+def update_invoice_field(file_path: str, db_column: str, new_value: Any):
+    """
+    ACTUALIZACIÓN NUEVA: Actualiza un campo específico de una factura en la BBDD.
+    Se asegura de usar _clean_numeric_value para campos REAL.
+    """
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+    
+    # Mapeo de columnas internas de DB
+    NUMERIC_COLUMNS = ['base', 'iva', 'importe', 'tasas']
+    
+    # Lista segura de columnas permitidas para la actualización
+    ALLOWED_COLUMNS = [
+        'file_name', 'tipo', 'fecha', 'numero_factura', 'emisor', 'cliente', 
+        'cif', 'modelo', 'matricula', 'base', 'iva', 'importe', 'tasas'
+    ]
+    
+    if db_column not in ALLOWED_COLUMNS:
+         print(f"Advertencia: Columna de BBDD no válida para edición: {db_column}")
+         conn.close()
+         return 0
+         
+    # Manejar conversión numérica para campos REAL
+    if db_column in NUMERIC_COLUMNS:
+        new_value = _clean_numeric_value(new_value) 
+
+    # Se usa f-string para el nombre de la columna (ya validado/filtrado) y placeholder '?' para el valor.
+    query = f"UPDATE processed_invoices SET {db_column} = ? WHERE path = ?"
+    
+    try:
+        cursor.execute(query, (new_value, file_path))
+        rows_affected = conn.rowcount
+        conn.commit()
+        return rows_affected
+    except Exception as e:
+        print(f"Error al actualizar la BBDD ({db_column}): {e}")
+        return 0
+    finally:
+        conn.close()
+
 
 def delete_invoice_data(file_paths: List[str]):
     """Elimina uno o varios registros de la factura de la BBDD por su path."""
@@ -199,7 +255,7 @@ def delete_invoice_data(file_paths: List[str]):
         conn.close()
         
 def delete_entire_database_schema():
-    """🚨 NUEVA FUNCIÓN: Elimina la tabla 'processed_invoices' (borrando todos los datos)."""
+    """Elimina la tabla 'processed_invoices' (borrando todos los datos)."""
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
     try:
@@ -243,7 +299,6 @@ def _load_extractor_class_dynamic(extractor_path_str: str):
     except Exception as e:
         raise RuntimeError(f"Fallo al cargar la clase {extractor_path_str}. Error: {e}")
 
-# --- Mapeo de Clases de Extracción (¡CORREGIDO!) ---
 # --- Mapeo de Clases de Extracción ---
 EXTRACTION_MAPPING = {
     "autodoc": "extractors.autodoc_extractor.AutodocExtractor",
@@ -576,7 +631,8 @@ def run_extraction(ruta_input: str, debug_mode: bool, force_reprocess: bool) -> 
         if value is None:
             return 'No encontrado'
         try:
-            numeric_val = float(str(value).replace(',', '.').replace('€', '').strip()) 
+            # CORREGIDO: Usamos la función de limpieza numérica para evitar errores de formato/conversión
+            numeric_val = _clean_numeric_value(value) 
             formatted = f"{numeric_val:.2f}"
             if is_currency:
                 return f"{formatted} €".replace('.', ',')
@@ -615,12 +671,11 @@ def run_extraction(ruta_input: str, debug_mode: bool, force_reprocess: bool) -> 
             os.makedirs(img_procesada_dir, exist_ok=True)
              
             try:
-                # Mueve la imagen original
-                shutil.move(original_image_path, os.path.join(img_procesada_dir, os.path.basename(original_image_path)))
+                 # Mueve la imagen original
+                 shutil.move(original_image_path, os.path.join(img_procesada_dir, os.path.basename(original_image_path)))
             except shutil.Error:
-                pass
-
-
+                 pass
+             
         current_row = {
             'Archivo': display_filename_in_csv.replace(',', '') ,
             '__OriginalPath__': final_path_on_disk,
@@ -636,92 +691,431 @@ def run_extraction(ruta_input: str, debug_mode: bool, force_reprocess: bool) -> 
             "IVA": format_numeric_value(iva, is_currency=False),
             'Importe': format_numeric_value(importe, is_currency=True),
             'Tasas': format_numeric_value(tasas, is_currency=False),
-            'DebugLines': debug_output # 🚨 AHORA SIEMPRE CONTIENE EL LOG COMPLETO DE LA EXTRACCIÓN
+            'DebugLines': debug_output, # AHORA SIEMPRE CONTIENE EL LOG COMPLETO DE LA EXTRACCIÓN
+            'is_validated': 0 # NUEVO: Por defecto, no validada al ser nueva
         }
+        
         if current_row['IVA'] in ['No encontrado', '']:
-            current_row['IVA'] = '21%'  
+            current_row['IVA'] = '21%'
             
         # Guardar en BBDD (usa INSERT OR REPLACE)
-        insert_invoice_data(current_row, final_path_on_disk)
-
+        insert_invoice_data(current_row, final_path_on_disk, is_validated=0)
         all_extracted_rows_with_debug.append(current_row)
 
-    # El CSV sigue generándose con las facturas PROCESADAS en esta ejecución.
-    unique_rows_csv = []
-    seen_combinations = set()
-
-    for row_with_debug in all_extracted_rows_with_debug:
-        row_csv = row_with_debug.copy()
-        row_csv.pop('DebugLines', None) 
-        row_csv.pop('__OriginalPath__', None)
-
-        row_tuple = tuple(sorted((k, v) for k, v in row_csv.items() if k != 'Archivo'))
-        if row_tuple not in seen_combinations:
-            seen_combinations.add(row_tuple)
-            unique_rows_csv.append(row_csv)
-
-    output_dir = os.path.dirname(ruta_input) if os.path.isfile(ruta_input) else ruta_input
-    csv_output_path = os.path.join(output_dir, 'facturas_resultado.csv')
-    
-    try:
-        with open(csv_output_path, 'w', newline='', encoding='utf-8-sig') as csvfile:
-            fieldnames = ['Archivo', 'Tipo', 'Fecha', 'Número de Factura', 'Emisor', 'Cliente', 'CIF', 'Modelo', 'Matricula', "Base", "IVA", 'Importe', 'Tasas']
-            # Usar ';' como delimitador para compatibilidad con Excel
-            writer = csv.DictWriter(csvfile, fieldnames=fieldnames, delimiter=';')
-            writer.writeheader()
-            writer.writerows(unique_rows_csv)
-
-    except Exception as e:
-        messagebox.showerror("Error al escribir CSV", f"No se pudo escribir el archivo CSV: {e}")
-        return [], ""
-    
-    return all_extracted_rows_with_debug, csv_output_path
+    # 🚨 Se elimina la generación de CSV aquí. La nueva función _export_validated_to_csv lo manejará.
+    return all_extracted_rows_with_debug, ""
 
 
 # --- Interfaz Gráfica (Tkinter) (InvoiceApp) ---
 class InvoiceApp:
     def __init__(self, master):
         self.master = master
-        master.title("Extractor de Facturas v2.4 (Log en BBDD y Borrado Total)")
+        master.title("Extractor de Facturas v2.5 (Redimensionable, Validación y Exportación Filtrada)")
         
         self.ruta_input_var = tk.StringVar(value="")
         self.debug_mode_var = tk.BooleanVar(value=False)
         self.debug_mode_var.trace_add("write", self._on_debug_mode_change)
-        
         self.force_reprocess_var = tk.BooleanVar(value=False)
-
+        
         self.tree: Optional[ttk.Treeview] = None
         self.debug_text_area: Optional[ScrolledText] = None
-        self.button_call_generator: Optional[tk.Button] = None 
-        self.button_launch_file: Optional[tk.Button] = None    
+        self.button_call_generator: Optional[tk.Button] = None
+        self.button_launch_file: Optional[tk.Button] = None
         
-        self.columns = ['Archivo', 'Tipo', 'Fecha', 'Número de Factura', 'Emisor', 'Cliente', 'CIF', 'Modelo', 'Matricula', 'Base', 'IVA', 'Importe', 'Tasas'] 
+        # NUEVOS ATRIBUTOS PARA LA EDICIÓN DE CELDAS
+        self._entry_editor = None # Para rastrear el widget Entry activo
 
-        self.results_data: List[Dict[str, Any]] = [] 
-        self.db_data: List[Dict[str, Any]] = []      
+        # Mapeo de columnas de la tabla a los campos de la BBDD
+        self.db_column_map = {
+            'Archivo': 'file_name',
+            'Tipo': 'tipo',
+            'Fecha': 'fecha',
+            'Número de Factura': 'numero_factura',
+            'Emisor': 'emisor',
+            'Cliente': 'cliente',
+            'CIF': 'cif',
+            'Modelo': 'modelo',
+            'Matricula': 'matricula',
+            'Base': 'base',
+            'IVA': 'iva',
+            'Importe': 'importe',
+            'Tasas': 'tasas'
+        }
 
-        setup_database() 
-        self.load_all_data_from_db() 
+        # NUEVO: Añadir 'Validado' como primera columna visible
+        self.columns = ['Validado', 'Archivo', 'Tipo', 'Fecha', 'Número de Factura', 'Emisor', 'Cliente', 'CIF', 'Modelo', 'Matricula', 'Base', 'IVA', 'Importe', 'Tasas']
+        self.results_data: List[Dict[str, Any]] = []
+        self.db_data: List[Dict[str, Any]] = []
         
+        # --- Visor ---
+        self.viewer_canvas: Optional[tk.Canvas] = None
+        self.viewer_scrollbar: Optional[ttk.Scrollbar] = None
+        self.current_image: Optional[tk.PhotoImage] = None
+        self.canvas_image_id = None
+        
+        # NUEVO: Imágenes para el estado de validación
+        self.validated_image: Any = None
+        self.unvalidated_image: Any = None
+        
+        setup_database()
+        self.load_all_data_from_db(is_initial_load=True)
         self.create_widgets()
-        
+
     def _on_debug_mode_change(self, *args):
         if self.tree and self.button_call_generator and self.tree.get_children():
-            if self.debug_mode_var.get() == False:
-                self.button_call_generator['state'] = tk.DISABLED
-            else:
+            # El botón del generador solo se habilita si hay selección Y modo debug activo
+            selected_items = self.tree.selection()
+            if self.debug_mode_var.get() and selected_items:
                 self.button_call_generator['state'] = tk.NORMAL
+            else:
+                self.button_call_generator['state'] = tk.DISABLED
+                
+    def create_widgets(self):
+        # --------------------------------------------------
+        # Configuración de Estilo y Colores
+        # --------------------------------------------------
+        style = ttk.Style()
+        # Configuración general del Treeview
+        style.configure("Treeview", 
+            background="#FFFFFF", 
+            foreground="#000000",
+            fieldbackground="#FFFFFF",
+            rowheight=25 
+        )
+        # Configuración del color de fondo al seleccionar (LightBlue: #ADD8E6)
+        style.map('Treeview',
+            background=[('selected', '#ADD8E6')], 
+            foreground=[('selected', 'black')]
+        )
+        
+        # --- Configuración de Imágenes de Validación ---
+        try:
+            # Check (verde)
+            check_img = Image.new('RGBA', (16, 16), color=(255, 255, 255, 0)) # Transparente
+            draw = ImageDraw.Draw(check_img)
+            draw.rectangle((1, 1, 14, 14), outline='green', fill='light green')
+            # Dibujar un checkmark simple
+            draw.line([(3, 8), (7, 12), (13, 3)], fill='green', width=2)
+            self.validated_image = ImageTk.PhotoImage(check_img)
+            
+            # Uncheck (rojo)
+            uncheck_img = Image.new('RGBA', (16, 16), color=(255, 255, 255, 0))
+            draw = ImageDraw.Draw(uncheck_img)
+            draw.rectangle((1, 1, 14, 14), outline='red', fill='light pink')
+            self.unvalidated_image = ImageTk.PhotoImage(uncheck_img)
+            
+        except Exception:
+             # Fallback a texto si no hay PIL/ImageTk o error
+            self.validated_image = '✅'
+            self.unvalidated_image = '❌'
+        # --------------------------------------------------
+
+        master = self.master
+        
+        # --- Frame Principal (para la tabla y el visor) ---
+        main_frame = ttk.Frame(master, padding="10")
+        main_frame.pack(fill=tk.BOTH, expand=True) 
+        
+        # Configurar la columna principal para que se expanda
+        main_frame.grid_columnconfigure(0, weight=1)
+        main_frame.grid_rowconfigure(1, weight=1)
+
+        # --- Controles de Ruta y Opciones (Fila 0) ---
+        control_frame = ttk.Frame(main_frame)
+        control_frame.grid(row=0, column=0, sticky='ew', pady=(0, 10))
+        control_frame.grid_columnconfigure(1, weight=1)
+        
+        # 1. Selector de Ruta
+        ttk.Label(control_frame, text="Ruta de Archivo/Directorio:").grid(row=0, column=0, padx=5, pady=5, sticky='w')
+        ruta_entry = ttk.Entry(control_frame, textvariable=self.ruta_input_var)
+        ruta_entry.grid(row=0, column=1, padx=5, pady=5, sticky='ew')
+        ttk.Button(control_frame, text="Seleccionar", command=self._select_path).grid(row=0, column=2, padx=5, pady=5)
+
+        # 2. Botón de Procesar
+        ttk.Button(control_frame, text="🔍 Procesar Facturas", command=self._process_files).grid(row=0, column=3, padx=5, pady=5)
+        
+        # 3. Opciones (Debug, Reprocesar, BBDD, Exportar)
+        options_frame = ttk.Frame(control_frame)
+        options_frame.grid(row=1, column=0, columnspan=4, sticky='w')
+        
+        ttk.Checkbutton(options_frame, text="Modo Debug", variable=self.debug_mode_var).pack(side=tk.LEFT, padx=5)
+        ttk.Checkbutton(options_frame, text="Forzar Reprocesado", variable=self.force_reprocess_var).pack(side=tk.LEFT, padx=5)
+        ttk.Button(options_frame, text="Borrar BBDD Completa", command=self._delete_db_dialog).pack(side=tk.LEFT, padx=15)
+        ttk.Button(options_frame, text="Cargar BBDD", command=lambda: self.load_all_data_from_db(is_initial_load=False)).pack(side=tk.LEFT, padx=5)
+        # NUEVO BOTÓN: Exportar solo validados
+        ttk.Button(options_frame, text="📄 Exportar CSV (Validados)", command=self._export_validated_to_csv).pack(side=tk.LEFT, padx=5)
+
+
+        # PanedWindow que separa la tabla (izq) del visor (der)
+        self.paned_window = ttk.PanedWindow(main_frame, orient=tk.HORIZONTAL)
+        self.paned_window.grid(row=1, column=0, sticky='nsew', pady=(0, 10))
+        
+        # --- Frame para la Tabla (Resultados) ---
+        tree_frame = ttk.Frame(self.paned_window)
+        # Añadir al PanedWindow, dándole 2 veces más de espacio inicial
+        self.paned_window.add(tree_frame, weight=2) 
+        
+        # 1. Configurar el tree_frame para que el treeview dentro se expanda
+        tree_frame.grid_rowconfigure(0, weight=1)
+        tree_frame.grid_columnconfigure(0, weight=1)
+
+        # Scrollbar vertical
+        vsb = ttk.Scrollbar(tree_frame, orient="vertical")
+        vsb.grid(row=0, column=1, sticky='ns')
+        
+        # Scrollbar Horizontal
+        hsb = ttk.Scrollbar(tree_frame, orient="horizontal")
+        hsb.grid(row=1, column=0, sticky='ew')
+        
+        self.tree = ttk.Treeview(
+            tree_frame, 
+            columns=self.columns, 
+            show='headings', 
+            yscrollcommand=vsb.set,
+            xscrollcommand=hsb.set, # Conectar al scroll horizontal
+            selectmode="browse"
+        )
+        
+        # Conectar scrollbars al treeview
+        vsb.config(command=self.tree.yview)
+        hsb.config(command=self.tree.xview) 
+
+        self.tree.grid(row=0, column=0, sticky='nsew') 
+
+        # --- Configuración de Columnas ---
+        min_widths = {
+            'Validado': 50, 'Archivo': 150, 'Tipo': 80, 'Fecha': 90, 'Número de Factura': 120, 
+            'Emisor': 120, 'Cliente': 100, 'CIF': 90, 'Modelo': 80, 
+            'Matricula': 80, 'Base': 80, 'IVA': 60, 'Importe': 90, 'Tasas': 70
+        }
+        
+        for col in self.columns:
+            # Eliminar la coma para que no aparezca en el encabezado
+            display_name = col.replace(',', '') 
+            self.tree.heading(col, text=display_name, command=lambda c=col: self._sort_treeview(c), anchor='center')
+            self.tree.column(col, minwidth=min_widths.get(col, 50), width=min_widths.get(col, 50), stretch=tk.NO, anchor='center')
+
+        # Bind para toggle de validación y para inicio de edición (NUEVO)
+        self.tree.bind('<Button-1>', self._on_cell_click) # NUEVO: Usamos el clic simple para edición/validación
+        
+        # Bind para la selección (dispara la actualización del visor/debug y el estado de los botones)
+        self.tree.bind('<<TreeviewSelect>>', self._on_item_select)
+        # ELIMINADA la línea: self.tree.bind('<Double-1>', self._on_item_double_click) 
+
+        # --- Frame para el Visor de Debug/PDF (Panel Lateral) ---
+        viewer_frame = ttk.Frame(self.paned_window)
+        # Añadir al PanedWindow, dándole 1 vez más de espacio inicial
+        self.paned_window.add(viewer_frame, weight=1) 
+        
+        viewer_frame.grid_rowconfigure(0, weight=1)
+        viewer_frame.grid_rowconfigure(1, weight=1) # El debug/log también se expande
+        viewer_frame.grid_columnconfigure(0, weight=1)
+        
+        # Título para el visor de PDF
+        ttk.Label(viewer_frame, text="Visor de Documento (Página 1)").grid(row=0, column=0, sticky='new', pady=(0, 5))
+        
+        # Canvas para el visor de PDF/Imagen
+        canvas_container = ttk.Frame(viewer_frame)
+        canvas_container.grid(row=0, column=0, sticky='nsew')
+        canvas_container.grid_rowconfigure(0, weight=1)
+        canvas_container.grid_columnconfigure(0, weight=1)
+        
+        self.viewer_canvas = tk.Canvas(canvas_container, bg="white", highlightthickness=0)
+        self.viewer_canvas.grid(row=0, column=0, sticky='nsew')
+        
+        # Scrollbar Vertical para el Canvas
+        self.viewer_scrollbar = ttk.Scrollbar(canvas_container, orient="vertical", command=self.viewer_canvas.yview)
+        self.viewer_scrollbar.grid(row=0, column=1, sticky='ns')
+        self.viewer_canvas.config(yscrollcommand=self.viewer_scrollbar.set)
+        
+        # Enlazar el evento de redimensionamiento
+        self.viewer_canvas.bind('<Configure>', self._on_canvas_resize)
+        self.viewer_canvas.bind('<MouseWheel>', self._on_mousewheel) # Windows/macOS scroll
+        self.viewer_canvas.bind('<Button-4>', self._on_mousewheel) # Linux scroll up
+        self.viewer_canvas.bind('<Button-5>', self._on_mousewheel) # Linux scroll down
+
+
+        # Título para el área de Debug
+        ttk.Label(viewer_frame, text="Log / Debug Lines").grid(row=2, column=0, sticky='new', pady=(10, 5))
+        
+        # Área de texto para debug
+        self.debug_text_area = ScrolledText(viewer_frame, wrap=tk.WORD, height=10, font=('Consolas', 9))
+        self.debug_text_area.grid(row=3, column=0, sticky='nsew')
+        self.debug_text_area.config(state=tk.DISABLED) # Desactivar edición
+
+        # --- Botones de Acción (Generador y Lanzar Archivo) ---
+        action_frame = ttk.Frame(main_frame)
+        action_frame.grid(row=2, column=0, sticky='ew', pady=(10, 0))
+        action_frame.columnconfigure(0, weight=1)
+        action_frame.columnconfigure(1, weight=1)
+
+        self.button_launch_file = ttk.Button(action_frame, text="📂 Abrir Archivo Seleccionado", command=self._launch_selected_file)
+        self.button_launch_file.grid(row=0, column=0, sticky='e', padx=10)
+        self.button_launch_file['state'] = tk.DISABLED
+
+        self.button_call_generator = ttk.Button(action_frame, text="⚙️ Llamar a Generador de Extractor", command=self._call_extractor_generator)
+        self.button_call_generator.grid(row=0, column=1, sticky='w', padx=10)
+        self.button_call_generator['state'] = tk.DISABLED
+
+        # Cargar los datos iniciales
+        self._populate_treeview()
+
+
+    def _on_canvas_resize(self, event):
+        """Ajusta la región de scroll del canvas cuando se redimensiona."""
+        if self.canvas_image_id:
+            bbox = self.viewer_canvas.bbox(self.canvas_image_id)
+            if bbox:
+                # La región de scroll debe ser al menos el tamaño de la imagen.
+                self.viewer_canvas.config(scrollregion=bbox)
+        else:
+            # Si no hay imagen, centrar el mensaje de "Archivo no seleccionado"
+            self._clear_viewer(text="Seleccione una fila de la tabla para ver el documento.")
+
+    def _on_mousewheel(self, event):
+        """Maneja el evento de rueda del ratón para hacer scroll vertical en el canvas."""
+        # Determinar la dirección del scroll
+        if sys.platform == "win32" or sys.platform == "darwin": # Windows/macOS
+            if event.delta > 0:
+                self.viewer_canvas.yview_scroll(-1, "units")
+            else:
+                self.viewer_canvas.yview_scroll(1, "units")
+        else: # Linux
+            if event.num == 4:
+                self.viewer_canvas.yview_scroll(-1, "units")
+            elif event.num == 5:
+                self.viewer_canvas.yview_scroll(1, "units")
+
 
     # --------------------------------------------------
-    # FUNCIONES DE GUI PARA BBDD Y EDICIÓN
+    # FUNCIONES DE VISOR CON SCROLL 
+    # --------------------------------------------------
+    def _clear_viewer(self, text: str):
+        """Helper para limpiar el canvas y mostrar un mensaje, centrado dinámicamente."""
+        if not self.viewer_canvas:
+            return
+        
+        self.viewer_canvas.delete("all")
+        self.current_image = None
+        self.canvas_image_id = None
+        
+        # Asegurarse de que el widget tenga dimensiones antes de calcular el centro
+        self.viewer_canvas.update_idletasks()
+        width = self.viewer_canvas.winfo_width()
+        height = self.viewer_canvas.winfo_height()
+
+        # Muestra el mensaje centrado
+        if width > 1 and height > 1:
+            self.viewer_canvas.create_text(
+                width / 2, 
+                height / 2, 
+                text=text, 
+                fill="black", 
+                anchor="center", 
+                justify="center",
+                width=width - 20 # Limitar el ancho del texto
+            )
+        else:
+            # Si no tiene dimensiones aún, lo colocamos en 5,5 para que se muestre.
+            self.viewer_canvas.create_text(5, 5, text=text, fill="black", anchor="nw") 
+
+        # Resetear el scroll region (importante para evitar scroll vacio)
+        self.viewer_canvas.config(scrollregion=(0, 0, 0, 0))
+
+
+    def _display_file_in_viewer(self, file_path: str):
+        """Muestra la primera página de un PDF o una imagen en el panel lateral CON SCROLL."""
+        if not Image or not ImageTk:
+            self._clear_viewer(text="Visor no disponible (Faltan módulos PIL/ImageTk).")
+            return
+        
+        if not file_path or not os.path.exists(file_path):
+            self._clear_viewer(text="Archivo no encontrado o no válido.")
+            return
+
+        # 1. Limpiar el canvas antes de dibujar
+        self.viewer_canvas.delete("all")
+        self.current_image = None
+        self.canvas_image_id = None
+        
+        temp_img: Optional[Image.Image] = None
+        file_extension = os.path.splitext(file_path)[1].lower()
+
+        try:
+            # --- Lógica de Renderizado (A 150 DPI) ---
+            if file_extension == ".pdf":
+                if not fitz:
+                    self._clear_viewer(text="PyMuPDF (fitz) no disponible para PDFs.")
+                    return
+                    
+                doc = fitz.open(file_path)
+                page = doc.load_page(0)
+                
+                # Renderizar la página a una resolución de 150 DPI
+                DPI = 150
+                zoom = DPI / 72
+                mat = fitz.Matrix(zoom, zoom)
+                pix = page.get_pixmap(matrix=mat, alpha=False)
+                doc.close()
+                
+                pil_img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+                temp_img = pil_img
+                
+            elif file_extension in ['.jpg', '.jpeg', '.png', '.tiff', '.tif']:
+                pil_img = Image.open(file_path)
+                temp_img = pil_img
+            else:
+                self._clear_viewer(text=f"Tipo de archivo no soportado: {file_extension}")
+                return
+
+            # --- Preparación para Tkinter ---
+            # Redimensionar la imagen si es mucho más ancha que el canvas
+            canvas_width = self.viewer_canvas.winfo_width()
+            if canvas_width < 100:
+                 # Esperar a que el canvas se configure
+                self.viewer_canvas.update_idletasks()
+                canvas_width = self.viewer_canvas.winfo_width()
+                if canvas_width < 100:
+                    canvas_width = 300 # Valor por defecto si falla la obtención
+
+            
+            # Si la imagen es más ancha que el canvas (con un margen), redimensionar
+            max_view_width = canvas_width - 20 # Margen de 10px a cada lado
+            if temp_img.width > max_view_width:
+                ratio = max_view_width / temp_img.width
+                new_height = int(temp_img.height * ratio)
+                temp_img = temp_img.resize((max_view_width, new_height), Image.Resampling.LANCZOS)
+                
+            self.current_image = ImageTk.PhotoImage(temp_img)
+
+            # 2. Dibujar en el canvas
+            self.canvas_image_id = self.viewer_canvas.create_image(
+                10, 10, # Pequeño margen
+                image=self.current_image, 
+                anchor="nw"
+            )
+
+            # 3. Configurar la región de scroll para incluir toda la imagen
+            # El bbox devuelve las coordenadas (x1, y1, x2, y2) del elemento en el canvas.
+            bbox = self.viewer_canvas.bbox(self.canvas_image_id) 
+            if bbox:
+                self.viewer_canvas.config(scrollregion=bbox)
+                self.viewer_canvas.yview_moveto(0) # Mover a la parte superior
+        
+        except Exception as e:
+            traceback.print_exc()
+            self._clear_viewer(text=f"Error al mostrar el archivo:\n{e}")
+            
+    # --------------------------------------------------
+    # FUNCIONES DE LÓGICA DE LA APP 
     # --------------------------------------------------
     
-    def format_numeric_value(self, value: Any, is_currency: bool = True) -> str:
-        """ (Función helper para formatear números) """
+    def format_numeric_value(self, value, is_currency: bool = True) -> str:
+        """ Método helper para formatear números (copia de la función en global scope) """
         if value is None:
             return 'No encontrado'
         try:
-            numeric_val = float(str(value).replace(',', '.').replace('€', '').strip()) 
+            numeric_val = _clean_numeric_value(value) 
             formatted = f"{numeric_val:.2f}"
             if is_currency:
                 return f"{formatted} €".replace('.', ',')
@@ -729,478 +1123,575 @@ class InvoiceApp:
         except ValueError:
             return str(value)
 
-    def load_all_data_from_db(self):
-        """Carga todos los datos de la BBDD y actualiza la vista."""
+    def _select_path(self):
+        """Selecciona un archivo o directorio."""
+        path = filedialog.askopenfilename(
+            title="Seleccionar archivo (PDF/Imagen) o Directorio (para procesamiento masivo)",
+            filetypes=[("Documentos soportados", "*.pdf *.jpg *.jpeg *.png *.tiff *.tif")]
+        )
+        if not path:
+            path = filedialog.askdirectory(
+                title="Seleccionar Directorio (para procesamiento masivo)"
+            )
+            
+        if path:
+            self.ruta_input_var.set(path)
+            self.tree.selection_remove(self.tree.selection()) # Limpiar selección previa
+
+    def _process_files(self):
+        """Ejecuta la extracción y actualiza la tabla."""
+        ruta_input = self.ruta_input_var.get()
+        debug_mode = self.debug_mode_var.get()
+        force_reprocess = self.force_reprocess_var.get()
+
+        if not ruta_input:
+            messagebox.showwarning("Advertencia", "Debe seleccionar un archivo o directorio primero.")
+            return
+
+        try:
+            self.results_data, csv_path = run_extraction(ruta_input, debug_mode, force_reprocess)
+            
+            # Después de procesar, recargar todos los datos de la BBDD
+            self.load_all_data_from_db(is_initial_load=False)
+            
+            if self.results_data:
+                messagebox.showinfo("Éxito", f"Procesamiento finalizado. {len(self.results_data)} facturas extraídas/actualizadas.")
+            else:
+                 # Si no se procesó nada, puede ser porque ya estaba todo en la BBDD
+                 messagebox.showinfo("Proceso Terminado", "No se encontraron nuevos archivos para procesar o todos ya estaban en la base de datos (y no se forzó el reprocesado).")
+
+        except Exception as e:
+            traceback.print_exc()
+            messagebox.showerror("Error de Procesamiento", f"Ocurrió un error inesperado durante la extracción: {e}")
+
+    def _export_validated_to_csv(self):
+        """Exporta SOLO las facturas marcadas como validadas a un archivo CSV."""
+        
+        # 1. Filtrar los datos validados
+        validated_rows = [row for row in self.db_data if row.get('is_validated') == 1]
+        
+        if not validated_rows:
+            messagebox.showwarning("Advertencia", "No hay facturas marcadas como validadas para exportar.")
+            return
+
+        # 2. Abrir diálogo para seleccionar dónde guardar
+        csv_output_path = filedialog.asksaveasfilename(
+            defaultextension=".csv",
+            filetypes=[("CSV files", "*.csv")],
+            title="Guardar CSV de Facturas Validadas",
+            initialfile='facturas_validadas_resultado.csv'
+        )
+
+        if not csv_output_path:
+            return
+
+        # 3. Preparar los datos para el CSV
+        csv_data = []
+        # Excluir 'Validado' y campos internos para la exportación
+        fieldnames = ['Archivo', 'Tipo', 'Fecha', 'Número de Factura', 'Emisor', 'Cliente', 'CIF', 'Modelo', 'Matricula', "Base", "IVA", 'Importe', 'Tasas']
+
+        for row_with_debug in validated_rows:
+            row_csv = row_with_debug.copy()
+            # Eliminar campos internos y de debug
+            row_csv.pop('DebugLines', None)
+            row_csv.pop('__OriginalPath__', None)
+            row_csv.pop('is_validated', None)
+            
+            # Asegurar el orden correcto de las columnas y el formato
+            ordered_row = {field: row_csv.get(field, '') for field in fieldnames}
+            csv_data.append(ordered_row)
+            
+        # 4. Escribir el CSV
+        try:
+            with open(csv_output_path, 'w', newline='', encoding='utf-8-sig') as csvfile:
+                # Usar ';' como delimitador para compatibilidad con Excel
+                writer = csv.DictWriter(csvfile, fieldnames=fieldnames, delimiter=';')
+                writer.writeheader()
+                writer.writerows(csv_data)
+                messagebox.showinfo("Éxito", f"Exportación finalizada. {len(validated_rows)} facturas validadas exportadas.\nCSV guardado en: {csv_output_path}")
+
+        except Exception as e:
+            messagebox.showerror("Error al escribir CSV", f"No se pudo escribir el archivo CSV: {e}")
+
+
+    def load_all_data_from_db(self, is_initial_load: bool = False):
+        """Carga todos los datos de la BBDD a self.db_data y repopula la tabla."""
         conn = sqlite3.connect(DB_NAME)
+        conn.row_factory = sqlite3.Row # Permite acceder a las columnas por nombre
+        cursor = conn.cursor()
+        
+        # Selecciona todas las columnas, incluyendo log_data y la NUEVA is_validated
+        cursor.execute("SELECT * FROM processed_invoices ORDER BY procesado_en DESC")
+        
+        self.db_data = []
+        for row in cursor.fetchall():
+            # Crear una fila que coincida con el formato de 'current_row' en run_extraction
+            # NOTA: Los valores numéricos vienen como float, los convertimos a string para mostrar.
+            
+            # NOTA IMPORTANTE: Se ha movido el método format_numeric_value a la clase para que sea accesible
+            
+            formatted_row = {
+                'Archivo': row['file_name'] or os.path.basename(row['path']),
+                '__OriginalPath__': row['path'], # Ruta completa para lanzar/debug
+                'Tipo': row['tipo'],
+                'Fecha': row['fecha'],
+                'Número de Factura': row['numero_factura'],
+                'Emisor': row['emisor'],
+                'Cliente': row['cliente'],
+                'CIF': row['cif'],
+                'Modelo': row['modelo'],
+                'Matricula': row['matricula'],
+                "Base": self.format_numeric_value(row['base'], is_currency=False),
+                "IVA": self.format_numeric_value(row['iva'], is_currency=False),
+                'Importe': self.format_numeric_value(row['importe'], is_currency=True),
+                'Tasas': self.format_numeric_value(row['tasas'], is_currency=False),
+                'DebugLines': row['log_data'] or 'No hay información de log disponible.',
+                'is_validated': row['is_validated'] # NUEVO: Cargar estado de validación
+            }
+            self.db_data.append(formatted_row)
+
+        conn.close()
+        
+        if not is_initial_load and not self.db_data:
+            messagebox.showinfo("Base de Datos", "La base de datos se ha cargado/está vacía.")
+            
+        self._populate_treeview()
+        
+    def _populate_treeview(self):
+        """Limpia y rellena el Treeview con los datos actuales de la BBDD (self.db_data)."""
+        if not self.tree:
+            return
+            
+        # 1. Limpiar todos los elementos existentes
+        for item in self.tree.get_children():
+            self.tree.delete(item)
+            
+        # 2. Insertar los nuevos datos
+        for row_data in self.db_data:
+            # Determinar el valor de visualización para la columna 'Validado'
+            is_validated = row_data.get('is_validated') == 1
+            validation_display = self.validated_image if is_validated else self.unvalidated_image
+            
+            # Construir la lista de valores en el orden de self.columns
+            values = []
+            for col in self.columns:
+                if col == 'Validado':
+                    values.append('') # Usaremos el truco de la imagen para la primera columna
+                else:
+                    values.append(row_data.get(col) or '')
+            
+            # Usar la ruta original como iid (identificador interno) para el mapeo
+            iid = row_data.get('__OriginalPath__')
+            
+            # Insertar la fila
+            # Se pasa un valor vacío en la primera columna para que `item` pueda usar la imagen
+            self.tree.insert('', tk.END, iid=iid, values=values)
+            
+            # Si es imagen (Photoimage), se asocia a la fila (sólo funciona bien en la primera columna)
+            if isinstance(validation_display, tk.PhotoImage):
+                 self.tree.item(iid, image=validation_display)
+            else:
+                 # Si es texto (fallback), lo mostramos en la celda
+                 self.tree.set(iid, 'Validado', validation_display)
+            
+        # Limpiar el visor y el log después de recargar
+        self._clear_viewer(text="Seleccione una fila de la tabla para ver el documento.")
+        if self.debug_text_area:
+            self.debug_text_area.config(state=tk.NORMAL)
+            self.debug_text_area.delete('1.0', tk.END)
+            self.debug_text_area.config(state=tk.DISABLED)
+            
+        self.button_launch_file['state'] = tk.DISABLED
+        self.button_call_generator['state'] = tk.DISABLED
+
+    # --------------------------------------------------
+    # FUNCIONES DE EDICIÓN DE CELDAS (NUEVAS)
+    # --------------------------------------------------
+    def _on_cell_click(self, event):
+        """
+        Maneja el clic simple en una celda para iniciar la edición o el toggle de validación.
+        """
+        
+        # Si hay un editor activo, destrúyelo sin guardar para evitar dobles acciones
+        if self._entry_editor and self._entry_editor.winfo_exists():
+            # Si se hace clic en otro lugar mientras el editor está activo, 
+            # el evento FocusOut debería manejar el guardado, pero destruirlo aquí 
+            # previene la superposición si FocusOut falló o el clic es muy rápido.
+            self._entry_editor.destroy()
+            self._entry_editor = None
+        
+        # 1. Identificar la celda y la columna
+        region = self.tree.identify_region(event.x, event.y)
+        item = self.tree.identify_row(event.y)
+        column_id = self.tree.identify_column(event.x)
+        
+        if not item or region not in ["cell", "tree"]:
+             # Si no hay fila, o se clica en el header/scrollbar, no hacemos nada
+             return 
+
+        column_name = self.tree.heading(column_id, 'text')
+        
+        # A. Si se clica en la columna 'Validado' (#1), hacer toggle
+        if column_id == '#1' or (region == "tree" and self.columns[0] == column_name):
+            self._toggle_validation_on_click(event)
+            return
+
+        # B. Si se clica en cualquier otra columna editable, iniciar edición
+        if column_name in self.db_column_map:
+            
+            # 2. Obtener el valor actual y la posición
+            x, y, width, height = self.tree.bbox(item, column_id)
+            column_index = self.columns.index(column_name)
+            current_value = self.tree.item(item, 'values')[column_index]
+
+            # 3. Crear y posicionar el widget Entry
+            self._entry_editor = ttk.Entry(self.tree)
+            self._entry_editor.insert(0, current_value)
+            self._entry_editor.place(x=x, y=y, width=width, height=height)
+            
+            # 4. Configurar los bindings del editor
+            # El item es el IID del Treeview, que es la ruta completa ('path')
+            self._entry_editor.bind('<Return>', lambda e: self._on_entry_save(item, column_name, self._entry_editor))
+            self._entry_editor.bind('<FocusOut>', lambda e: self._on_entry_save(item, column_name, self._entry_editor))
+            
+            self._entry_editor.focus_set()
+            self._entry_editor.select_range(0, tk.END) # Seleccionar todo el texto para fácil edición
+            
+        else:
+             # Si el clic no fue en una celda editable ni en 'Validado', es solo una selección normal
+             self.tree.selection_set(item)
+             self._on_item_select(None)
+
+
+    def _on_entry_save(self, item_path, column_name, entry_widget):
+        """Guarda el valor de la celda en el Treeview y en la BBDD."""
+        
+        # Evitar guardar si el editor ya ha sido destruido
+        if entry_widget is None or not entry_widget.winfo_exists():
+            return
+            
+        # Si el evento FocusOut se dispara antes que el Return, y el widget ya se destruyó
+        if self._entry_editor is None:
+            return
+
+        new_value = entry_widget.get().strip()
+        
+        column_index = self.columns.index(column_name)
+        current_values = list(self.tree.item(item_path, 'values'))
+        old_value = current_values[column_index]
+
+        # 1. Destruir el editor inmediatamente (antes de guardar)
+        # Esto previene el loop de FocusOut si el guardado tarda.
+        entry_widget.destroy()
+        self._entry_editor = None
+        
+        # Si el valor no cambió, salir
+        if old_value == new_value:
+            return
+
+        # 2. Actualizar la BBDD
+        db_column = self.db_column_map[column_name]
+        rows_affected = update_invoice_field(item_path, db_column, new_value)
+        
+        if rows_affected > 0:
+            # 3. Actualizar el Treeview
+            
+            # Formatear el valor si es numérico para mostrar el formato correcto (con ',')
+            if column_name in ['Base', 'IVA', 'Tasas', 'Importe']:
+                 # Si es una columna numérica, usar el método de formateo de la clase
+                 new_value = self.format_numeric_value(new_value, is_currency=(column_name == 'Importe'))
+                 
+            current_values[column_index] = new_value
+            self.tree.item(item_path, values=current_values)
+            
+            # 4. Recalcular importes si la columna es numérica clave y no es importe (para evitar loops)
+            if column_name in ['Base', 'IVA'] and column_name != 'Importe':
+                 self._recalculate_totals_for_item(item_path)
+                 
+            # 5. Actualizar la caché de la aplicación (self.db_data)
+            # Esto asegura que la carga de la BBDD no sobreescriba el valor
+            selected_row = next((row for row in self.db_data if row.get('__OriginalPath__') == item_path), None)
+            if selected_row:
+                 selected_row[column_name] = new_value # Guardar el valor formateado
+             
+        else:
+            # Mostrar advertencia si no se pudo guardar
+            messagebox.showwarning("Error de Guardado", f"No se pudo guardar el valor '{new_value}' en la BBDD.")
+        
+    def _recalculate_totals_for_item(self, item_path: str):
+        """
+        Intenta recalcular Base, IVA e Importe después de una edición
+        de un campo numérico clave.
+        """
+        
+        # 1. Obtener los valores actuales (incluyendo el valor recién guardado)
+        current_values_list = list(self.tree.item(item_path, 'values'))
         
         try:
-            conn.row_factory = sqlite3.Row 
-            cursor = conn.cursor()
-            
-            # Intenta seleccionar log_data, sino usa ''
-            try:
-                cursor.execute("SELECT *, log_data FROM processed_invoices ORDER BY procesado_en DESC")
-            except sqlite3.OperationalError:
-                 # Fallback si la migración no ha podido añadir la columna (DB antigua no modificada)
-                cursor.execute("SELECT * FROM processed_invoices ORDER BY procesado_en DESC")
-            
-            self.db_data = []
-            
-            for row in cursor.fetchall():
-                # NEW: Manejo de la columna log_data
-                log_data_value = row['log_data'] if 'log_data' in row.keys() else "Cargado de BBDD. Log no guardado."
-                
-                formatted_row = {
-                    'Archivo': row['file_name'],
-                    '__OriginalPath__': row['path'],
-                    'Tipo': row['tipo'] or 'N/A',
-                    'Fecha': row['fecha'] or 'N/A',
-                    'Número de Factura': row['numero_factura'] or 'N/A',
-                    'Emisor': row['emisor'] or 'N/A',
-                    'Cliente': row['cliente'] or 'N/A',
-                    'CIF': row['cif'] or 'N/A',
-                    'Modelo': row['modelo'] or 'N/A',
-                    'Matricula': row['matricula'] or 'N/A',
-                    "Base": self.format_numeric_value(row['base'], is_currency=False),
-                    "IVA": self.format_numeric_value(row['iva'], is_currency=False),
-                    'Importe': self.format_numeric_value(row['importe'], is_currency=True),
-                    'Tasas': self.format_numeric_value(row['tasas'], is_currency=False),
-                    'DebugLines': log_data_value # 🚨 AHORA EL LOG VIENE DE BBDD
-                }
-                self.db_data.append(formatted_row)
-            
-            self._update_treeview_with_data(self.db_data)
-        finally:
-            conn.close()
-        
-    def _update_treeview_with_data(self, data_list: List[Dict[str, Any]]):
-        """Helper para actualizar la tabla con una lista de datos."""
-        if not self.tree: return
-        self.tree.delete(*self.tree.get_children()) # Borra todos los elementos existentes
-        
-        for i, row in enumerate(data_list):
-            display_values = [row.get(col, 'N/A') for col in self.columns]
-            self.tree.insert('', tk.END, iid=str(i), values=display_values) 
+            base_str = current_values_list[self.columns.index('Base')]
+            iva_str = current_values_list[self.columns.index('IVA')]
+            tasas_str = current_values_list[self.columns.index('Tasas')]
 
-    def on_double_click_edit(self, event):
-        """Permite editar el valor de una celda seleccionada y guarda el cambio en BBDD."""
-        if not self.tree.selection():
+            # Limpiar y convertir a float para cálculo
+            base_val = _clean_numeric_value(base_str)
+            iva_val = _clean_numeric_value(iva_str)
+            tasas_val = _clean_numeric_value(tasas_str)
+            
+        except (ValueError, IndexError):
             return
 
-        region = self.tree.identify("region", event.x, event.y)
-        if region != "heading":
-            item_id = self.tree.focus()
-            column_id = self.tree.identify_column(event.x)
-            column_index = int(column_id.replace('#', '')) - 1
-            column_name = self.columns[column_index]
-            
-            if column_name in ['Archivo']: # 'DebugLines' ya no está en las columnas visibles
-                 return 
-            
-            current_value = self.tree.item(item_id, 'values')[column_index]
-
-            entry_edit = tk.Entry(self.tree, width=self.tree.column(column_id, option="width"))
-            entry_edit.insert(0, current_value)
-            
-            x, y, width, height = self.tree.bbox(item_id, column_id)
-            entry_edit.place(x=x, y=y, w=width, h=height)
-            entry_edit.focus()
-
-            def on_edit_finished(event=None):
-                new_value = entry_edit.get()
-                entry_edit.destroy()
-                
-                # Usamos item_id (que es str(index))
-                data_index = int(item_id) 
-                if 0 <= data_index < len(self.db_data):
-                    row_data = self.db_data[data_index]
-                    original_path = row_data.get('__OriginalPath__')
-                    
-                    if new_value != current_value and original_path:
-                        # 1. Actualizar el Treeview
-                        current_values = list(self.tree.item(item_id, 'values'))
-                        current_values[column_index] = new_value
-                        self.tree.item(item_id, values=current_values)
-                        
-                        # 2. Actualizar el diccionario local (db_data)
-                        row_data[column_name] = new_value
-                        
-                        # 3. Guardar el cambio en la BBDD
-                        self._save_update_to_db(original_path, column_name, new_value)
-                    
-            entry_edit.bind('<Return>', on_edit_finished)
-            entry_edit.bind('<FocusOut>', on_edit_finished)
-
-    def _save_update_to_db(self, path: str, column_name: str, new_value: Any):
-        """Guarda un solo cambio en la BBDD."""
+        # Recalcular Importe Total
+        new_importe_val = base_val + iva_val + tasas_val
+        new_importe_str = self.format_numeric_value(new_importe_val, is_currency=True)
         
-        db_column_map = {
-            'Archivo': 'file_name', 'Tipo': 'tipo', 'Fecha': 'fecha', 'Número de Factura': 'numero_factura', 
-            'Emisor': 'emisor', 'Cliente': 'cliente', 'CIF': 'cif', 'Modelo': 'modelo', 
-            'Matricula': 'matricula', 'Base': 'base', 'IVA': 'iva', 'Importe': 'importe', 'Tasas': 'tasas'
-            # log_data no se permite editar
-        }
-        db_column = db_column_map.get(column_name)
+        # 2. Actualizar Treeview y BBDD con el nuevo Importe si es necesario
+        importe_index = self.columns.index('Importe')
+        current_importe_str = current_values_list[importe_index]
         
-        if not db_column:
+        if current_importe_str != new_importe_str:
+            
+            # Guardar en BBDD primero
+            update_invoice_field(item_path, self.db_column_map['Importe'], new_importe_val)
+            
+            # Actualizar Treeview
+            current_values_list[importe_index] = new_importe_str
+            self.tree.item(item_path, values=current_values_list)
+            
+            # Actualizar la caché de la aplicación (self.db_data)
+            selected_row = next((row for row in self.db_data if row.get('__OriginalPath__') == item_path), None)
+            if selected_row:
+                 selected_row['Importe'] = new_importe_str
+
+
+    def _toggle_validation_on_click(self, event):
+        """Alterna el estado de validación al hacer clic en la columna 'Validado'."""
+        if not self.tree:
             return
+            
+        # Ya sabemos que el clic fue en la columna de validación gracias a _on_cell_click
+        selected_item = self.tree.identify_row(event.y)
+        
+        # Encontrar la fila seleccionada en self.db_data por su iid
+        selected_row = next((row for row in self.db_data if row.get('__OriginalPath__') == selected_item), None)
 
+        if selected_row:
+            current_validation_state = selected_row.get('is_validated', 0)
+            new_validation_state = 1 if current_validation_state == 0 else 0
+            
+            # 1. Actualizar la BBDD
+            self._update_db_validation(selected_item, new_validation_state)
+            
+            # 2. Actualizar self.db_data
+            selected_row['is_validated'] = new_validation_state
+            
+            # 3. Actualizar la vista del Treeview
+            validation_display = self.validated_image if new_validation_state == 1 else self.unvalidated_image
+            
+            if isinstance(validation_display, tk.PhotoImage):
+                # Si es imagen, actualizar la imagen asociada a la fila
+                self.tree.set(selected_item, 'Validado', '') 
+                self.tree.item(selected_item, image=validation_display)
+            else:
+                # Si es texto (fallback), lo mostramos en la celda
+                self.tree.set(selected_item, 'Validado', validation_display) 
+
+            # Asegurar que la fila permanezca seleccionada para el visor/log
+            self.tree.selection_set(selected_item)
+            self._on_item_select(None)
+        else:
+            # Si la fila no se encuentra, simplemente seleccionar
+            self.tree.selection_set(selected_item)
+            self._on_item_select(None)
+
+
+    def _update_db_validation(self, file_path: str, is_validated: int):
+        """Actualiza el estado de validación de un registro en la BBDD."""
+        if not file_path:
+            return
+            
         conn = sqlite3.connect(DB_NAME)
         cursor = conn.cursor()
         
-        if db_column in ['base', 'iva', 'importe', 'tasas']:
-            new_value = _clean_numeric_value(new_value)
-
         try:
-            query = f"UPDATE processed_invoices SET {db_column} = ? WHERE path = ?"
-            cursor.execute(query, (new_value, path))
+            cursor.execute("""
+                UPDATE processed_invoices 
+                SET is_validated = ? 
+                WHERE path = ?
+            """, (is_validated, file_path))
             conn.commit()
-            print(f"✅ Actualización BBDD: '{db_column}' de {os.path.basename(path)} a {new_value}")
         except Exception as e:
-            messagebox.showerror("Error de BBDD", f"Fallo al actualizar {column_name} en la BBDD: {e}")
+            messagebox.showerror("Error DB", f"Fallo al actualizar el estado de validación: {e}")
         finally:
             conn.close()
 
-    def export_to_csv_excel(self):
-        """Exporta todos los datos cargados en self.db_data a un archivo CSV."""
-        
-        if not self.db_data:
-            messagebox.showwarning("Advertencia", "No hay datos en la tabla para exportar.")
+    def _on_item_select(self, event):
+        """Maneja la selección de una fila en el Treeview."""
+        if not self.tree:
             return
-
-        file_path = filedialog.asksaveasfilename(
-            defaultextension=".csv",
-            filetypes=[("Archivos CSV", "*.csv")],
-            initialfile="facturas_exportadas.csv",
-            title="Guardar resultados como CSV (compatible con Excel)"
-        )
-
-        if not file_path:
-            return
-
-        try:
-            fieldnames = [col for col in self.columns]
             
-            data_to_write = []
-            for row in self.db_data:
-                clean_row = {k: row.get(k, 'N/A') for k in fieldnames}
-                
-                for k, v in clean_row.items():
-                    if isinstance(v, str):
-                        clean_row[k] = v.replace('€', '').strip().replace(',', '.') 
-
-                data_to_write.append(clean_row)
-
-            with open(file_path, 'w', newline='', encoding='utf-8-sig') as csvfile:
-                # Usar ';' como delimitador y encoding 'utf-8-sig' ayuda a que Excel lo abra correctamente
-                writer = csv.DictWriter(csvfile, fieldnames=fieldnames, delimiter=';')
-                writer.writeheader()
-                writer.writerows(data_to_write)
-
-            messagebox.showinfo("Éxito", f"Datos exportados correctamente a:\n{file_path}")
-
-        except Exception as e:
-            messagebox.showerror("Error de Exportación", f"Fallo al exportar el archivo CSV: {e}")
+        # Si el editor está activo, destruirlo antes de cambiar de foco
+        if self._entry_editor and self._entry_editor.winfo_exists():
+            # No lo destruimos aquí, el FocusOut ya debió haberlo manejado.
+            # Pero si se selecciona otra fila, el FocusOut no se dispara correctamente.
+            # Por simplicidad, si la selección no es la misma, lo manejamos.
+            pass
             
-    def delete_selected_invoices(self):
-        """Elimina las facturas seleccionadas de la GUI y de la BBDD."""
         selected_items = self.tree.selection()
         if not selected_items:
-            messagebox.showwarning("Advertencia", "Seleccione una o más facturas para eliminar.")
-            return
-
-        confirmation = messagebox.askyesno(
-            "Confirmar Eliminación", 
-            f"¿Está seguro que desea eliminar {len(selected_items)} factura(s) de la BBDD?\nEsta acción es irreversible."
-        )
-
-        if not confirmation:
-            return
-
-        paths_to_delete: List[str] = []
-
-        # Recorrer las selecciones para obtener las rutas
-        for item_id in selected_items:
-            # item_id es str(index)
-            data_index = int(item_id)
-            if 0 <= data_index < len(self.db_data):
-                path = self.db_data[data_index].get('__OriginalPath__')
-                if path:
-                    paths_to_delete.append(path)
-        
-        if paths_to_delete:
-            deleted_count = delete_invoice_data(paths_to_delete)
-            messagebox.showinfo("Éxito", f"Se eliminaron {deleted_count} registro(s) de la BBDD.")
-            
-            # Recargar los datos para refrescar la GUI y self.db_data
-            self.load_all_data_from_db()
-
-        else:
-            messagebox.showerror("Error", "No se pudo recuperar la ruta de la factura seleccionada para eliminarla.")
-
-    def delete_entire_database_action(self):
-        """🚨 NUEVO MÉTODO: Maneja la confirmación y el borrado total de la BBDD."""
-        confirmation = messagebox.askyesno(
-            "⚠️ ¡ADVERTENCIA CRÍTICA!",
-            "¿Está ABSOLUTAMENTE seguro de que desea **BORRAR TODOS LOS DATOS** de la base de datos?\n\nEsta acción eliminará de forma PERMANENTE todos los registros de facturas procesadas y no se puede deshacer."
-        )
-        
-        if not confirmation:
-            return
-
-        if delete_entire_database_schema():
-            # 1. Volvemos a inicializar la BBDD (crea la tabla vacía con la estructura correcta)
-            setup_database()
-            # 2. Recargamos la interfaz con la tabla vacía
-            self.load_all_data_from_db()
-            messagebox.showinfo("Éxito", "La base de datos de facturas procesadas ha sido borrada completamente.")
-        else:
-            messagebox.showerror("Error", "Ocurrió un error al intentar borrar la base de datos.")
-
-
-    # --------------------------------------------------
-    # WIDGETS Y EVENTOS DE LA GUI
-    # --------------------------------------------------
-
-    def create_widgets(self):
-        frame_ruta = tk.Frame(self.master, padx=10, pady=10); frame_ruta.pack(fill='x')
-        tk.Label(frame_ruta, text="Ruta a Fichero o Directorio:").pack(side='left', padx=(0, 10))
-        self.entry_ruta = tk.Entry(frame_ruta, textvariable=self.ruta_input_var, width=50); self.entry_ruta.pack(side='left', fill='x', expand=True, padx=(0, 10))
-        tk.Button(frame_ruta, text="Seleccionar...", command=self.select_path).pack(side='left')
-
-        frame_controls = tk.Frame(self.master, padx=10, pady=5); frame_controls.pack(fill='x')
-        
-        tk.Checkbutton(frame_controls, text="Modo Debug (capturar líneas)", variable=self.debug_mode_var).pack(side='left', anchor='w')
-        
-        # NUEVO CHECKBUTTON: Forzar reprocesamiento
-        tk.Checkbutton(frame_controls, text="Forzar Reprocesamiento (Ignorar BBDD) 🔄", variable=self.force_reprocess_var).pack(side='left', anchor='w', padx=(15, 0))
-        
-        tk.Button(frame_controls, text="INICIAR EXTRACCIÓN", command=self.execute_extraction, bg="green", fg="white", font=('Arial', 12, 'bold')).pack(side='right')
-
-        # 🚨 NUEVO FRAME para Botones de Acción de BBDD
-        frame_db_actions = tk.Frame(self.master, padx=10, pady=5); frame_db_actions.pack(fill='x')
-        
-        tk.Button(frame_db_actions, text="📊 Exportar a CSV (Compatible Excel)", command=self.export_to_csv_excel, bg='#4CAF50', fg='white').pack(side='left', padx=(0, 5))
-        
-        # 🚨 NUEVO BOTÓN: Borrado total de la BBDD
-        tk.Button(frame_db_actions, text="💥 BORRAR TODA LA BBDD", command=self.delete_entire_database_action, bg='#FF0000', fg='white', font=('Arial', 10, 'bold')).pack(side='right', padx=(5, 0))
-        
-        tk.Button(frame_db_actions, text="🗑️ Eliminar Seleccionado(s) de BBDD", command=self.delete_selected_invoices, bg='#FF5722', fg='white').pack(side='right')
-
-
-        results_frame = tk.LabelFrame(self.master, text="Resultados de la Extracción (Datos cargados de BBDD)", padx=5, pady=5); results_frame.pack(fill='both', expand=True, padx=10, pady=(10, 5))
-        self.tree = ttk.Treeview(results_frame, columns=self.columns, show='headings', selectmode='extended') 
-        for col in self.columns:
-            self.tree.heading(col, text=col); 
-            width = 150 if col == 'Archivo' else (60 if col in ['Tipo', 'IVA', 'Tasas'] else (80 if col in ['Base', 'Importe', 'Fecha'] else 100))
-            self.tree.column(col, anchor='w', width=width)
-        
-        vsb = ttk.Scrollbar(results_frame, orient="vertical", command=self.tree.yview)
-        self.tree.configure(yscrollcommand=vsb.set)
-        vsb.pack(side='right', fill='y')
-        self.tree.pack(side='top', fill='both', expand=True)
-        self.tree.bind('<<TreeviewSelect>>', self.show_debug_info)
-        self.tree.bind('<Double-1>', self.on_double_click_edit) 
-
-        debug_frame = tk.LabelFrame(self.master, text="Detalle de Líneas Procesadas y Acciones (Log Guardado)", padx=5, pady=5); debug_frame.pack(fill='x', padx=10, pady=(5, 10))
-        self.debug_text_area = ScrolledText(debug_frame, height=8, wrap=tk.WORD, state=tk.DISABLED, font=('Consolas', 9)); self.debug_text_area.pack(side='top', fill='both', expand=True)
-        
-        action_frame = tk.Frame(debug_frame)
-        action_frame.pack(side='bottom', fill='x', pady=(5, 0))
-
-        self.button_launch_file = tk.Button(action_frame, text="➡️ Abrir Archivo Asociado (PDF/Imagen)", command=self.launch_associated_file, bg='#ADD8E6', state=tk.DISABLED)
-        self.button_launch_file.pack(side='left', fill='x', expand=True, padx=(0, 5))
-        
-        self.button_call_generator = tk.Button(action_frame, text="Llamar al Generador de Extractores", command=self.call_external_program_template, bg='#F08080', state=tk.DISABLED)
-        self.button_call_generator.pack(side='right', fill='x', expand=True, padx=(5, 0))
-
-
-    def select_path(self):
-        dir_path = filedialog.askdirectory(title="Seleccionar Directorio con Facturas")
-        if dir_path:
-            self.ruta_input_var.set(dir_path)
-            return
-        
-        file_path = filedialog.askopenfilename(
-            title="Seleccionar Archivo de Factura (PDF/Imagen)",
-            filetypes=[
-                ("Archivos Soportados", "*.pdf *.jpg *.jpeg *.png *.tiff *.tif"),
-                ("Archivos PDF", "*.pdf"),
-                ("Archivos de Imagen", "*.jpg *.jpeg *.png *.tiff *.tif"),
-                ("Todos los Archivos", "*.*")
-            ]
-        )
-        if file_path:
-            self.ruta_input_var.set(file_path)
-
-    def _update_action_buttons_state(self):
-        has_results = bool(self.db_data)
-        is_debug_on = self.debug_mode_var.get()
-        
-        self.button_launch_file['state'] = tk.NORMAL if has_results and self.tree.selection() else tk.DISABLED
-        
-        if self.tree.selection() and is_debug_on:
-            self.button_call_generator['state'] = tk.NORMAL
-        else:
+            # Limpiar si no hay nada seleccionado
+            self.button_launch_file['state'] = tk.DISABLED
             self.button_call_generator['state'] = tk.DISABLED
-
-    def execute_extraction(self):
-        ruta = self.ruta_input_var.get()
-        debug = self.debug_mode_var.get()
-        force_reprocess = self.force_reprocess_var.get() 
-        
-        if not ruta:
-            messagebox.showerror("Error", "Debe seleccionar un archivo o directorio.")
-            return
-
-        self.results_data = []
-        
-        if self.debug_text_area:
-             self.debug_text_area.config(state=tk.NORMAL)
-             self.debug_text_area.delete('1.0', tk.END)
-             self.debug_text_area.insert(tk.END, "Ejecutando la extracción...")
-             self.debug_text_area.config(state=tk.DISABLED)
-        
-        self.master.config(cursor="wait")
-        self.entry_ruta.config(state='disabled')
-        
-        try:
-            # 1. Ejecuta la extracción
-            all_extracted_rows_with_debug, csv_output_path = run_extraction(ruta, debug, force_reprocess)
-            self.results_data = all_extracted_rows_with_debug 
-            
-            # 2. Vuelve a cargar TODOS los datos 
-            self.load_all_data_from_db()
-            
-            if all_extracted_rows_with_debug:
-                 messagebox.showinfo("¡Éxito!", f"Proceso completado. Resultados visibles y escritos en: {csv_output_path}")
-            else:
-                 messagebox.showwarning("Advertencia", "Extracción finalizada. No se procesaron archivos nuevos o no se encontraron datos válidos.")
-
-        except Exception as e:
-            messagebox.showerror("Error de Ejecución", f"Ha ocurrido un error durante la extracción: {e}\n{traceback.format_exc()}")
-            
-        finally:
-            self.master.config(cursor="")
-            self.entry_ruta.config(state='normal')
-            self._update_action_buttons_state() 
+            self._clear_viewer(text="Seleccione una fila de la tabla para ver el documento.")
             if self.debug_text_area:
-                 self.debug_text_area.config(state=tk.NORMAL)
-                 self.debug_text_area.delete('1.0', tk.END)
-                 self.debug_text_area.insert(tk.END, "Extracción finalizada. Seleccione una fila para ver el detalle de las líneas.")
-                 self.debug_text_area.config(state=tk.DISABLED)
-
-    def show_debug_info(self, event):
-        selected_items = self.tree.selection()
-        
-        self.debug_text_area.config(state=tk.NORMAL)
-        self.debug_text_area.delete('1.0', tk.END)
-        
-        if not selected_items:
-            self.debug_text_area.insert(tk.END, "Seleccione una fila para ver el detalle de las líneas procesadas.")
-        else:
-            item_id = selected_items[0] 
-            data_index = int(item_id)
-            
-            if 0 <= data_index < len(self.db_data):
-                row = self.db_data[data_index] 
-                
-                # Usamos el log directamente de self.db_data (que contiene el log guardado o el recién extraído)
-                debug_lines_source = row.get('DebugLines', 'No hay información de debug disponible.')
-
-                summary = (
-                    f"--- RESUMEN DE EXTRACCIÓN ---\n"
-                    f"Archivo: {row.get('Archivo')}\n"
-                    f"Nº Factura: {row.get('Número de Factura')}\n"
-                    f"Emisor: {row.get('Emisor')}\n"
-                    f"Importe: {row.get('Importe')}\n"
-                    f"---------------------------\n\n"
-                )
-                
-                self.debug_text_area.insert(tk.END, summary)
-                self.debug_text_area.insert(tk.END, debug_lines_source)
-                
-
-        self.debug_text_area.config(state=tk.DISABLED)
-        self._update_action_buttons_state()
-
-    def launch_associated_file(self):
-        selected_items = self.tree.selection()
-        if not selected_items:
-            messagebox.showwarning("Advertencia", "Seleccione primero una factura en la tabla de resultados.")
+                self.debug_text_area.config(state=tk.NORMAL)
+                self.debug_text_area.delete('1.0', tk.END)
+                self.debug_text_area.config(state=tk.DISABLED)
             return
 
-        item_id = selected_items[0] 
-        data_index = int(item_id)
+        # Solo procesamos el primer elemento seleccionado
+        selected_iid = selected_items[0]
         
-        if 0 <= data_index < len(self.db_data):
-            row = self.db_data[data_index] 
-            file_path = row.get('__OriginalPath__')
+        # Buscar el elemento en self.db_data por su iid (que es el __OriginalPath__)
+        selected_row = next((row for row in self.db_data if row.get('__OriginalPath__') == selected_iid), None)
+        
+        if selected_row:
+            file_path = selected_row.get('__OriginalPath__')
+            debug_lines = selected_row.get('DebugLines') or "No hay información de log disponible."
             
-            if not file_path or not os.path.exists(file_path):
-                messagebox.showerror("Error", f"Ruta de archivo no encontrada o archivo inexistente: {file_path}")
-                return
+            # Habilitar botones
+            self.button_launch_file['state'] = tk.NORMAL
+            
+            # Habilitar el botón del generador solo si está en modo debug
+            if self.debug_mode_var.get():
+                self.button_call_generator['state'] = tk.NORMAL
+            else:
+                 self.button_call_generator['state'] = tk.DISABLED
 
-            try:
-                if sys.platform == "win32":
-                    os.startfile(file_path)
-                elif sys.platform == "darwin":
-                    subprocess.run(['open', file_path], check=True)
-                else:
-                    subprocess.run(['xdg-open', file_path], check=True)
+            # Mostrar archivo en el visor
+            self._display_file_in_viewer(file_path)
 
-            except Exception as e:
-                messagebox.showerror("Error al abrir", f"No se pudo abrir el archivo:\n{file_path}\nError: {e}")
+            # Mostrar debug/log en el área de texto
+            if self.debug_text_area:
+                self.debug_text_area.config(state=tk.NORMAL)
+                self.debug_text_area.delete('1.0', tk.END)
+                self.debug_text_area.insert('1.0', debug_lines)
+                self.debug_text_area.config(state=tk.DISABLED)
+                
+    # Eliminado _on_item_double_click
+    def _sort_treeview(self, col):
+        """Ordena el Treeview por la columna seleccionada."""
+        # Obtener los datos actuales de la tabla
+        l = [(self.tree.set(k, col), k) for k in self.tree.get_children('')]
+        
+        # Detección y conversión numérica
+        try:
+            # Intentar limpiar y convertir a float para ordenación numérica
+            cleaned_l = []
+            for item, iid in l:
+                clean_item = str(item).replace('€', '').replace(',', '.').strip()
+                try:
+                    cleaned_l.append((float(clean_item), iid))
+                except ValueError:
+                    cleaned_l.append((item, iid)) # Si no es número, se queda como string
+
+            l = cleaned_l
+            
+        except Exception:
+            # Si hay error, ordenar como strings
+            pass
+            
+        # Determinar si el orden es ascendente o descendente
+        if self.tree.heading(col, "reverse"):
+            l.sort(reverse=True)
+            self.tree.heading(col, reverse=False)
         else:
-            messagebox.showerror("Error", "Error interno al recuperar la información del archivo.")
+            l.sort(reverse=False)
+            self.tree.heading(col, reverse=True)
+            
+        # Reordenar los elementos en el Treeview
+        for index, (val, k) in enumerate(l):
+            self.tree.move(k, '', index)
 
-    
-    def call_external_program_template(self):
+    def _launch_selected_file(self):
+        """Abre el archivo seleccionado en el sistema operativo."""
+        selected_items = self.tree.selection()
+        if selected_items:
+            selected_iid = selected_items[0]
+            selected_row = next((row for row in self.db_data if row.get('__OriginalPath__') == selected_iid), None)
+            
+            if selected_row:
+                ruta_archivo = selected_row.get('__OriginalPath__')
+                if not ruta_archivo or not os.path.exists(ruta_archivo):
+                    messagebox.showerror("Error", "Ruta de archivo no válida.")
+                    return
+                
+                try:
+                    if sys.platform == "win32":
+                        os.startfile(ruta_archivo)
+                    elif sys.platform == "darwin": # macOS
+                        subprocess.call(['open', ruta_archivo])
+                    else: # linux
+                        subprocess.call(['xdg-open', ruta_archivo])
+                        
+                except Exception as e:
+                    messagebox.showerror("Error", f"No se pudo abrir el archivo. Error: {e}")
+
+    def _delete_db_dialog(self):
+        """Muestra un diálogo de confirmación para borrar toda la tabla de la BBDD."""
+        response = messagebox.askyesno(
+            "Confirmación de Borrado",
+            "¿Está seguro de que desea ELIMINAR COMPLETAMENTE la tabla de resultados de la base de datos (se perderán todos los datos)?\n\nEsta acción es IRREVERSIBLE."
+        )
+        if response:
+            if delete_entire_database_schema():
+                messagebox.showinfo("Éxito", "La tabla 'processed_invoices' ha sido eliminada con éxito.")
+                self.db_data = []
+                self._populate_treeview()
+            else:
+                messagebox.showerror("Error", "Fallo al intentar eliminar la tabla de la base de datos.")
+
+    def _call_extractor_generator(self):
+        """Lanza el script extractor_generator_gui.py con los datos de la fila seleccionada. SOLO con botón."""
         selected_items = self.tree.selection()
         if not selected_items:
-            messagebox.showwarning("Advertencia", "Seleccione primero una factura en la tabla de resultados.")
+            messagebox.showwarning("Advertencia", "Debe seleccionar una fila primero.")
             return
+
+        if not self.debug_mode_var.get():
+             messagebox.showwarning("Advertencia", "Debe activar el Modo Debug para lanzar el Generador de Extractor.")
+             return
             
-        item_id = selected_items[0] 
-        data_index = int(item_id)
-        
-        if 0 <= data_index < len(self.db_data):
-            row = self.db_data[data_index]
-            
-            ruta_archivo = row.get('__OriginalPath__', None)
-            
-            if not ruta_archivo or not os.path.exists(ruta_archivo):
-                messagebox.showerror("Error", f"Ruta de archivo no válida o inexistente: {ruta_archivo}")
-                return
-            
-            debug_row = row 
-            
-            tipo = str(debug_row.get('Tipo', ''))
-            fecha = str(debug_row.get('Fecha', ''))
-            num_factura = str(debug_row.get('Número de Factura', ''))
-            emisor = str(debug_row.get('Emisor', ''))
-            cliente = str(debug_row.get('Cliente', ''))
-            cif = str(debug_row.get('CIF', '')) 
-            modelo = str(debug_row.get('Modelo', ''))
-            matricula = str(debug_row.get('Matricula', ''))
-            base = str(debug_row.get('Base', ''))
-            iva = str(debug_row.get('IVA', ''))
-            importe = str(debug_row.get('Importe', ''))
-            tasas = str(debug_row.get('Tasas', ''))
-            # 🚨 Ahora el log viene directamente de la BBDD (o del resultado de la ejecución)
-            debug_lines = str(debug_row.get('DebugLines', '')) 
-            nombre_base_archivo = os.path.splitext(os.path.basename(ruta_archivo))[0]
-            
-            
-            confirmar = messagebox.askyesno(
-                "Confirmar llamada al Generador",
-                f"Se va a lanzar el Generador de Extractores con el archivo:\n\n{os.path.basename(ruta_archivo)}\n\n¿Desea continuar y precargar los datos?"
-            )
-            
-            if not confirmar:
-                return 
-            
+        selected_iid = selected_items[0]
+        selected_row = next((row for row in self.db_data if row.get('__OriginalPath__') == selected_iid), None)
+
+        if selected_row:
             try:
+                # 1. Preparar los datos
+                ruta_archivo = selected_row.get('__OriginalPath__', '')
+                nombre_base_archivo = os.path.splitext(os.path.basename(ruta_archivo))[0]
+                debug_lines = selected_row.get('DebugLines', 'No hay debug data.')
+
+                # Limpiar y obtener valores para pasarlos como argumentos de línea de comandos
+                tipo = selected_row.get('Tipo', '')
+                fecha = selected_row.get('Fecha', '')
+                num_factura = selected_row.get('Número de Factura', '')
+                emisor = selected_row.get('Emisor', '')
+                cliente = selected_row.get('Cliente', '')
+                cif = selected_row.get('CIF', '')
+                modelo = selected_row.get('Modelo', '')
+                matricula = selected_row.get('Matricula', '')
+                
+                # Para Base, IVA, Importe, Tasas: Limpiar para pasar solo el valor numérico (sin '€' ni comas)
+                def clean_for_cli(value_str):
+                    # Usar _clean_numeric_value para la limpieza y luego convertir a string
+                    return str(_clean_numeric_value(value_str))
+
+                base = clean_for_cli(selected_row.get('Base', ''))
+                iva = clean_for_cli(selected_row.get('IVA', ''))
+                importe = clean_for_cli(selected_row.get('Importe', ''))
+                tasas = clean_for_cli(selected_row.get('Tasas', ''))
+
+                # 2. Construir el comando (usando sys.executable para compatibilidad con ejecutables)
                 comando = [
                     sys.executable, 
                     'extractor_generator_gui.py', 

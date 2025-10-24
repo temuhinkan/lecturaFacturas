@@ -1,104 +1,107 @@
 import re
 from extractors.base_invoice_extractor import BaseInvoiceExtractor
-from utils import _extract_amount, _extract_nif_cif, _calculate_base_from_total, VAT_RATE, _extract_from_line
+from utils import _extract_amount, _extract_nif_cif, _calculate_base_from_total, VAT_RATE, _calculate_total_from_base
 
 class RecoautosExtractor(BaseInvoiceExtractor):
     def __init__(self, lines, pdf_path=None):
         super().__init__(lines, pdf_path)
-        # self.emisor will be set in _extract_emisor method to ensure it's not overwritten
-        # self.emisor = "RECOAUTOS DESGUACE PREMIUM, S.L." # Removed from __init__
+        self.vat_rate = VAT_RATE
 
     def _extract_emisor(self):
-        # Explicitly set the issuer for Recoautos
-        self.emisor = "RECOAUTOS DESGUACE PREMIUM, S.L."
-
-    def _extract_numero_factura(self):
-        # El número de factura está en la línea 16, ejemplo: "2025010176/FRU"
-        # La línea completa es "2025010176/FRU 26/05/2025 4300054540Factura Nº Cliente Vendedor Rectifica a Nº Pedido Nº"
-        for i, line in enumerate(self.lines):
-            if i == 16: # Línea donde se espera el número de factura
-                # Captura el primer patrón "YYYYMMDD/ABC" al inicio de la línea
-                match = re.search(r"^(\d{10}/[A-Z]+)", line)
-                if match:
-                    self.numero_factura = match.group(1).strip()
-                    break
-        if self.numero_factura is None:
-            super()._extract_numero_factura()
-
-    def _extract_fecha(self):
-        # La fecha está en la línea 16, ejemplo: "26/05/2025"
-        # La línea completa es "2025010176/FRU 26/05/2025 4300054540Factura Nº Cliente Vendedor Rectifica a Nº Pedido Nº"
-        for i, line in enumerate(self.lines):
-            if i == 16: # Línea donde se espera la fecha
-                # Captura el patrón de fecha DD/MM/YYYY
-                match = re.search(r"(\d{2}/\d{2}/\d{4})", line)
-                if match:
-                    self.fecha = match.group(1).strip()
-                    break
-        if self.fecha is None:
-            super()._extract_fecha()
+        self.emisor = "RECICLADOS AUTO4 SL"
 
     def _extract_cif(self):
-        # El CIF del emisor está en la línea 2, ejemplo: "CIF: B19897925"
-        for i, line in enumerate(self.lines):
-            if i == 2: # Línea donde se espera el CIF del emisor
-                extracted_cif = _extract_nif_cif(line)
+        for line in self.lines:
+            match = re.search(r"CIF:\s*([A-Z0-9]+)", line, re.IGNORECASE)
+            if match:
+                extracted_cif = match.group(1).strip()
                 if extracted_cif and extracted_cif != "B85629020":
                     self.cif = extracted_cif
-                    break
-        if self.cif is None:
-            super()._extract_cif()
+                    return
 
-        def _extract_modelo(self):
-            # El modelo y la matrícula están en la línea 20
-            # Línea 20: " 66,12 € 66,12 € 1,00 CREMALLERA DIRECCION RENAULT KANGOO 5478584"
-            for i, line in enumerate(self.lines):
-                if i == 20: # Línea donde se espera el modelo
-                    match = re.search(r"RENAULT KANGOO", line, re.IGNORECASE)
-                    if match:
-                        self.modelo = match.group(0).strip()
-                        break
-            if self.modelo is None:
-                super()._extract_modelo()
+    def _extract_fecha(self):
+        # Lógica: 2 líneas después de "Fecha" (Línea 19 -> Línea 21: 17/06/2025)
+        print("DEBUG: Intentando extraer Fecha...")
+        for i, line in enumerate(self.lines):
+            if re.search(r"^\s*Fecha\s*$", line.strip(), re.IGNORECASE):
+                print(f"DEBUG: 'Fecha' encontrado en línea {i}")
+                target_index = i + 2
+                if target_index < len(self.lines):
+                    date_line = self.lines[target_index].strip()
+                    date_match = re.search(r'(\d{2}[-/]\d{2}[-/]\d{4})', date_line)
+                    if date_match:
+                        self.fecha = date_match.group(1).strip()
+                        print(f"DEBUG: Fecha encontrada: {self.fecha}")
+                        return
+        self.fecha = None
+        print(f"DEBUG: Fecha final: {self.fecha}")
 
-        def _extract_matricula(self):
-            # Parece que no hay matrícula explícita en el snippet, así que mantendremos el fallback.
-            super()._extract_matricula()
+    def _extract_numero_factura(self):
+        # Lógica: 3 líneas antes de "Factura Nº" (Línea 23 -> Línea 20: 2025000711/FRU)
+        print("DEBUG: Intentando extraer Número de Factura...")
+        for i, line in enumerate(self.lines):
+            if re.search(r"^\s*Factura Nº\s*$", line.strip(), re.IGNORECASE):
+                print(f"DEBUG: 'Factura Nº' encontrado en línea {i}")
+                target_index = i - 3
+                if target_index >= 0:
+                    num_line = self.lines[target_index].strip()
+                    num_match = re.search(r'(\d{10}/FRU)', num_line)
+                    if num_match:
+                        self.numero_factura = num_match.group(1).strip()
+                        print(f"DEBUG: Número de Factura encontrado: {self.numero_factura}")
+                        return
+        self.numero_factura = None
+        print(f"DEBUG: Número de Factura final: {self.numero_factura}")
+    
+    def _extract_modelo(self):
+        # Modelo (VOLKSWAGEN GOLF) está en la línea 38
+        self.modelo = None
+        for i, line in enumerate(self.lines):
+            if i == 38 and re.search(r"VOLKSWAGEN GOLF", line, re.IGNORECASE):
+                self.modelo = "VOLKSWAGEN GOLF"
+                return
+        
+    def _extract_matricula(self):
+        self.matricula = None
 
     def _extract_importe_and_base(self):
-        # Based on debug output:
-        # Line 21: SUBTOTAL % DTO BASE IMPONIBLE % RETENCIÓN RETENCIÓN IVA % IVA
-        # Line 22:  21,00  13,89  0,00  66,12  66,12
-        # Line 23: TOTAL FACTURA
-        # Line 24:  80,01 €
-
-        total_found = False
-        base_found = False
-
+        print("DEBUG: Iniciando extracción de importes...")
+        
+        # --- ANCLA: "TOTAL FACTURA" (Línea 52) ---
+        total_anchor_index = -1
         for i, line in enumerate(self.lines):
-            if i == 23 and "TOTAL FACTURA" in line: # "TOTAL FACTURA" is on line 23
-                # The total importe is on the next line (line 24)
-                if i + 1 < len(self.lines):
-                    self.importe = _extract_amount(self.lines[i+1])
-                    if self.importe:
-                        total_found = True
-            
-            if i == 22: # Base imponible values are on line 22
-                # Extract all numeric values that look like amounts from line 22
-                # Values: "21,00", "13,89", "0,00", "66,12", "66,12"
-                # The base is the 4th value in the sequence (index 3)
-                values_in_line = re.findall(r'\d+(?:[.,]\d{3})*[.,]\d{2}', line)
-                if len(values_in_line) >= 4: # Ensure there are at least 4 values
-                    self.base_imponible = values_in_line[3].strip() # 4th element (index 3) is 66,12
-                    if self.base_imponible:
-                        base_found = True
-        
-        # Fallback to calculation if base not explicitly found but total is.
-        # This part of the logic ensures if the base is not found directly, it's computed.
-        if total_found and not base_found:
-            self.base_imponible = _calculate_base_from_total(self.importe, VAT_RATE)
-        
-        # If both are still None, then use generic fallback from base class
-        if self.importe is None or self.base_imponible is None:
-            super()._extract_importe_and_base()
+            if "TOTAL FACTURA" in line.strip(): # Línea 52
+                total_anchor_index = i
+                print(f"DEBUG: 'TOTAL FACTURA' encontrado en línea {i}")
+                break
 
+        if total_anchor_index != -1:
+            # 1. Importe Total (1 línea después: Línea 53)
+            total_index = total_anchor_index + 1
+            if total_index < len(self.lines):
+                line_with_total = self.lines[total_index].strip()
+                print(f"DEBUG: Línea de Importe Total ({total_index}): '{line_with_total}'")
+                total_match = re.search(r'([\d\.,]+)', line_with_total)
+                if total_match:
+                    self.importe = _extract_amount(total_match.group(1)) # Formato '90,00'
+                    print(f"DEBUG: Importe Total extraído: {self.importe}")
+
+            # 2. Base Imponible (1 línea antes: Línea 51)
+            base_index = total_anchor_index - 1
+            if base_index >= 0:
+                line_with_base = self.lines[base_index].strip()
+                print(f"DEBUG: Línea de Base Imponible ({base_index}): '{line_with_base}'")
+                base_match = re.search(r'([\d\.,]+)', line_with_base)
+                if base_match:
+                    self.base_imponible = _extract_amount(base_match.group(1)) # Formato '74,38'
+                    print(f"DEBUG: Base Imponible extraída: {self.base_imponible}")
+        
+        # 3. IVA (Se extrae de la línea 48, pero para ser más robustos se calcula si tenemos la base)
+        # Si Base e Importe Total están, el IVA es la diferencia o se calcula.
+        # En este caso, lo extraemos de la línea 48, donde está el valor.
+        iva_match = re.search(r'([\d\.,]+)', self.lines[48].strip())
+        if iva_match:
+            self.iva = _extract_amount(iva_match.group(1)) # Formato '15,62'
+            print(f"DEBUG: IVA extraído (L48): {self.iva}")
+
+        print(f"DEBUG: Importes finales: Total={self.importe}, Base={self.base_imponible}, IVA={self.iva}")

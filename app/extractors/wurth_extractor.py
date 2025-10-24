@@ -5,96 +5,100 @@ from utils import _extract_amount, _extract_nif_cif, _calculate_base_from_total,
 class WurthExtractor(BaseInvoiceExtractor):
     def __init__(self, lines, pdf_path=None):
         super().__init__(lines, pdf_path)
-        # El emisor se fijará explícitamente en _extract_emisor para mantener la consistencia
-        # y asegurar que no sea sobrescrito por un valor por defecto antes de la extracción.
+        self.vat_rate = VAT_RATE
 
     def _extract_emisor(self):
         # Fijar directamente el emisor. Para este tipo de factura, es constante.
         self.emisor = "WÜRTH ESPAÑA, S.A."
+        print(f"TRAZA: Emisor fijado: {self.emisor}")
 
     def _extract_numero_factura(self):
-        # El número de factura está en la línea 16: "Nº factura 4733937515" 
-        for line in self.lines: # Iterar sobre todas las líneas en lugar de un índice fijo
-            match = re.search(r"Nº factura\s*(\d+)", line)
-            if match:
-                self.numero_factura = match.group(1).strip()
-                break
-        if self.numero_factura is None:
-            super()._extract_numero_factura()
+        # Lógica: Buscar 'Nº factura' (L30) y tomar el valor en la línea siguiente (L31: 4733937515)
+        print("--- TRAZA: _extract_numero_factura ---")
+        for i, line in enumerate(self.lines):
+            # Busca la etiqueta "Nº factura" en una línea propia
+            if re.search(r"^\s*Nº factura\s*$", line.strip(), re.IGNORECASE):
+                print(f"TRAZA: 'Nº factura' encontrado en línea {i}")
+                # El valor está 1 línea después
+                target_index = i + 1
+                if target_index < len(self.lines):
+                    num_line = self.lines[target_index].strip()
+                    print(f"TRAZA: Línea {target_index} (Valor): '{num_line}'")
+                    # Patrón para capturar solo dígitos
+                    num_match = re.search(r'(\d+)', num_line)
+                    if num_match:
+                        self.numero_factura = num_match.group(1).strip()
+                        print(f"TRAZA: Número de Factura extraído: {self.numero_factura}")
+                        return
+        self.numero_factura = None
+        print(f"TRAZA: Número de Factura final: {self.numero_factura}")
 
     def _extract_fecha(self):
-        # La fecha está en la línea 16: "Fecha 22.04.2025" 
-        for line in self.lines: # Iterar sobre todas las líneas
-            match = re.search(r"Fecha\s*(\d{2}\.\d{2}\.\d{4})", line)
-            if match:
-                # Formatear la fecha de DD.MM.YYYY a DD/MM/YYYY
-                self.fecha = match.group(1).replace('.', '/')
-                break
-        if self.fecha is None:
-            super()._extract_fecha()
-
-    def _extract_cif(self):
-        # El CIF del emisor está en la línea 16: "NIF: ESB85629020" 
-        # También aparece en la línea 25: "NIF: A08472276"  (este es el correcto para Würth)
-        cif_pattern = r"NIF:\s*([A-Z]?\d{8}[A-Z]?)" # Regex más general para NIF/CIF
-        
-        for line in self.lines:
-            match = re.search(cif_pattern, line, re.IGNORECASE)
-            if match:
-                extracted_cif = match.group(1).strip()
-                # Asegurarse de que capturamos el CIF del emisor (A08472276), no el del cliente (B85629020)
-                if extracted_cif == "A08472276":
-                    self.cif = extracted_cif
-                    return # CIF del emisor encontrado, salimos.
-        
-        # Si no se encuentra el CIF específico, se deja que la superclase lo intente
-        if self.cif is None:
-            super()._extract_cif()
-
-    def _extract_modelo(self):
-        # El modelo o descripción del artículo relevante podría estar en la línea 20: "DISCO-ABRAS-ZEBRA-FINE-P3000-D150MM" 
-        # Asumiendo que es una línea completa con la descripción del modelo.
-        self.modelo =""
-        
-
-    def _extract_matricula(self):
-        # No se observa una matrícula explícita en el documento.
-        # Se mantiene el comportamiento de la clase base.
-        self.matricula=""
+        # Lógica: Buscar 'Fecha' (L36) y tomar el valor en la línea siguiente (L37: 22.04.2025)
+        print("--- TRAZA: _extract_fecha ---")
+        date_pattern = r'(\d{2}[-./]\d{2}[-./]\d{4})'
+        for i, line in enumerate(self.lines):
+            # Busca la etiqueta "Fecha" en una línea propia
+            if re.search(r"^\s*Fecha\s*$", line.strip(), re.IGNORECASE):
+                print(f"TRAZA: 'Fecha' encontrado en línea {i}")
+                # El valor está 1 línea después
+                target_index = i + 1
+                if target_index < len(self.lines):
+                    date_line = self.lines[target_index].strip()
+                    print(f"TRAZA: Línea {target_index} (Valor): '{date_line}'")
+                    # Patrón de fecha DD.MM.YYYY
+                    date_match = re.search(date_pattern, date_line)
+                    if date_match:
+                        # Se normaliza a formato con barras /
+                        self.fecha = date_match.group(1).replace('.', '/').strip() 
+                        print(f"TRAZA: Fecha extraída: {self.fecha}")
+                        return
+        self.fecha = None
+        print(f"TRAZA: Fecha final: {self.fecha}")
 
     def _extract_importe_and_base(self):
-        self.importe = None
-        self.base_imponible = None
-
-        # La tabla con los totales está en la fuente 23.
-        # Basado en la línea: "6,95 ,46,95 ,21,00%,9,86 ,56,81"
-        # Portes EUR, Valor neto EUR (Base Imponible), IVA, Impte. IVA EUR, Importe total EUR
-        # Los valores relevantes están en la misma línea debajo de los encabezados.
+        # Los valores están a 5 líneas de distancia de sus respectivas cabeceras de columna.
+        print("--- TRAZA: _extract_importe_and_base ---")
         
+        # Diccionario para almacenar los índices de las anclas
+        anchor_indices = {}
         for i, line in enumerate(self.lines):
-            # Buscar la línea que contiene "Portes EUR" para identificar la tabla de totales.
-            # O directamente la línea que contiene el "Importe total EUR" si es única.
-            if re.search(r"Importe total EUR", line): # Encabezado de la columna 
-                # La siguiente línea (i+1) debería contener los valores numéricos.
-                if i + 1 < len(self.lines):
-                    data_line = self.lines[i+1] # Línea de datos 
-                    
-                    # Regex para capturar números con formato decimal (coma o punto)
-                    # Ex: "6,95", "46,95", "21,00", "9,86", "56,81" 
-                    numeric_strings = re.findall(r'(\d+[,.]\d{2})', data_line)
-                    
-                    if len(numeric_strings) >= 5: # Asegurarse de que tenemos suficientes valores 
-                        # Convertir los strings a float usando _extract_amount
-                        numeric_values_float = [_extract_amount(s) for s in numeric_strings]
-                        
-                        # "Valor neto EUR" es la Base Imponible (segundo valor capturado, índice 1) 
-                        self.base_imponible = numeric_values_float[1] 
-                        
-                        # "Importe total EUR" es el Importe total (quinto valor capturado, índice 4) 
-                        self.importe = numeric_values_float[4]
-                        
-                        break # Salir del bucle una vez encontrados los valores
+            if "Importe total EUR" in line.strip(): 
+                anchor_indices['total'] = i
+            if "Valor neto EUR" in line.strip(): 
+                anchor_indices['base'] = i
+            if "Impte. IVA EUR" in line.strip(): 
+                anchor_indices['iva_amount'] = i
 
-        # Si el importe o la base aún son None después de la extracción, se usa el fallback genérico.
-        if self.importe is None or self.base_imponible is None:
-            super()._extract_importe_and_base()
+        # 1. Extraer Importe Total (5 líneas después de 'Importe total EUR')
+        if 'total' in anchor_indices:
+            total_index = anchor_indices['total'] + 5 
+            if total_index < len(self.lines):
+                line_with_total = self.lines[total_index].strip()
+                print(f"TRAZA: Línea {total_index} (Importe Total): '{line_with_total}'")
+                self.importe = _extract_amount(line_with_total) 
+                print(f"TRAZA: Importe Total extraído: {self.importe}")
+
+        # 2. Extraer Base Imponible (5 líneas después de 'Valor neto EUR')
+        if 'base' in anchor_indices:
+            base_index = anchor_indices['base'] + 5 
+            if base_index < len(self.lines):
+                line_with_base = self.lines[base_index].strip()
+                print(f"TRAZA: Línea {base_index} (Base Imponible): '{line_with_base}'")
+                self.base_imponible = _extract_amount(line_with_base) 
+                print(f"TRAZA: Base Imponible extraída: {self.base_imponible}")
+
+        # 3. Extraer IVA (Importe) (5 líneas después de 'Impte. IVA EUR')
+        if 'iva_amount' in anchor_indices:
+            iva_index = anchor_indices['iva_amount'] + 5 
+            if iva_index < len(self.lines):
+                line_with_iva = self.lines[iva_index].strip()
+                print(f"TRAZA: Línea {iva_index} (IVA Directo): '{line_with_iva}'")
+                self.iva = _extract_amount(line_with_iva)
+                print(f"TRAZA: IVA extraído (directo): {self.iva}")
+
+        # Fallback de la clase base si aún no se encuentran valores.
+        if self.importe is None or self.base_imponible is None or self.iva is None:
+             super()._extract_importe_and_base()
+
+        print(f"TRAZA: Importes finales: Total={self.importe}, Base={self.base_imponible}, IVA={self.iva}")
