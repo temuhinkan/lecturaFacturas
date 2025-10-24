@@ -6,123 +6,156 @@ class VolkswagenExtractor(BaseInvoiceExtractor):
     def __init__(self, lines, pdf_path=None):
         super().__init__(lines, pdf_path)
         self.emisor = "VOLKSWAGEN RENTING, S.A."
-        # El CIF del emisor puede extraerse de la línea "A80185051" o del pie de página.
-        # Lo definimos directamente si es constante, o lo extraemos si varía.
-        # Según la factura de ejemplo, es constante en la parte superior.
-        self.cif = "A80185051" 
+        self.cif = "A80185051" # CIF del emisor
+        self.iva = None
+        self.vat_rate = VAT_RATE
+        print(f"DEBUG VOLKSWAGEN: CIF Emisor inicializado: {self.cif}")
 
     def _extract_emisor(self):
-        # El emisor es constante, definido en __init__
         pass
 
     def _extract_numero_factura(self):
-        # Buscar el número de factura que aparece después de "Nº Factura"
-        # Ejemplo: "Nº Factura : 2415352"
-        for line in self.lines:
-            match = re.search(r'Nº Factura\s*:\s*(\d+)', line)
-            if match:
-                self.numero_factura = match.group(1).strip()
-                return
+        print("DEBUG VOLKSWAGEN: Intentando extraer Número de Factura...")
+        self.numero_factura = _extract_from_lines_with_keyword(
+            self.lines, 
+            r'Nº Factura', 
+            r'(\d+)',
+            look_ahead=1
+        )
+        if self.numero_factura:
+            self.numero_factura = self.numero_factura.strip()
+            print(f"DEBUG VOLKSWAGEN: Número de Factura encontrado: {self.numero_factura}")
+            return
+        print("DEBUG VOLKSWAGEN: Número de Factura no encontrado.")
         super()._extract_numero_factura()
 
     def _extract_fecha(self):
-        # Buscar la fecha que aparece después de "Fecha"
-        # Ejemplo: "Fecha : 02-09-2024"
-        for line in self.lines:
-            match = re.search(r'Fecha\s*:\s*(\d{2}-\d{2}-\d{4})', line)
-            if match:
-                # Convertir a formato DD/MM/YYYY si es necesario para estandarizar
-                day, month, year = match.group(1).split('-')
-                self.fecha = f"{day}/{month}/{year}"
-                return
+        print("DEBUG VOLKSWAGEN: Intentando extraer Fecha...")
+        fecha_raw = _extract_from_lines_with_keyword(
+            self.lines,
+            r'Fecha',
+            r'(\d{2}-\d{2}-\d{4})', 
+            look_ahead=1
+        )
+        if fecha_raw:
+            day, month, year = fecha_raw.split('-')
+            self.fecha = f"{day}/{month}/{year}"
+            print(f"DEBUG VOLKSWAGEN: Fecha encontrada: {self.fecha}")
+            return
+        print("DEBUG VOLKSWAGEN: Fecha no encontrada.")
         super()._extract_fecha()
 
     def _extract_cif(self):
-        # El CIF del emisor es constante, definido en __init__
-        # Intentamos extraer el CIF del cliente si está presente
-        # Cliente: NEW SATELITE, SL.
-        # NIF : B85629020
-        for line in self.lines:
-            match = re.search(r'CIF.\s*:\s*([A-Z]?\d{7}[A-Z]?)', line)
-            if match:
-                # Si el CIF extraído no es el del emisor (que ya está fijado),
-                # asumimos que es el del cliente.
-                extracted_cif = match.group(1).strip()
-                if extracted_cif != self.cif: # Evitar sobrescribir el CIF del emisor si es el primero que encuentra
-                    self.cif = extracted_cif # Esto sobrescribiría el CIF del emisor, cuidado.
-                                             # Si el objetivo es el CIF del *cliente*, necesitarías otro atributo.
-                                             # Por ahora, BaseInvoiceExtractor solo tiene un self.cif
-                                             # que generalmente se usa para el emisor.
-                                             # Para el CIF del cliente, considera añadir self.cif_cliente.
-                    return # Si encuentras un NIF diferente, asúmelo como el del cliente y termina.
-        super()._extract_cif() # Fallback si no encuentra el CIF del cliente
+        # Se mantiene el CIF del emisor (A80185051)
+        print(f"DEBUG VOLKSWAGEN: Verificando CIF. Se mantiene el CIF del Emisor: {self.cif}")
+        pass
 
     def _extract_cliente(self):
         # Cliente: NEW SATELITE, SL.
-        # O también en la dirección: CL SIERRA DE ARACENA 62
+        print("DEBUG VOLKSWAGEN: Intentando extraer Cliente...")
         for i, line in enumerate(self.lines):
             if "Cliente:" in line and i + 1 < len(self.lines):
-                # La siguiente línea o las subsiguientes pueden contener el nombre.
-                # Intentamos capturar hasta la primera coma o salto de línea significativo.
                 client_name_line = self.lines[i+1].strip()
-                # Capturamos el nombre hasta antes de la dirección si está en la misma línea
                 match = re.match(r'([A-Z\s,.]+?)(?:CL|AV|C/|\d)', client_name_line, re.IGNORECASE)
                 if match:
-                    self.cliente = match.group(1).strip().replace('.', '') # Eliminar puntos que puedan ser parte de abreviaturas
+                    self.cliente = match.group(1).strip().replace('.', '')
+                    print(f"DEBUG VOLKSWAGEN: Cliente encontrado: {self.cliente}")
                     return
-                else: # Si no hay patrón de dirección, tomar toda la línea
+                else: 
                      self.cliente = client_name_line
+                     print(f"DEBUG VOLKSWAGEN: Cliente encontrado (sin regex): {self.cliente}")
                      return
         super()._extract_cliente()
 
 
     def _extract_modelo(self):
-        # Ejemplo: "Modelo",": SKODA FABIA"
-        for line in self.lines:
-            match = re.search(r'Modelo\s*:\s*(.+)', line)
-            if match:
-                self.modelo = match.group(1).strip()
-                return
+        # L26: Modelo, L27: : SKODA FABIA
+        print("DEBUG VOLKSWAGEN: Intentando extraer Modelo...")
+        self.modelo = _extract_from_lines_with_keyword(
+            self.lines, 
+            r'Modelo', 
+            r'(.+)', 
+            look_ahead=1 
+        )
+        if self.modelo:
+            self.modelo = self.modelo.strip().lstrip(':').strip()
+            print(f"DEBUG VOLKSWAGEN: Modelo encontrado y asignado: {self.modelo}")
+            return
+        print("DEBUG VOLKSWAGEN: Modelo no encontrado.")
         super()._extract_modelo()
 
 
     def _extract_matricula(self):
-        # Ejemplo: "Matrícula",": 6150KYY"
-        for line in self.lines:
-            match = re.search(r'Matrícula\s*:\s*([A-Z0-9]+)', line)
-            if match:
-                self.matricula = match.group(1).strip()
-                return
+        # L22: Matrícula, L23: : 6150KYY
+        print("DEBUG VOLKSWAGEN: Intentando extraer Matrícula...")
+        self.matricula = _extract_from_lines_with_keyword(
+            self.lines, 
+            r'Matrícula', 
+            r'([A-Z0-9]+)',
+            look_ahead=1
+        )
+        if self.matricula:
+            self.matricula = self.matricula.strip()
+            print(f"DEBUG VOLKSWAGEN: Matrícula encontrada y asignada: {self.matricula}")
+            return
+        print("DEBUG VOLKSWAGEN: Matrícula no encontrada.")
         super()._extract_matricula()
 
+
     def _extract_importe_and_base(self):
-        # Buscar "TOTAL FACTURA" y "TOTAL BASE IMPONIBLE"
-        # "TOTAL BASE IMPONIBLE", "6.859,50 €"
-        # "TOTAL FACTURA", "8.300,00 €"
         
-        base_found = False
-        importe_found = False
+        print("\nDEBUG VOLKSWAGEN: INICIO EXTRACCIÓN DE IMPORTES")
+        
+        # 1. Extraer Importe Total (TOTAL FACTURA)
+        importe_str_raw = _extract_from_lines_with_keyword(
+            self.lines, 
+            r'TOTAL FACTURA', 
+            r'([\d.,]+\s*€)', 
+            look_ahead=2 # L36 -> L38
+        )
+        print(f"DEBUG VOLKSWAGEN: Importe Total (RAW) encontrado por keyword: '{importe_str_raw}'")
 
-        for line in self.lines:
-            # Extraer Importe Total
-            match_total = re.search(r'TOTAL FACTURA :\s*\"?,?\"?([\d.,]+\s*€)', line, re.IGNORECASE)
-            if match_total:
-                self.importe = _extract_amount(match_total.group(1))
-                if self.importe is not None:
-                    self.importe = str(self.importe).replace('.', ',')
-                    importe_found = True
+        if importe_str_raw:
+            self.importe = _extract_amount(importe_str_raw)
+            print(f"DEBUG VOLKSWAGEN: _extract_amount devolvió: '{self.importe}'")
+            if self.importe is not None:
+                # 🟢 FIX CRÍTICO: Eliminar el separador de miles (punto) para el formato '8300,00'
+                self.importe = str(self.importe).replace('.', '') 
+                print(f"DEBUG VOLKSWAGEN: Importe Total ASIGNADO (Limpio): {self.importe}")
 
-            # Extraer Base Imponible
-            match_base = re.search(r'TOTAL BASE IMPONIBLE :\s*\"?,?\"?([\d.,]+\s*€)', line, re.IGNORECASE)
-            if match_base:
-                self.base_imponible = _extract_amount(match_base.group(1))
-                if self.base_imponible is not None:
-                    self.base_imponible = str(self.base_imponible).replace('.', ',')
-                    base_found = True
+        # 2. Extraer Base Imponible
+        base_str_raw = _extract_from_lines_with_keyword(
+            self.lines, 
+            r'TOTAL BASE IMPONIBLE', 
+            r'([\d.,]+\s*€)', 
+            look_ahead=2 # L30 -> L32
+        )
+        print(f"DEBUG VOLKSWAGEN: Base Imponible (RAW) encontrado por keyword: '{base_str_raw}'")
 
-            if base_found and importe_found:
-                break # Si ambos se encuentran, salimos
+        if base_str_raw:
+            self.base_imponible = _extract_amount(base_str_raw)
+            print(f"DEBUG VOLKSWAGEN: _extract_amount devolvió: '{self.base_imponible}'")
+            if self.base_imponible is not None:
+                # 🟢 FIX CRÍTICO: Eliminar el separador de miles (punto) para el formato '6859,50'
+                self.base_imponible = str(self.base_imponible).replace('.', '')
+                print(f"DEBUG VOLKSWAGEN: Base Imponible ASIGNADA (Limpia): {self.base_imponible}")
 
-        # Fallback si no se encuentran
-        if self.importe is None or self.base_imponible is None:
-            super()._extract_importe_and_base()
+
+        # 3. Calcular IVA (La lógica de cálculo ahora funciona con las cadenas limpias)
+        if self.importe and self.base_imponible:
+            print("DEBUG VOLKSWAGEN: Calculando IVA a partir de Importe y Base...")
+            try:
+                # '8300,00'.replace(',', '.') -> '8300.00' (Correcto para float())
+                importe_float = float(self.importe.replace(',', '.')) 
+                base_float = float(self.base_imponible.replace(',', '.'))
+                
+                iva_float = importe_float - base_float
+                
+                # Asignar el IVA
+                self.iva = f"{iva_float:.2f}".replace('.', ',')
+                print(f"DEBUG VOLKSWAGEN: IVA calculado y ASIGNADO: {self.iva}")
+            except ValueError as e:
+                print(f"DEBUG VOLKSWAGEN: ERROR al calcular IVA (ValueError): {e}")
+                self.iva = None
+        
+        print("DEBUG VOLKSWAGEN: FIN EXTRACCIÓN DE IMPORTES\n")

@@ -119,10 +119,13 @@ def _calculate_base_from_total(total_amount_str, vat_rate=VAT_RATE):
     except ValueError:
         print(f"⚠️ Warning: Could not calculate base for total amount '{total_amount_str}'. Invalid numeric format.")
         return None
+        
 def _calculate_total_from_base(base_amount_str, vat_rate=VAT_RATE):
-    
+    """
+    Calculates the total amount and the VAT amount from the taxable base.
+    """
     if not base_amount_str:
-        return None, None
+        return None, None # Devuelve Total Y IVA
 
     try:
         # 1. Preparación para la conversión numérica
@@ -143,7 +146,7 @@ def _calculate_total_from_base(base_amount_str, vat_rate=VAT_RATE):
         formatted_vat_amount = f"{vat_amount:.2f}".replace('.', ',')
         formatted_total_amount = f"{total_amount:.2f}".replace('.', ',')
         
-        return formatted_total_amount
+        return formatted_total_amount, formatted_vat_amount # ¡Ahora devuelve Total Y IVA!
     
     except ValueError:
         # 5. Manejo de errores

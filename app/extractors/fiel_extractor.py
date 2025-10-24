@@ -37,9 +37,33 @@ class FielExtractor(BaseInvoiceExtractor):
 
 
     def _extract_importe_and_base(self):
-        for line in self.lines:
-            if re.search(r"Total factura\s*", line, re.IGNORECASE):
-                self.importe = _extract_amount(line)
-                if self.importe:
-                    self.base_imponible = _calculate_base_from_total(self.importe, self.vat_rate)
-                    break
+        """
+        Busca la línea con 'Total factura' (Línea 36) y extrae el importe (Línea 37).
+        Luego calcula la Base Imponible a partir del Importe Total.
+        """
+        for i, line in enumerate(self.lines):
+            # 1. Buscar la línea que contiene la frase clave 'Total factura'
+            # Usamos re.search con IGNORECASE y \s+ para ser flexibles con espacios
+            if re.search(r'Total\s*factura', line, re.IGNORECASE) and i + 1 < len(self.lines):
+                
+                # 2. El importe total está en la línea siguiente (i+1)
+                amount_line = self.lines[i+1]
+                
+                # 3. Extraer el importe (300.00)
+                # _extract_amount() debe normalizar el valor a un número.
+                self.importe = _extract_amount(amount_line)
+                
+                if self.importe is not None:
+                    # 4. Calcular la Base Imponible desde el Importe Total.
+                    # Convertimos el importe a un string con coma (',') para la utilidad
+                    # si asumes que maneja el formato español, aunque para 300.00 no importa.
+                    importe_str_for_calc = str(self.importe).replace('.', ',')
+                    
+                    # Asumiendo VAT_RATE = 0.21 desde utils.py
+                    calculated_base = _calculate_base_from_total(importe_str_for_calc, self.vat_rate)
+                    
+                    if calculated_base is not None:
+                        # 5. Asignar el resultado formateado (con coma)
+                        self.base_imponible = str(calculated_base).replace('.', ',')
+                    
+                    break # Salir del bucle una vez que encontramos los valores
