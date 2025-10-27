@@ -850,7 +850,49 @@ class InvoiceApp:
         self.paned_window = ttk.PanedWindow(main_frame, orient=tk.HORIZONTAL)
         self.paned_window.grid(row=1, column=0, sticky='nsew', pady=(0, 10))
         
-        # --- Frame para la Tabla (Resultados) ---
+        # --- Frame para el Visor de Debug/PDF (Panel Lateral) ---
+        viewer_frame = ttk.Frame(self.paned_window)
+        # Añadir al PanedWindow, dándole 1 vez más de espacio inicial
+        self.paned_window.add(viewer_frame, weight=1) 
+        
+        viewer_frame.grid_rowconfigure(0, weight=1)
+        viewer_frame.grid_rowconfigure(1, weight=1) # El debug/log también se expande
+        viewer_frame.grid_columnconfigure(0, weight=1)
+        
+        # Título para el visor de PDF
+        ttk.Label(viewer_frame, text="Visor de Documento (Página 1)").grid(row=0, column=0, sticky='new', pady=(0, 5))
+        
+        # Canvas para el visor de PDF/Imagen
+        canvas_container = ttk.Frame(viewer_frame)
+        canvas_container.grid(row=0, column=0, sticky='nsew')
+        canvas_container.grid_rowconfigure(0, weight=1)
+        canvas_container.grid_columnconfigure(0, weight=1)
+        
+        self.viewer_canvas = tk.Canvas(canvas_container, bg="white", highlightthickness=0)
+        self.viewer_canvas.grid(row=0, column=0, sticky='nsew')
+        
+        # Scrollbar Vertical para el Canvas
+        self.viewer_scrollbar = ttk.Scrollbar(canvas_container, orient="vertical", command=self.viewer_canvas.yview)
+        self.viewer_scrollbar.grid(row=0, column=1, sticky='ns')
+        self.viewer_canvas.config(yscrollcommand=self.viewer_scrollbar.set)
+        
+        # Enlazar el evento de redimensionamiento
+        self.viewer_canvas.bind('<Configure>', self._on_canvas_resize)
+        self.viewer_canvas.bind('<MouseWheel>', self._on_mousewheel) # Windows/macOS scroll
+        self.viewer_canvas.bind('<Button-4>', self._on_mousewheel) # Linux scroll up
+        self.viewer_canvas.bind('<Button-5>', self._on_mousewheel) # Linux scroll down
+
+
+        # Título para el área de Debug
+        ttk.Label(viewer_frame, text="Log / Debug Lines").grid(row=2, column=0, sticky='new', pady=(10, 5))
+        
+        # Área de texto para debug
+        self.debug_text_area = ScrolledText(viewer_frame, wrap=tk.WORD, height=10, font=('Consolas', 9))
+        self.debug_text_area.grid(row=3, column=0, sticky='nsew')
+        self.debug_text_area.config(state=tk.DISABLED) # Desactivar edición
+
+
+         # --- Frame para la Tabla (Resultados) ---
         tree_frame = ttk.Frame(self.paned_window)
         # Añadir al PanedWindow, dándole 2 veces más de espacio inicial
         self.paned_window.add(tree_frame, weight=2) 
@@ -901,48 +943,6 @@ class InvoiceApp:
         # Bind para la selección (dispara la actualización del visor/debug y el estado de los botones)
         self.tree.bind('<<TreeviewSelect>>', self._on_item_select)
         # ELIMINADA la línea: self.tree.bind('<Double-1>', self._on_item_double_click) 
-
-        # --- Frame para el Visor de Debug/PDF (Panel Lateral) ---
-        viewer_frame = ttk.Frame(self.paned_window)
-        # Añadir al PanedWindow, dándole 1 vez más de espacio inicial
-        self.paned_window.add(viewer_frame, weight=1) 
-        
-        viewer_frame.grid_rowconfigure(0, weight=1)
-        viewer_frame.grid_rowconfigure(1, weight=1) # El debug/log también se expande
-        viewer_frame.grid_columnconfigure(0, weight=1)
-        
-        # Título para el visor de PDF
-        ttk.Label(viewer_frame, text="Visor de Documento (Página 1)").grid(row=0, column=0, sticky='new', pady=(0, 5))
-        
-        # Canvas para el visor de PDF/Imagen
-        canvas_container = ttk.Frame(viewer_frame)
-        canvas_container.grid(row=0, column=0, sticky='nsew')
-        canvas_container.grid_rowconfigure(0, weight=1)
-        canvas_container.grid_columnconfigure(0, weight=1)
-        
-        self.viewer_canvas = tk.Canvas(canvas_container, bg="white", highlightthickness=0)
-        self.viewer_canvas.grid(row=0, column=0, sticky='nsew')
-        
-        # Scrollbar Vertical para el Canvas
-        self.viewer_scrollbar = ttk.Scrollbar(canvas_container, orient="vertical", command=self.viewer_canvas.yview)
-        self.viewer_scrollbar.grid(row=0, column=1, sticky='ns')
-        self.viewer_canvas.config(yscrollcommand=self.viewer_scrollbar.set)
-        
-        # Enlazar el evento de redimensionamiento
-        self.viewer_canvas.bind('<Configure>', self._on_canvas_resize)
-        self.viewer_canvas.bind('<MouseWheel>', self._on_mousewheel) # Windows/macOS scroll
-        self.viewer_canvas.bind('<Button-4>', self._on_mousewheel) # Linux scroll up
-        self.viewer_canvas.bind('<Button-5>', self._on_mousewheel) # Linux scroll down
-
-
-        # Título para el área de Debug
-        ttk.Label(viewer_frame, text="Log / Debug Lines").grid(row=2, column=0, sticky='new', pady=(10, 5))
-        
-        # Área de texto para debug
-        self.debug_text_area = ScrolledText(viewer_frame, wrap=tk.WORD, height=10, font=('Consolas', 9))
-        self.debug_text_area.grid(row=3, column=0, sticky='nsew')
-        self.debug_text_area.config(state=tk.DISABLED) # Desactivar edición
-
         # --- Botones de Acción (Generador y Lanzar Archivo) ---
         action_frame = ttk.Frame(main_frame)
         action_frame.grid(row=2, column=0, sticky='ew', pady=(10, 0))
