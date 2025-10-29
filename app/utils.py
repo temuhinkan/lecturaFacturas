@@ -1,8 +1,11 @@
 import re
+# Importa la constante desde el nuevo fichero de configuración
+from config import DEFAULT_VAT_RATE 
+
+# Para que el extractor pueda importarla si está en otro fichero
+VAT_RATE = DEFAULT_VAT_RATE 
 
 # --- Constantes ---
-VAT_RATE = 0.21
-
 MONTH_MAP = {
     'enero': '01', 'febrero': '02', 'marzo': '03', 'abril': '04',
     'mayo': '05', 'junio': '06', 'julio': '07', 'agosto': '08',
@@ -13,7 +16,7 @@ MONTH_MAP = {
 
 def extract_and_format_date(lineas):
     """
-    Extracts a date from a line that might contain "Madrid Barajas, a DD Mes晤"
+    Extracts a date from a line that might contain "Madrid Barajas, a DD Mes YYYY"
     and formats it to DD-MM-YYYY.
     """
     date_found = None
@@ -35,6 +38,49 @@ def extract_and_format_date(lineas):
     
     return date_found
 
+# AÑADIDO: Función para extraer el importe numérico
+def _extract_amount(amount_str):
+    """
+    Extrae un importe numérico de una cadena de texto (ej. "24,79€", "30.00").
+    Maneja el formato europeo (coma como separador decimal).
+    """
+    if not amount_str:
+        return None
+    
+    # Patrón: Busca un número que puede tener separadores de miles (punto) y decimales (coma)
+    match = re.search(r'([+-]?\s*\d{1,3}(?:\.?\d{3})*(?:,\d+)?)\s*€?\b', amount_str.strip().replace(' ', ''))
+    
+    if match:
+        numeric_str = match.group(1)
+        # 1. Quitar separadores de miles (punto)
+        numeric_str = numeric_str.replace('.', '')
+        # 2. Reemplazar la coma decimal por punto decimal
+        numeric_str = numeric_str.replace(',', '.')
+        
+        try:
+            return float(numeric_str)
+        except ValueError:
+            return None
+    return None
+
+# AÑADIDO: Función para calcular la base imponible
+def _calculate_base_from_total(total_amount, vat_rate):
+    """
+    Calcula la base imponible a partir del importe total y la tasa de IVA.
+    """
+    if total_amount is not None and vat_rate is not None and vat_rate > 0:
+        return total_amount / (1 + vat_rate)
+    return None
+
+# AÑADIDO: Stub para evitar error de importación
+def _extract_nif_cif(line):
+    """
+    Función placeholder/stub si no se usa.
+    """
+    return None
+# ----------------------------------------------
+
+
 def _extract_from_line(line, regex_pattern, group=1):
     """Helper to extract data using a regex from a single line."""
     match = re.search(regex_pattern, line, re.IGNORECASE)
@@ -43,96 +89,30 @@ def _extract_from_line(line, regex_pattern, group=1):
     return None
 
 def _extract_from_lines_with_keyword(lines, keyword_patterns, regex_pattern, group=1, look_ahead=0):
-    """
-    Helper to find one of several keywords and extract data from that line or a subsequent one.
-    keyword_patterns can be a string or a list of strings/regex patterns.
-    """
-    if isinstance(keyword_patterns, str):
+    """ Helper to find one of several keywords and extract data... """
+    if not isinstance(keyword_patterns, list):
         keyword_patterns = [keyword_patterns]
 
     for i, line in enumerate(lines):
-        for kp in keyword_patterns:
-            if re.search(kp, line, re.IGNORECASE):
-                target_line_idx = i + look_ahead
-                if 0 <= target_line_idx < len(lines):
-                    target_line = lines[target_line_idx]
-                else:
-                    target_line = line
-                return _extract_from_line(target_line, regex_pattern, group)
+        line_lower = line.lower()
+        for pattern in keyword_patterns:
+            if pattern.lower() in line_lower:
+                target_index = i + look_ahead
+                if 0 <= target_index < len(lines):
+                    target_line = lines[target_index]
+                    return _extract_from_line(target_line, regex_pattern, group)
     return None
 
-def _extract_amount(line, is_stellantis=False):
-    """
-    Helper to extract an amount string (e.g., '1.234,56' or '71,00').
-    Handles comma as a decimal separator and specific Stellantis sum.
-    """
-    values = re.findall(r'\d+(?:[.,]\d{3})*[.,]\d{2}', line)
-    return values[-1] if values else None
-
-
-
-def _extract_nif_cif(line):
-    """
-    Extracts a NIF/CIF from a line, handling common Spanish formats.
-    Prioritizes formats starting with letters followed by digits.
-    """
-    # Pattern for CIFs like B12345678 or A-12345678 or B.123.456.7.A
-    # This is more specific for the desired CIF format "B30378129"
-    cif_specific_pattern = r'\b([A-Z][-\.]?\d{7,8}[A-Z]?)\b'
-    match_specific_cif = re.search(cif_specific_pattern, line, re.IGNORECASE)
-    if match_specific_cif:
-        return match_specific_cif.group(1).replace('.', '').replace('-', '')
-
-    # Pattern for DNI (8 digits + 1 letter, or with dots/hyphens)
-    dni_pattern = r'(\d{8}[A-Z])|(\d{1,3}(?:\.\d{3}){2}-?[A-Z])'
-    dni_match = re.search(dni_pattern, line, re.IGNORECASE)
-    if dni_match:
-        if dni_match.group(1):
-            return dni_match.group(1)
-        elif dni_match.group(2):
-            return dni_match.group(2).replace('.', '').replace('-', '')
-
-    # Fallback for other CIF patterns if the specific one doesn't match
-    cif_with_separators_pattern = r'([A-Z][-\.]?\d{1,3}(?:[\.\-]?\d{3}){2,3}[A-Z]?)'
-    cif_sep_match = re.search(cif_with_separators_pattern, line, re.IGNORECASE)
-    if cif_sep_match:
-        return cif_sep_match.group(1).replace('.', '').replace('-', '')
-
-    cif_without_separators_pattern = r'([A-Z]{1,3}\d{7,8}[A-Z]?)'
-    cif_no_sep_match = re.search(cif_without_separators_pattern, line, re.IGNORECASE)
-    if cif_no_sep_match:
-        return cif_no_sep_match.group(1)
-        
-    return None
-
-def _calculate_base_from_total(total_amount_str, vat_rate=VAT_RATE):
-    """
-    Calculates the taxable base by removing VAT from the total amount.
-    """
-    if not total_amount_str:
-        return None
-    try:
-        numeric_total_str = total_amount_str.replace(',', '.')
-        total_amount = float(numeric_total_str)
-        base_calc = total_amount / (1 + vat_rate)
-        return f"{base_calc:.2f}".replace('.', ',')
-    except ValueError:
-        print(f"⚠️ Warning: Could not calculate base for total amount '{total_amount_str}'. Invalid numeric format.")
-        return None
-        
-# En utils.py
-
-def _calculate_total_from_base(base_amount_str, vat_rate=VAT_RATE):
+def calculate_total_and_vat(base_amount_str: str, vat_rate: float = DEFAULT_VAT_RATE):
     """
     Calculates the total amount and the VAT amount from the taxable base.
+    Uses the DEFAULT_VAT_RATE from config.py if no rate is provided.
     """
     if not base_amount_str:
         return None, None 
 
     try:
-        # 1. Preparación para la conversión numérica (CORREGIDO)
-        # 1.1. Eliminar el separador de miles (punto).
-        # 1.2. Reemplazar la coma decimal por el punto decimal.
+        # 1. Preparación para la conversión numérica
         numeric_base_str = base_amount_str.replace('.', '').replace(',', '.')
         
         # 2. Conversión a número flotante
@@ -142,9 +122,7 @@ def _calculate_total_from_base(base_amount_str, vat_rate=VAT_RATE):
         vat_amount = base_amount * vat_rate
         total_amount = base_amount + vat_amount
         
-        # 4. Formateo de los resultados (Volver a usar la coma decimal)
-        # Formateamos con dos decimales, usamos el punto para el formato estándar
-        # y luego lo reemplazamos por coma para la salida final.
+        # 4. Formateo de los resultados
         formatted_vat_amount = f"{vat_amount:.2f}".replace('.', ',')
         formatted_total_amount = f"{total_amount:.2f}".replace('.', ',')
         
@@ -152,9 +130,4 @@ def _calculate_total_from_base(base_amount_str, vat_rate=VAT_RATE):
     
     except ValueError:
         print(f"⚠️ Warning: Could not calculate total and VAT for base amount '{base_amount_str}'. Invalid numeric format.")
-        return None, None
-    
-    except ValueError:
-        # 5. Manejo de errores
-        print(f"⚠️ Warning: Could not calculate VAT and total for base amount '{base_amount_str}'. Invalid numeric format.")
         return None, None

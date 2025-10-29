@@ -1,128 +1,160 @@
-
 # 🚨 MAPPING SUGERIDO PARA main_extractor_gui.py
-# Copie la siguiente línea y péguela en el diccionario EXTRACTION_MAPPING en main_extractor_gui.py:
-#
-# "nueva_clave": "extractors.nombre_archivo_extractor.GeneratedExtractor", 
-#
-# Ejemplo (si el archivo generado es 'autolux_extractor.py'):
-# "autolux": "extractors.autolux_extractor.GeneratedExtractor",
+# Copie la siguiente línea y péguela en el diccionario EXTRACTION_MAPPING:
+#     "autolux": "extractors.autolux_extractor.AutoluxExtractor",
 
-from typing import Dict, Any, List, Optional
 import re
-# La clase BaseInvoiceExtractor será INYECTADA en tiempo de ejecución (soluciona ImportError en main_extractor_gui.py).
+from extractors.base_invoice_extractor import BaseInvoiceExtractor
 
-# 🚨 EXTRACTION_MAPPING: Define la lógica de extracción.
-# 'type': 'FIXED' (Fila Fija, línea absoluta 1-based), 'VARIABLE' (Variable, relativa a un texto), o 'FIXED_VALUE' (Valor Fijo, valor constante).
-# 'segment': Posición de la palabra en la línea (1-based), o un rango (ej. "3-5").
+class AutoluxExtractor(BaseInvoiceExtractor):
+    # 1. Parámetros de la Factura (Se rellenan con el campo CIF y TIPO del GUI)
+    EMISOR_CIF = "B02819530"
+    TIPO_FACTURA = "COMPRA"
 
-EXTRACTION_MAPPING: Dict[str, Dict[str, Any]] = {
-    'TIPO': {'type': 'FIXED_VALUE', 'value': 'COMPRA'},
-    'FECHA': {'type': 'FIXED', 'segment': 1, 'line': 37},
-    'NUM_FACTURA': {'type': 'FIXED', 'segment': 1, 'line': 36},
-    'EMISOR': {'type': 'FIXED_VALUE', 'value': 'AUTOLUX RECAMBIOS S.L.'},
-    'CLIENTE': {'type': 'FIXED_VALUE', 'value': 'NEW SATELITE, S.L.'},
-    'CIF': {'type': 'FIXED_VALUE', 'value': 'B02819530'},
-    'MODELO': {'type': 'FIXED', 'segment': 1, 'line': 14},
-    'BASE': {'type': 'FIXED', 'segment': 1, 'line': 50},
-    'IVA': {'type': 'FIXED', 'segment': 1, 'line': 52},
-    'IMPORTE': {'type': 'FIXED', 'segment': 1, 'line': 54},
+    # 2. Palabras Clave para Búsqueda (Señaladores)
+    # Dejamos estos vacíos si hay mapeo por línea, o con patrones genéricos.
+    CLAVES_NUM_FACTURA = [r"Factura N.?\s*:\s*(\w+)", r"Nº\s*FACTURA:\s*(\w+)"]
+    CLAVES_FECHA = [r"Fecha\s*:\s*(\d{2}/\d{2}/\d{4})", r"FECHA\s+(\d{2}/\d{2}/\d{4})"]
+    CLAVES_BASE = [r"BASE IMPONIBLE\s*([\d\.,]+)", r"TOTAL BASE\s*([\d\.,]+)"]
+    CLAVES_TOTAL = [r"TOTAL FACTURA\s*([\d\.,]+)", r"Total\s*a\s*Pagar\s*([\d\.,]+)"]
 
-}
+    def __init__(self, lines, pdf_path=None):
+        super().__init__(lines, pdf_path)
 
-class GeneratedExtractor(BaseInvoiceExtractor):
-    
-    # 🚨 CORRECCIÓN: ACEPTAR explícitamente lines y pdf_path.
-    # Usamos *args y **kwargs para máxima compatibilidad con el __init__ de BaseInvoiceExtractor.
-    def __init__(self, lines: List[str] = None, pdf_path: str = None, *args, **kwargs):
-        # El constructor GeneratedExtractor no necesita llamar a super().__init__ 
-        # si BaseInvoiceExtractor maneja su propia inicialización o si el extractor 
-        # generado solo necesita la función extract_data. 
-        # Si BaseInvoiceExtractor TIENE lógica en __init__, DEBERÍAMOS LLAMARLA.
+    # --- MÉTODOS DE EXTRACCIÓN PERSONALIZADOS ---
+def extract_numero_factura(self):
+        # Extracción basada en el mapeo de línea 1 (¡Línea Fija!)
         try:
-             # Intentamos llamar al padre con los argumentos necesarios
-             super().__init__(lines=lines, pdf_path=pdf_path, *args, **kwargs)
-        except TypeError:
-             # Si el padre tiene un constructor simple, lo llamamos sin argumentos 
-             # (o simplemente no hacemos nada si el padre es un stub vacío)
-             try:
-                 super().__init__()
-             except:
-                 pass
-        
-        # En el extractor generado, toda la lógica de extracción se realiza en extract_data, 
-        # por lo que no necesitamos almacenar lines aquí.
+         return self.clean_value(self.lines[1])
+        except (IndexError, ValueError):
+            pass
+        return super().extract_numero_factura()
 
-    def extract_data(self, lines: List[str]) -> Dict[str, Any]:
-        
-        extracted_data = {}
-        
-        # Función auxiliar para buscar línea de referencia (primera coincidencia)
-        def find_reference_line(ref_text: str) -> Optional[int]:
-            ref_text_lower = ref_text.lower()
-            for i, line in enumerate(lines):
-                if ref_text_lower in line.lower():
-                    return i
-            return None
 
-        # Función auxiliar para obtener el valor
-        def get_value(mapping: Dict[str, Any]) -> Optional[str]:
+def extract_emisor(self):
+        # Extracción basada en el mapeo de línea 23 (¡Línea Fija!)
+        try:
+         return self.clean_value(self.lines[23])
+        except (IndexError, ValueError):
+            pass
+        return super().extract_emisor()
+
+
+def extract_base_imponible(self):
+        # Extracción robusta por posición relativa al texto: "Base" (Línea 16)
+        try:
+            # Línea de cabecera mapeada: L16
+            header_line = self.lines[16]
+            # Línea de valor esperada: L17
+            value_line = self.lines[17]
             
-            # 1. Caso FIXED_VALUE (valor constante, ej. Emisor, Tipo)
-            if mapping['type'] == 'FIXED_VALUE':
-                return mapping.get('value')
-                
-            line_index = None
+            # Tokenizar las líneas
+            header_tokens = [t.strip().lower() for t in header_line.split() if t.strip()]
+            value_tokens = [t.strip() for t in value_line.split() if t.strip()]
             
-            # 2. Determinar el índice de la línea final (0-based)
-            if mapping['type'] == 'FIXED':
-                abs_line_1based = mapping.get('line')
-                if abs_line_1based is not None and abs_line_1based > 0:
-                    line_index = abs_line_1based - 1 
-                
-            elif mapping['type'] == 'VARIABLE':
-                ref_text = mapping.get('ref_text', '')
-                offset = mapping.get('offset', 0)
-                
-                ref_index = find_reference_line(ref_text)
-                
-                if ref_index is not None:
-                    line_index = ref_index + offset
+            # 1. Buscar el índice del token que CONTIENE la palabra clave
+            keyword = 'Base'.lower()
+            token_index = -1
             
-            if line_index is None or not (0 <= line_index < len(lines)):
-                return None
-                
-            # 3. Obtener el segmento
-            segment_input = mapping['segment'] # Puede ser int o str de rango ("3-5")
-            
+            # Intentar encontrar la palabra clave mapeada en la cabecera
             try:
-                line_segments = re.split(r'\s+', lines[line_index].strip())
-                line_segments = [seg for seg in line_segments if seg]
-                
-                # Check for range support
-                if isinstance(segment_input, str) and re.match(r'^\d+-\d+$', segment_input):
-                    start_s, end_s = segment_input.split('-')
-                    start_idx = int(start_s) - 1 # 0-based start
-                    end_idx = int(end_s) # 0-based exclusive end
-                    
-                    if 0 <= start_idx < end_idx and end_idx <= len(line_segments):
-                        return ' '.join(line_segments[start_idx:end_idx]).strip()
-                
-                # Simple segment index (assuming it's an integer)
-                segment_index_0based = int(segment_input) - 1
-                
-                if segment_index_0based < len(line_segments):
-                    return line_segments[segment_index_0based].strip()
-            except Exception:
-                return None
-                
-            return None
+                token_index = next(i for i, token in enumerate(header_tokens) if keyword in token)
+            except StopIteration:
+                # Fallback: Usar la posición del token más probable si el mapeo falla
+                token_index = 1 
+             
+            # 2. Extraer el valor de la línea siguiente usando el índice encontrado.
+            if field_name == 'Importe' and token_index == -1:
+                # Si no encuentra 'TOTAL FACTURA', forzar el último elemento de la línea de valor
+                token_index = -1
 
-        # 4. Aplicar el mapeo
-        for key, mapping in EXTRACTION_MAPPING.items():
-            value = get_value(mapping)
-            if value is not None:
-                extracted_data[key.lower()] = value
-            else:
-                extracted_data[key.lower()] = None
+            if 0 <= token_index < len(value_tokens):
+                value_str = value_tokens[token_index]
+                return self.parse_float(value_str)
+            
+        except (IndexError, ValueError):
+            pass
+        return super().extract_base_imponible()
 
-        return extracted_data
+
+def extract_importe_total(self):
+        # Extracción robusta por posición relativa al texto: "TOTAL FACTURA" (Línea 16)
+        try:
+            # Línea de cabecera mapeada: L16
+            header_line = self.lines[16]
+            # Línea de valor esperada: L17
+            value_line = self.lines[17]
+            
+            # Tokenizar las líneas
+            header_tokens = [t.strip().lower() for t in header_line.split() if t.strip()]
+            value_tokens = [t.strip() for t in value_line.split() if t.strip()]
+            
+            # 1. Buscar el índice del token que CONTIENE la palabra clave
+            keyword = 'TOTAL FACTURA'.lower()
+            token_index = -1
+            
+            # Intentar encontrar la palabra clave mapeada en la cabecera
+            try:
+                token_index = next(i for i, token in enumerate(header_tokens) if keyword in token)
+            except StopIteration:
+                # Fallback: Usar la posición del token más probable si el mapeo falla
+                token_index = -1 
+             
+            # 2. Extraer el valor de la línea siguiente usando el índice encontrado.
+            if field_name == 'Importe' and token_index == -1:
+                # Si no encuentra 'TOTAL FACTURA', forzar el último elemento de la línea de valor
+                token_index = -1
+
+            if 0 <= token_index < len(value_tokens):
+                value_str = value_tokens[token_index]
+                return self.parse_float(value_str)
+            
+        except (IndexError, ValueError):
+            pass
+        return super().extract_importe_total()
+
+
+def extract_iva(self):
+        # Extracción robusta por posición relativa al texto: "IVA" (Línea 16)
+        try:
+            # Línea de cabecera mapeada: L16
+            header_line = self.lines[16]
+            # Línea de valor esperada: L17
+            value_line = self.lines[17]
+            
+            # Tokenizar las líneas
+            header_tokens = [t.strip().lower() for t in header_line.split() if t.strip()]
+            value_tokens = [t.strip() for t in value_line.split() if t.strip()]
+            
+            # 1. Buscar el índice del token que CONTIENE la palabra clave
+            keyword = 'IVA'.lower()
+            token_index = -1
+            
+            # Intentar encontrar la palabra clave mapeada en la cabecera
+            try:
+                token_index = next(i for i, token in enumerate(header_tokens) if keyword in token)
+            except StopIteration:
+                # Fallback: Usar la posición del token más probable si el mapeo falla
+                token_index = 2 
+             
+            # 2. Extraer el valor de la línea siguiente usando el índice encontrado.
+            if field_name == 'Importe' and token_index == -1:
+                # Si no encuentra 'TOTAL FACTURA', forzar el último elemento de la línea de valor
+                token_index = -1
+
+            if 0 <= token_index < len(value_tokens):
+                value_str = value_tokens[token_index]
+                return self.parse_float(value_str)
+            
+        except (IndexError, ValueError):
+            pass
+        return super().extract_iva()
+
+
+def extract_cliente(self) -> str:
+        # Cliente mapeado como valor fijo
+        return "NEW SATELITE, S.L."
+    # -------------------------------------------
+    
+    # Si no se define el método personalizado, se llama a la implementación base
+    # (ej. si extract_numero_factura no se mapea, se usa la lógica del padre)
+

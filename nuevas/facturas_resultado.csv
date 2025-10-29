@@ -1,20 +1,4689 @@
-﻿Archivo;Tipo;Fecha;Número de Factura;Emisor;Cliente;CIF;Modelo;Matricula;Base;IVA;Importe;Tasas
-269720_autolux.pdf;COMPRA;30-07-2025;25.068.427;AUTOLUX RECAMBIOS S.L.;NEW SATELITE, S.L.;B02819530;PARACHOQUES;No encontrado;86,51;21,00;104,68 €;No encontrado
-278411_autolux.pdf;COMPRA;28-08-2025;25.077.098;AUTOLUX RECAMBIOS S.L.;NEW SATELITE, S.L.;B02819530;ESPEJO;No encontrado;43,15;21,00;52,21 €;No encontrado
-3519.0825_desguaces eduardo.pdf;COMPRA;25/08/2025;3519.0825;Desguaces Eduardo S.L.;NEWSATELITE;B-09420274;No encontrado;No encontrado;24,79;21,00;30,00 €;No encontrado
-877584_pinchete.pdf;COMPRA;15/09/2025;FC I25 0100000940;RECAMBIOS PINCHETE S.L;NEW SATELITE, S.L.;B86898384;No encontrado;No encontrado;51,52;21,00;62,34 €;No encontrado
-EMITIDA 25026 FACTURA 9451KWG.pdf;COMPRA;No encontrada;FACTURA;FACTURA;NEW SATELITE, S.L.;B06768873;No encontrado;FACTURA;No encontrado;No encontrado;9.795,00;No encontrado
-FRA JULIO 25 NEW SATELITE_PRADILLA_page_1.pdf;COMPRA;15/07/2025;N;PRADILLA;NEW SATELITE, S.L.;B80481369;No encontrado;PRADILLA;No encontrado;No encontrado;No encontrado;No encontrado
-FRA JULIO 25 NEW SATELITE_PRADILLA_page_4.pdf;COMPRA;15/07/2025;N;ps;NEW SATELITE, S.L.;B80481369;No encontrado;gestiona;No encontrado;No encontrado;No encontrado;No encontrado
-FRA JULIO 25 NEW SATELITE_PRADILLA_page_5.pdf;COMPRA;22/07/2025;N;PRADILLA;NEW SATELITE, S.L.;B80481369;No encontrado;PRADILLA;No encontrado;No encontrado;No encontrado;No encontrado
-FRA JULIO 25 NEW SATELITE_PRADILLA_page_6.pdf;COMPRA;22/07/2025;N;efectos de;NEW SATELITE, S.L.;B80481369;No encontrado;geriesas;No encontrado;No encontrado;No encontrado;No encontrado
-FRA JULIO 25 NEW SATELITE_PRADILLA_page_7.pdf;COMPRA;30/07/2025;NOFACTURA;PRADILLA;NEW SATELITE, S.L.;B80481369;No encontrado;PRADILLA;No encontrado;No encontrado;No encontrado;No encontrado
-FRA JUNIO 25 NEW SATELITE_pradilla_page_1.pdf;COMPRA;30/06/2025;N;PRADILLA;NEW SATELITE, S.L.;B80481369;No encontrado;PRADILLA;No encontrado;No encontrado;No encontrado;No encontrado
-FRA JUNIO 25 NEW SATELITE_pradilla_page_2.pdf;COMPRA;30/06/2025;N;PRADILLA;NEW SATELITE, S.L.;B80481369;No encontrado;PRADILLA;17,36;No encontrado;21,00 €;No encontrado
-FRAS AGOSTO 25 NEW SATELITE_PRADILLA_page_1.pdf;COMPRA;26/08/2025;N;PRADILLA;NEW SATELITE, S.L.;B80481369;No encontrado;PRADILLA;No encontrado;No encontrado;No encontrado;No encontrado
-FRAS AGOSTO 25 NEW SATELITE_PRADILLA_page_2.pdf;COMPRA;08/08/2025;N;PRADILLA;NEW SATELITE, S.L.;B80481369;No encontrado;PRADILLA;No encontrado;No encontrado;No encontrado;No encontrado
-FRAS AGOSTO 25 NEW SATELITE_PRADILLA_page_4.pdf;COMPRA;31/08/2025;N;PRADILLA;NEW SATELITE, S.L.;B80481369;No encontrado;PRADILLA;No encontrado;No encontrado;No encontrado;No encontrado
-FV-CR-02-2025-000509_AEMA.pdf;COMPRA;No encontrada;No encontrado;NEUMÁTICOS AEMA, S.A.;NEW SATELITE, S.L.;A28625036;No encontrado;No encontrado;No encontrado;No encontrado;No encontrado;No encontrado
-Minuta 2025_031.pdf;COMPRA;No encontrada;N;CL LAGASCA,;NEW SATELITE, S.L.;07502258A;No encontrado;factura;No encontrado;No encontrado;No encontrado;No encontrado
-RECICLADOS AUTO4 SL_FACTURAV_2025005738FRU_recoautos.pdf;COMPRA;No encontrada;FACTURA;RECOAUTOS DESGUACE PREMIUM, S.L.;NEW SATELITE, S.L.;B40243719;No encontrado;Incrita;No encontrado;No encontrado;No encontrado;No encontrado
-RECUPERACIONES VALDIZARBE SL_FACTURAV_2025008093F.pdf;COMPRA;No encontrada;FACTURA;FACTURA DE VENTA;NEW SATELITE, S.L.;B31275837;No encontrado;FACTURA;No encontrado;No encontrado;No encontrado;No encontrado
+path;file_name;tipo;fecha;numero_factura;emisor;cliente;cif;modelo;matricula;base;iva;importe;tasas;procesado_en;log_data;is_validated;vat_rate
+C:/Users/temuh/OneDrive/Documentos/GitHub/lecturaFacturas/facturaPrueba/000211156_BRILDOR.pdf;000211156_BRILDOR.pdf;COMPRA;22/05/2025;000211156;Brildor SL;NEW SATELITE, S.L.;B03308681;No encontrado;Cantidad;30.3;6.36;36.66;0.0;2025-10-23 11:00:01;"🔍 DEBUG MODE ACTIVATED: Showing all lines in file
+
+Line 00: Descripción
+Line 01: Cantidad
+Line 02: Precio unitario
+Line 03: Total
+Line 04: 033463 - Vinilo textil imprimible y sublimable SubliTex -
+Line 05: Pack 10 hojas A4 -
+Line 06: 1,00
+Line 07: 24,50 €
+Line 08: 24,50 €
+Line 09: 000002 - Gastos portes de envío ventas -
+Line 10: 1,00
+Line 11: 5,80 €
+Line 12: 5,80 €
+Line 13: Dirección de entrega
+Line 14: Factura 000211156
+Line 15: Fecha
+Line 16: 22/05/2025
+Line 17: Pedido
+Line 18: 125027156
+Line 19: Pago
+Line 20: 22/05/2025
+Line 21: NEW SATELITE, S.L.
+Line 22: C/ Sierra de Aracena 62
+Line 23: 28691 - Villanueva De La Cañada - Madrid
+Line 24: ESB85629020
+Line 25: Régimen Nacional
+Line 26: Subtotal
+Line 27: 30,30 €
+Line 28: IVA 21%
+Line 29: 6,36 €
+Line 30: Total
+Line 31: 36,66 €
+Line 32: Modo de pago
+Line 33: Tarjeta
+Line 34: Pagado el 22/05/2025
+Line 35: 36,66 €
+Line 36: Cantidad a pagar
+Line 37: 0,00 €
+Line 38: NEW SATELITE, S.L.
+Line 39: C/ Sierra de Aracena 62
+Line 40: 28691 - Villanueva De La Cañada - Madrid
+Line 41: España - M:+34 657945714
+Line 42: Constitución, 7 - Pol. Ind. La Creueta
+Line 43: E-03827 - Benimarfull · Alicante · España
+Line 44: Tel.: +34 966 516 572
+Line 45: atencionalcliente@brildor.com
+Line 46: NIF (VAT Nr.): ESB03308681
+Line 47: atencionalcliente@brildor.com
+Line 48: Whatsapp/Telegram: +34 625 13 95 25
+Line 49: Tu gestora de cuenta es: Zaira Romeu
+Line 50: R.M. Alicante T.1612, F.109, S.8, H.A 22108, I.8 - Brildor SL - ESB03308681
+Line 51: Página 1 de 1
+
+➡️ Extractor encontrado en mapeo: extractors.brildor_extractor.BrildorExtractor
+✅ Extracción exitosa con extractors.brildor_extractor.BrildorExtractor.
+";1;0.21
+C:/Users/temuh/OneDrive/Documentos/GitHub/lecturaFacturas/facturaPrueba/001-ALM-010-50131069-131553-6694223_stellantis.pdf;001-ALM-010-50131069-131553-6694223_stellantis.pdf;COMPRA;31/03/2025;50131069;Placas de Piezas y Componentes de Recambio, S. A. U;NEW SATELITE, S.L.;A87527800;No encontrado;Placas;103.2;21.0;124.87;0.0;2025-10-24 06:10:22;"🔍 DEBUG MODE ACTIVATED: Showing all lines in file
+
+Line 00: Placas de Piezas y Componentes de Recambio, S. A. U.
+Line 01: PPCR MADRID
+Line 02: Ctra. Seseña-Esquivias, km 0,8
+Line 03: 45224 Seseña Nuevo (Toledo) 
+Line 04: Tfno.: 91 153 44 84
+Line 05: Correo: recambios-ppcr@stellantis.com
+Line 06: CIF/NIF:
+Line 07: B85629020
+Line 08: 131553
+Line 09: CL. SIERRA DE ARACENA 62
+Line 10: 28961 VILLANUEVA DE LA CAÑADA MADRID
+Line 11: Emp. NEW SATELITE SL
+Line 12: Código cliente
+Line 13: 01:43:12
+Line 14: Forma de pago
+Line 15: 027510
+Line 16: Cuenta cliente
+Line 17: 50131069
+Line 18: N° Factura
+Line 19: Recibo
+Line 20: 31/03/2025
+Line 21: Fecha:
+Line 22: /
+Line 23: Total Neto
+Line 24: % Descuento
+Line 25: IVA
+Line 26: PU
+Line 27: Cdad
+Line 28: Referencia
+Line 29: Descripción
+Line 30: 1
+Line 31: 1
+Line 32: FACTURA
+Line 33: Dirección de facturación
+Line 34: 1598kgy
+Line 35: 65,64
+Line 36: de:
+Line 37: Albarán:  2025 / 3064519
+Line 38: Importe neto:
+Line 39: 06/03/2025
+Line 40: Entrega: 2ªDIRECCION DE ENTREGA
+Line 41: 65,64
+Line 42: 45,00
+Line 43: 4
+Line 44: 29,84
+Line 45: 4
+Line 46: 0000055232360
+Line 47: BUJIA DE ENCEND
+Line 48: 9670KTW
+Line 49: 37,56
+Line 50: de:
+Line 51: Albarán:  2025 / 3084145
+Line 52: Importe neto:
+Line 53: 21/03/2025
+Line 54: Entrega: 2ªDIRECCION DE ENTREGA
+Line 55: 37,56
+Line 56: 47,00
+Line 57: 4
+Line 58: 17,71
+Line 59: 4
+Line 60: 25194155
+Line 61: BUJIA ENCENDIDO
+Line 62: 21,67
+Line 63: 21,00
+Line 64: 4
+Line 65: 103,20
+Line 66: Total Factura
+Line 67: IVA
+Line 68: % IVA
+Line 69: CT
+Line 70: Total sin IVA
+Line 71: Porte
+Line 72: 190,20
+Line 73: Total Bruto
+Line 74: Inscrita en el Registro Mercantil de Madrid, tomo 34629, folio 77, sección 8, hoja M-622994, inscripción 1 - N.º productor de producto: ENV/2023/000020879
+Line 75: Código IVA: ESA87 527 800 - Cuenta bancaria: ES50 0182 3994 0102 0153 8194 - Domicilio social: c/ Dr. Esquerdo 62, 28007 MADRID - NIF: A87527800
+Line 76: Fecha vencimiento:
+Line 77: 30/04/2025
+Line 78: 124,87
+Line 79: 0,00
+
+➡️ Extractor encontrado en mapeo: extractors.stellantis_extractor.StellantisExtractor
+✅ Extracción exitosa con extractors.stellantis_extractor.StellantisExtractor.
+";0;0.21
+C:/Users/temuh/OneDrive/Documentos/GitHub/lecturaFacturas/facturaPrueba/100972435_136873072_autodoc.pdf;100972435_136873072_autodoc.pdf;COMPRA;26.04.2025;100972435;AUTODOC SE;NEW SATELITE, S.L.;N0040262H;No encontrado;Factura;36.34;7.63;43.97;0.0;2025-10-23 11:40:35;"🔍 DEBUG MODE ACTIVATED: Showing all lines in file
+
+Line 00: Factura / Albarán
+Line 01: Dirección de facturación / Dirección
+Line 02: de entrega:
+Line 03: Sr.
+Line 04: new new satelite s l
+Line 05: CALLE SOFIA 30
+Line 06: 28022 MADRID
+Line 07: España
+Line 08: Información sobre el pedido:
+Line 09: Número de factura: 100972435
+Line 10: Fecha de factura: 26.04.2025
+Line 11: Fecha del pedido: 25.04.2025
+Line 12: Número de pedido: 136873072
+Line 13: Número de cliente: 8066941
+Line 14: Fecha de envío: 26.04.2025
+Line 15: Pos.
+Line 16: Núm. de
+Line 17: artículo
+Line 18: Nombre del producto
+Line 19: Código
+Line 20: aduanero
+Line 21: comunitario
+Line 22: Peso
+Line 23: Cantidad
+Line 24: Precio neto
+Line 25: Suma neta
+Line 26: 1.
+Line 27: 0476-09-
+Line 28: 045347P
+Line 29: Gancho
+Line 30: 73181900
+Line 31: 0,620
+Line 32: 2
+Line 33: 10,240 €
+Line 34: 20,48 €
+Line 35: 2.
+Line 36: 5513-00-
+Line 37: 6010920P
+Line 38: Cobertura de parachoques, enganche de
+Line 39: remolque
+Line 40: 87081090
+Line 41: 0,028
+Line 42: 2
+Line 43: 3,818 €
+Line 44: 7,64 €
+Line 45: Valor neto de la mercancía
+Line 46: 28,12 €
+Line 47: Gastos de envío netos
+Line 48: 8,22 €
+Line 49: Total neto
+Line 50: 36,34 €
+Line 51: 21% de IVA
+Line 52: 7,63 €
+Line 53: Importe total bruto
+Line 54: 43,97 €
+Line 55: ¡Le damos las gracias por su compra!
+Line 56: Nuestros Términos y Condiciones se aplican
+Line 57: obligatoriamente. La mercancía sigue siendo propiedad
+Line 58: nuestra hasta que se haya realizado el pago del importe
+Line 59: total. La instalación debe ser realizada únicamente por
+Line 60: personal cualificado.
+Line 61: AUTODOC SE 
+Line 62: Josef-Orlopp-Straße 55 
+Line 63: 10365 Berlín
+Line 64: Alemania 
+Line 65: Deutsche Bank 
+Line 66: IBAN DE67 1007 0100 0222 2222 00
+Line 67: BIC/SWIFT-Code DEUTDEBB101
+Line 68: Consejo de administración: Dmitri Zadorojnij (CEO), Lennart
+Line 69: Schmidt (CFO)
+Line 70: Registro Mercantil: Berlín
+Line 71: AG Charlottenburg HRB 247677 B 
+Line 72: NIF (número de identificación fiscal): ESN0040262H
+Line 73: País de expedición:
+Line 74: Polonia
+
+➡️ Extractor encontrado en mapeo: extractors.autodoc_extractor.AutodocExtractor
+✅ Extracción exitosa con extractors.autodoc_extractor.AutodocExtractor.
+";0;0.21
+C:/Users/temuh/OneDrive/Documentos/GitHub/lecturaFacturas/facturaPrueba/17-NEW SATELITE S.L. abril 2025_amor de dios.pdf;17-NEW SATELITE S.L. abril 2025_amor de dios.pdf;COMPRA;05/04/2025;FG-17/2025;Hermanas del Amor de Dios Casa General;NEW SATELITE, S.L.;R4900012H;No encontrado;FACTURA;700.0;147.0;847.0;0.0;2025-10-23 10:35:04;"🔍 DEBUG MODE ACTIVATED: Showing all lines in file
+
+Line 00: FACTURA Nº:
+Line 01: Calle Estocolmo 17, 28022 Madrid
+Line 02: 62691 VILLANUEVA DE LA CAÑADA
+Line 03: NEW SATELITE S.L.
+Line 04: C/ SIERRA DE ARACENA
+Line 05: Hermanas del Amor de Dios
+Line 06: Casa General
+Line 07: CIF: R 4900012H
+Line 08: CIF: B85629020
+Line 09: FG-17/2025
+Line 10: FECHA:
+Line 11: 05/04/2025
+Line 12: MADRID
+Line 13: 700,00
+Line 14: 0,00
+Line 15: 700,00
+Line 16: 147,00
+Line 17: 847,00
+Line 18: CONCEPTO
+Line 19: IMPORTE
+Line 20: ALQUILER PLAZAS DE GARAJE
+Line 21: 700,00
+Line 22: Teléfono: 606 610 524     E-mail: admon.general@amordedios.net
+Line 23: Transferencia bancaria
+Line 24:  ES36 0049 6791 7121 1601 0655
+Line 25: BASE IMPONIBLE
+Line 26:  I.V.A. 21 %
+Line 27: TOTAL A PAGAR
+Line 28: MENSUALIDAD ABRIL
+Line 29: Calle Estocolmo 17, 28022 Madrid
+Line 30: C.I.F.: R4900012H
+Line 31: IMPORTE
+Line 32: Dto.
+
+➡️ Extractor encontrado en mapeo: extractors.hermanas_extractor.HermanasExtractor
+✅ Extracción exitosa con extractors.hermanas_extractor.HermanasExtractor.
+";0;0.21
+C:/Users/temuh/OneDrive/Documentos/GitHub/lecturaFacturas/facturaPrueba/21-NEW SATELITE S.L. mayo 2025_hermanas_amor.pdf;21-NEW SATELITE S.L. mayo 2025_hermanas_amor.pdf;COMPRA;05/05/2025;FG-21/2025;Hermanas del Amor de Dios Casa General;NEW SATELITE, S.L.;R4900012H;No encontrado;FACTURA;700.0;147.0;847.0;0.0;2025-10-23 10:35:18;"🔍 DEBUG MODE ACTIVATED: Showing all lines in file
+
+Line 00: FACTURA Nº:
+Line 01: Calle Estocolmo 17, 28022 Madrid
+Line 02: 62691 VILLANUEVA DE LA CAÑADA
+Line 03: NEW SATELITE S.L.
+Line 04: C/ SIERRA DE ARACENA
+Line 05: Hermanas del Amor de Dios
+Line 06: Casa General
+Line 07: CIF: R 4900012H
+Line 08: CIF: B85629020
+Line 09: FG-21/2025
+Line 10: FECHA:
+Line 11: 05/05/2025
+Line 12: MADRID
+Line 13: 700,00
+Line 14: 0,00
+Line 15: 700,00
+Line 16: 147,00
+Line 17: 847,00
+Line 18: CONCEPTO
+Line 19: IMPORTE
+Line 20: ALQUILER PLAZAS DE GARAJE
+Line 21: 700,00
+Line 22: Teléfono: 606 610 524     E-mail: admon.general@amordedios.net
+Line 23: Transferencia bancaria
+Line 24:  ES36 0049 6791 7121 1601 0655
+Line 25: BASE IMPONIBLE
+Line 26:  I.V.A. 21 %
+Line 27: TOTAL A PAGAR
+Line 28: MENSUALIDAD MAYO
+Line 29: Calle Estocolmo 17, 28022 Madrid
+Line 30: C.I.F.: R4900012H
+Line 31: IMPORTE
+Line 32: Dto.
+
+➡️ Extractor encontrado en mapeo: extractors.hermanas_extractor.HermanasExtractor
+✅ Extracción exitosa con extractors.hermanas_extractor.HermanasExtractor.
+";0;0.21
+C:/Users/temuh/OneDrive/Documentos/GitHub/lecturaFacturas/facturaPrueba/234533_kiauto.pdf;234533_kiauto.pdf;COMPRA;10/04/2025;25.033.287;AUTOLUX RECAMBIOS S.L;NEW SATELITE, S.L.;B02819530;No encontrado;Referencia;41.75;8.77;50.52;0.0;2025-10-23 11:09:32;"🔍 DEBUG MODE ACTIVATED: Showing all lines in file
+
+Line 00: Referencia
+Line 01: Descripcion
+Line 02: Cantidad
+Line 03: Precio
+Line 04: %
+Line 05: TOTAL
+Line 06: Albaran N/ 901.324 de fecha 10-04-2025
+Line 07: Su pedido N/329311
+Line 08: 467018I/
+Line 09: ESPEJO RETROVISOR RENAULT KANGOO 2013-2021 ELECTRICO /
+Line 10: 1
+Line 11: 35,15
+Line 12: 35,15
+Line 13: PORTES
+Line 14: GASTOS DE ENV&IACUTEO
+Line 15: 1
+Line 16: 6,60
+Line 17: 6,60
+Line 18: NEWSATELITE S L SL
+Line 19: B85629020
+Line 20: A/A NEWSATELITE S L SL
+Line 21: CALLE SOFIA 30 ,TALLER SADECO
+Line 22: 28022 - MADRID
+Line 23: 695395615
+Line 24: TBAI-B02819530-100425-
+Line 25: OYVU5H1xiTHV1-225
+Line 26: Factura
+Line 27: Fecha Factura
+Line 28: Código Cliente
+Line 29: CIF-DNI
+Line 30: Remitido por
+Line 31: 25.033.287
+Line 32: 10-04-2025
+Line 33: 00013
+Line 34: B85629020
+Line 35: 13
+Line 36: Total Neto
+Line 37: DTO Pronto Pago
+Line 38: IVA
+Line 39: TOTAL FACTURA
+Line 40: %
+Line 41: Importe
+Line 42: Base
+Line 43: Tipo
+Line 44: Cuota
+Line 45: 41,75
+Line 46: 41,75
+Line 47: 21
+Line 48: 8,77
+Line 49: 50,52
+Line 50: PAGO CON TARJETA
+Line 51: 10/04/2025
+Line 52: 50,52
+Line 53: --00 0000000000
+Line 54: Las piezas referenciadas en este documento no son originales, pero son perfectamente adaptables a los vehiculos a los que van destinadas. Productos de calidad equivalente con arreglo al Reglamento (UE) Nº 461/2010.
+Line 55: El uso de las marcas de fabricantes y de las referencias originales se hace exclusivamente con el propósito de indicar el modelo al que va destinda cada pieza. Todas las marcas que aparecen como referencias de aplicación de las piezas
+Line 56: de recambio de esta pagina web son propiedad de sus respectivos titulares registrados.
+Line 57: Para solventar cualquier litigio que pudiera surgir referente a esta factura, serán competentes únicamente los tribunales de San Sebastian España.
+Line 58: Los datos personales que constan en este documento están tratados en ficheros cuya finalidad es la gestión de clientes contables, fiscal y administrativa, el mantenimiento de la relación y el ofrecimiento de productos y servicios, y del que
+Line 59: es responsable AUTOLUX RECAMBIOS S.L. con domicilio en P.l. BIDAURRE-UREDER 45 A-3, 20305 Irún (Guipúzcoa), ante quien podrá ejercitar sus derechos dirigiendo escrito con copia de su D.N.I.
+Line 60: Autolux Recambios S.L. -- Inscrita en el Registro Mercantil de Guipuzcoa, Tomo 2972, Folio 122, Hoja SS-43221, Inscripcion 1ª CIF B02819530
+
+➡️ Extractor encontrado en mapeo: extractors.kiauto_extractor.KiautoExtractor
+✅ Extracción exitosa con extractors.kiauto_extractor.KiautoExtractor.
+";0;0.21
+C:/Users/temuh/OneDrive/Documentos/GitHub/lecturaFacturas/facturaPrueba/238025_kiauto.pdf;238025_kiauto.pdf;COMPRA;23/04/2025;25.036.523;AUTOLUX RECAMBIOS S.L;NEW SATELITE, S.L.;B02819530;No encontrado;Referencia;31.15;6.54;37.69;0.0;2025-10-23 11:10:11;"🔍 DEBUG MODE ACTIVATED: Showing all lines in file
+
+Line 00: Referencia
+Line 01: Descripcion
+Line 02: Cantidad
+Line 03: Precio
+Line 04: %
+Line 05: TOTAL
+Line 06: Albaran N/ 904.797 de fecha 23-04-2025
+Line 07: Su pedido N/331082
+Line 08: 467017I/
+Line 09: ESPEJO RETROVISOR RENAULT KANGOO 2013-2021 MECANICO / I
+Line 10: 1
+Line 11: 24,55
+Line 12: 24,55
+Line 13: PORTES
+Line 14: GASTOS DE ENV&IACUTEO
+Line 15: 1
+Line 16: 6,60
+Line 17: 6,60
+Line 18: NEWSATELITE S L SL
+Line 19: B85629020
+Line 20: A/A NEWSATELITE S L SL
+Line 21: CALLE SOFIA 30 ,TALLER SADECO
+Line 22: 28022 - MADRID
+Line 23: 695395615
+Line 24: TBAI-B02819530-230425-
+Line 25: d98olDk3sWjGN-093
+Line 26: Factura
+Line 27: Fecha Factura
+Line 28: Código Cliente
+Line 29: CIF-DNI
+Line 30: Remitido por
+Line 31: 25.036.523
+Line 32: 23-04-2025
+Line 33: 00013
+Line 34: B85629020
+Line 35: 13
+Line 36: Total Neto
+Line 37: DTO Pronto Pago
+Line 38: IVA
+Line 39: TOTAL FACTURA
+Line 40: %
+Line 41: Importe
+Line 42: Base
+Line 43: Tipo
+Line 44: Cuota
+Line 45: 31,15
+Line 46: 31,15
+Line 47: 21
+Line 48: 6,54
+Line 49: 37,69
+Line 50: PAGO CON TARJETA
+Line 51: 23/04/2025
+Line 52: 37,69
+Line 53: --00 0000000000
+Line 54: Las piezas referenciadas en este documento no son originales, pero son perfectamente adaptables a los vehiculos a los que van destinadas. Productos de calidad equivalente con arreglo al Reglamento (UE) Nº 461/2010.
+Line 55: El uso de las marcas de fabricantes y de las referencias originales se hace exclusivamente con el propósito de indicar el modelo al que va destinda cada pieza. Todas las marcas que aparecen como referencias de aplicación de las piezas
+Line 56: de recambio de esta pagina web son propiedad de sus respectivos titulares registrados.
+Line 57: Para solventar cualquier litigio que pudiera surgir referente a esta factura, serán competentes únicamente los tribunales de San Sebastian España.
+Line 58: Los datos personales que constan en este documento están tratados en ficheros cuya finalidad es la gestión de clientes contables, fiscal y administrativa, el mantenimiento de la relación y el ofrecimiento de productos y servicios, y del que
+Line 59: es responsable AUTOLUX RECAMBIOS S.L. con domicilio en P.l. BIDAURRE-UREDER 45 A-3, 20305 Irún (Guipúzcoa), ante quien podrá ejercitar sus derechos dirigiendo escrito con copia de su D.N.I.
+Line 60: Autolux Recambios S.L. -- Inscrita en el Registro Mercantil de Guipuzcoa, Tomo 2972, Folio 122, Hoja SS-43221, Inscripcion 1ª CIF B02819530
+
+➡️ Extractor encontrado en mapeo: extractors.kiauto_extractor.KiautoExtractor
+✅ Extracción exitosa con extractors.kiauto_extractor.KiautoExtractor.
+";0;0.21
+C:/Users/temuh/OneDrive/Documentos/GitHub/lecturaFacturas/facturaPrueba/240229_kiauto.pdf;240229_kiauto.pdf;COMPRA;30/04/2025;25.038.970;AUTOLUX RECAMBIOS S.L;NEW SATELITE, S.L.;B02819530;No encontrado;Referencia;31.15;6.54;37.69;0.0;2025-10-23 11:10:22;"🔍 DEBUG MODE ACTIVATED: Showing all lines in file
+
+Line 00: Referencia
+Line 01: Descripcion
+Line 02: Cantidad
+Line 03: Precio
+Line 04: %
+Line 05: TOTAL
+Line 06: Albaran N/ 907.469 de fecha 30-04-2025
+Line 07: Su pedido N/332422
+Line 08: 467017I/
+Line 09: ESPEJO RETROVISOR RENAULT KANGOO 2013-2021 MECANICO / I
+Line 10: 1
+Line 11: 24,55
+Line 12: 24,55
+Line 13: PORTES
+Line 14: GASTOS DE ENV&IACUTEO
+Line 15: 1
+Line 16: 6,60
+Line 17: 6,60
+Line 18: NEWSATELITE S L SL
+Line 19: B85629020
+Line 20: A/A NEWSATELITE S L SL
+Line 21: CALLE SOFIA 30 ,TALLER SADECO
+Line 22: 28022 - MADRID
+Line 23: 695395615
+Line 24: TBAI-B02819530-300425-
+Line 25: LnnkP3Ns/wG0E-126
+Line 26: Factura
+Line 27: Fecha Factura
+Line 28: Código Cliente
+Line 29: CIF-DNI
+Line 30: Remitido por
+Line 31: 25.038.970
+Line 32: 30-04-2025
+Line 33: 00013
+Line 34: B85629020
+Line 35: 13
+Line 36: Total Neto
+Line 37: DTO Pronto Pago
+Line 38: IVA
+Line 39: TOTAL FACTURA
+Line 40: %
+Line 41: Importe
+Line 42: Base
+Line 43: Tipo
+Line 44: Cuota
+Line 45: 31,15
+Line 46: 31,15
+Line 47: 21
+Line 48: 6,54
+Line 49: 37,69
+Line 50: PAGO CON TARJETA
+Line 51: 30/04/2025
+Line 52: 37,69
+Line 53: --00 0000000000
+Line 54: Las piezas referenciadas en este documento no son originales, pero son perfectamente adaptables a los vehiculos a los que van destinadas. Productos de calidad equivalente con arreglo al Reglamento (UE) Nº 461/2010.
+Line 55: El uso de las marcas de fabricantes y de las referencias originales se hace exclusivamente con el propósito de indicar el modelo al que va destinda cada pieza. Todas las marcas que aparecen como referencias de aplicación de las piezas
+Line 56: de recambio de esta pagina web son propiedad de sus respectivos titulares registrados.
+Line 57: Para solventar cualquier litigio que pudiera surgir referente a esta factura, serán competentes únicamente los tribunales de San Sebastian España.
+Line 58: Los datos personales que constan en este documento están tratados en ficheros cuya finalidad es la gestión de clientes contables, fiscal y administrativa, el mantenimiento de la relación y el ofrecimiento de productos y servicios, y del que
+Line 59: es responsable AUTOLUX RECAMBIOS S.L. con domicilio en P.l. BIDAURRE-UREDER 45 A-3, 20305 Irún (Guipúzcoa), ante quien podrá ejercitar sus derechos dirigiendo escrito con copia de su D.N.I.
+Line 60: Autolux Recambios S.L. -- Inscrita en el Registro Mercantil de Guipuzcoa, Tomo 2972, Folio 122, Hoja SS-43221, Inscripcion 1ª CIF B02819530
+
+➡️ Extractor encontrado en mapeo: extractors.kiauto_extractor.KiautoExtractor
+✅ Extracción exitosa con extractors.kiauto_extractor.KiautoExtractor.
+";0;0.21
+C:/Users/temuh/OneDrive/Documentos/GitHub/lecturaFacturas/facturaPrueba/25-NEW SATELITE S.L.junio 2025_amor.pdf;25-NEW SATELITE S.L.junio 2025_amor.pdf;COMPRA;05/06/2025;FG-25/2025;Hermanas del Amor de Dios Casa General;NEW SATELITE, S.L.;R4900012H;No encontrado;FACTURA;700.0;147.0;847.0;0.0;2025-10-23 10:36:59;"🔍 DEBUG MODE ACTIVATED: Showing all lines in file
+
+Line 00: FACTURA Nº:
+Line 01: Teléfono: 606 610 524     E-mail: admon.general@amordedios.net
+Line 02: Transferencia bancaria
+Line 03:  ES36 0049 6791 7121 1601 0655
+Line 04: BASE IMPONIBLE
+Line 05:  I.V.A. 21 %
+Line 06: TOTAL A PAGAR
+Line 07: MENSUALIDAD JUNIO
+Line 08: Calle Estocolmo 17, 28022 Madrid
+Line 09: C.I.F.: R4900012H
+Line 10: IMPORTE
+Line 11: Dto.
+Line 12: CONCEPTO
+Line 13: IMPORTE
+Line 14: ALQUILER PLAZAS DE GARAJE
+Line 15: 700,00
+Line 16: 700,00
+Line 17: 0,00
+Line 18: 700,00
+Line 19: 147,00
+Line 20: 847,00
+Line 21: CIF: B85629020
+Line 22: FG-25/2025
+Line 23: FECHA:
+Line 24: 05/06/2025
+Line 25: MADRID
+Line 26: Calle Estocolmo 17, 28022 Madrid
+Line 27: 62691 VILLANUEVA DE LA CAÑADA
+Line 28: NEW SATELITE S.L.
+Line 29: C/ SIERRA DE ARACENA
+Line 30: Hermanas del Amor de Dios
+Line 31: Casa General
+Line 32: CIF: R 4900012H
+
+➡️ Extractor encontrado en mapeo: extractors.hermanas_extractor.HermanasExtractor
+✅ Extracción exitosa con extractors.hermanas_extractor.HermanasExtractor.
+";0;0.21
+C:/Users/temuh/OneDrive/Documentos/GitHub/lecturaFacturas/facturaPrueba/251525_kiauto.pdf;251525_kiauto.pdf;COMPRA;05/06/2025;25.050.171;AUTOLUX RECAMBIOS S.L;NEW SATELITE, S.L.;B02819530;No encontrado;Referencia;54.32;11.41;65.73;0.0;2025-10-23 11:10:32;"🔍 DEBUG MODE ACTIVATED: Showing all lines in file
+
+Line 00: Referencia
+Line 01: Descripcion
+Line 02: Cantidad
+Line 03: Precio
+Line 04: %
+Line 05: TOTAL
+Line 06: Albaran N/ 919.250 de fecha 05-06-2025
+Line 07: Su pedido N/339271
+Line 08: 467016D/
+Line 09: ESPEJO RETROVISOR RENAULT KANGOO 2013-2021 MECANICO / S
+Line 10: 1
+Line 11: 47,72
+Line 12: 47,72
+Line 13: PORTES
+Line 14: GASTOS DE ENV&IACUTEO
+Line 15: 1
+Line 16: 6,60
+Line 17: 6,60
+Line 18: NEWSATELITE S L SL
+Line 19: B85629020
+Line 20: A/A NEWSATELITE S L SL
+Line 21: CALLE SOFIA 30 ,TALLER SADECO
+Line 22: 28022 - MADRID
+Line 23: 695395615
+Line 24: TBAI-B02819530-050625-
+Line 25: VPff1FoyySNfH-142
+Line 26: Factura
+Line 27: Fecha Factura
+Line 28: Código Cliente
+Line 29: CIF-DNI
+Line 30: Remitido por
+Line 31: 25.050.171
+Line 32: 05-06-2025
+Line 33: 00013
+Line 34: B85629020
+Line 35: 13
+Line 36: Total Neto
+Line 37: DTO Pronto Pago
+Line 38: IVA
+Line 39: TOTAL FACTURA
+Line 40: %
+Line 41: Importe
+Line 42: Base
+Line 43: Tipo
+Line 44: Cuota
+Line 45: 54,32
+Line 46: 54,32
+Line 47: 21
+Line 48: 11,41
+Line 49: 65,73
+Line 50: PAGO CON TARJETA
+Line 51: 05/06/2025
+Line 52: 65,73
+Line 53: --00 0000000000
+Line 54: Las piezas referenciadas en este documento no son originales, pero son perfectamente adaptables a los vehiculos a los que van destinadas. Productos de calidad equivalente con arreglo al Reglamento (UE) Nº 461/2010.
+Line 55: El uso de las marcas de fabricantes y de las referencias originales se hace exclusivamente con el propósito de indicar el modelo al que va destinda cada pieza. Todas las marcas que aparecen como referencias de aplicación de las piezas
+Line 56: de recambio de esta pagina web son propiedad de sus respectivos titulares registrados.
+Line 57: Para solventar cualquier litigio que pudiera surgir referente a esta factura, serán competentes únicamente los tribunales de San Sebastian España.
+Line 58: Los datos personales que constan en este documento están tratados en ficheros cuya finalidad es la gestión de clientes contables, fiscal y administrativa, el mantenimiento de la relación y el ofrecimiento de productos y servicios, y del que
+Line 59: es responsable AUTOLUX RECAMBIOS S.L. con domicilio en P.l. BIDAURRE-UREDER 45 A-3, 20305 Irún (Guipúzcoa), ante quien podrá ejercitar sus derechos dirigiendo escrito con copia de su D.N.I.
+Line 60: Autolux Recambios S.L. -- Inscrita en el Registro Mercantil de Guipuzcoa, Tomo 2972, Folio 122, Hoja SS-43221, Inscripcion 1ª CIF B02819530
+
+➡️ Extractor encontrado en mapeo: extractors.kiauto_extractor.KiautoExtractor
+✅ Extracción exitosa con extractors.kiauto_extractor.KiautoExtractor.
+";0;0.21
+C:/Users/temuh/OneDrive/Documentos/GitHub/lecturaFacturas/nuevas/269720_autolux.pdf;269720_autolux.pdf;Tipo_BASE;Fecha_BASE;NºFactura_BASE;Emisor_BASE;Cliente_BASE;CIF_BASE;Modelo_BASE;Matricula_BASE;82.64;17.36;100.0;0.0;2025-10-28 12:16:33;"🔍 DEBUG MODE ACTIVATED: Document read successfully.
+
+Line 00: Referencia
+Line 01: Descripcion
+Line 02: Cantidad
+Line 03: Precio
+Line 04: %
+Line 05: TOTAL
+Line 06: Albaran N/ 938.424 de fecha 29-07-2025
+Line 07: /CONTRA
+Line 08: ENVIO CONTRA-REEMBOLSO
+Line 09: 0
+Line 10: 0,00
+Line 11: ,00
+Line 12: 467009 /
+Line 13: PARACHOQUES KANGOO 13-> DEL.
+Line 14: 1
+Line 15: 78,51
+Line 16: 78,51
+Line 17: PORTES /
+Line 18: PORTES DE TRANSPORTE
+Line 19: 1
+Line 20: 8,00
+Line 21: 8,00
+Line 22: NEWSATELITE SL
+Line 23: B85629020
+Line 24: A/A NEWSATELITE
+Line 25: CALLE SOFIA 30
+Line 26: 28022 - MADRID
+Line 27: 695395615
+Line 28: TBAI-B02819530-300725-
+Line 29: jHcPE3XKus0RF-186
+Line 30: Factura
+Line 31: Fecha Factura
+Line 32: Código Cliente
+Line 33: CIF-DNI
+Line 34: Remitido por
+Line 35: 25.068.427
+Line 36: 30-07-2025
+Line 37: 05385
+Line 38: B85629020
+Line 39: 90
+Line 40: Total Neto
+Line 41: DTO Pronto Pago
+Line 42: IVA
+Line 43: TOTAL FACTURA
+Line 44: %
+Line 45: Importe
+Line 46: Base
+Line 47: Tipo
+Line 48: Cuota
+Line 49: 86,51
+Line 50: 86,51
+Line 51: 21
+Line 52: 18,17
+Line 53: 104,68
+Line 54: CONTRAREEMBOLSO
+Line 55: 30/07/2025
+Line 56: 104,68
+Line 57: --00 0000000000
+Line 58: Las piezas referenciadas en este documento no son originales, pero son perfectamente adaptables a los vehiculos a los que van destinadas. Productos de calidad equivalente con arreglo al Reglamento (UE) Nº 461/2010.
+Line 59: El uso de las marcas de fabricantes y de las referencias originales se hace exclusivamente con el propósito de indicar el modelo al que va destinda cada pieza. Todas las marcas que aparecen como referencias de aplicación de las piezas
+Line 60: de recambio de esta pagina web son propiedad de sus respectivos titulares registrados.
+Line 61: Para solventar cualquier litigio que pudiera surgir referente a esta factura, serán competentes únicamente los tribunales de San Sebastian España.
+Line 62: Los datos personales que constan en este documento están tratados en ficheros cuya finalidad es la gestión de clientes contables, fiscal y administrativa, el mantenimiento de la relación y el ofrecimiento de productos y servicios, y del que
+Line 63: es responsable AUTOLUX RECAMBIOS S.L. con domicilio en P.l. BIDAURRE-UREDER 45 A-3, 20305 Irún (Guipúzcoa), ante quien podrá ejercitar sus derechos dirigiendo escrito con copia de su D.N.I.
+Line 64: Autolux Recambios S.L. -- Inscrita en el Registro Mercantil de Guipuzcoa, Tomo 2972, Folio 122, Hoja SS-43221, Inscripcion 1ª CIF B02819530
+
+➡️ No specific invoice type detected or specific extractor failed. Using generic extraction function (BaseInvoiceExtractor).
+✅ Extracción exitosa con Extractor Genérico.
+";0;0.21
+C:/Users/temuh/OneDrive/Documentos/GitHub/lecturaFacturas/nuevas/3519.0825_desguaces eduardo.pdf;3519.0825_desguaces eduardo.pdf;Tipo_BASE;Fecha_BASE;NºFactura_BASE;Emisor_BASE;Cliente_BASE;CIF_BASE;Modelo_BASE;Matricula_BASE;82.64;17.36;100.0;0.0;2025-10-28 12:54:07;"🔍 DEBUG MODE ACTIVATED: Document read successfully.
+
+Line 00: 3519.0825
+Line 01: 25/08/2025
+Line 02: NEWSATELITE S.L.
+Line 03: B85629020
+Line 04: C/ SOFIA 30
+Line 05: 28022
+Line 06: MADRID
+Line 07: MADRID
+Line 08: 25/08/2025
+Line 09: 24,79€
+Line 10: 1 KIT CAMBIO RUEDA, GATO RENAULT KANGOO II
+Line 11: 24,79€
+Line 12: 5,21€
+Line 13: 30,00€
+Line 14: Forma de pago: transferencia bancaria a la cuenta ES44 3060 0063 19 2027784525
+
+➡️ No specific invoice type detected or specific extractor failed. Using generic extraction function (BaseInvoiceExtractor).
+✅ Extracción exitosa con Extractor Genérico.
+";0;0.21
+C:/Users/temuh/OneDrive/Documentos/GitHub/lecturaFacturas/facturaPrueba/6150KYY(Factu) volkswagen renting.pdf;6150KYY(Factu) volkswagen renting.pdf;COMPRA;02/09/2024;2415352;VOLKSWAGEN RENTING, S.A.;NEW SATELITE, S.L.;A80185051;SKODA FABIA;6150KYY;6859.5;1440.05;8300.0;0.0;2025-10-23 10:52:55;"🔍 DEBUG MODE ACTIVATED: Showing all lines in file
+
+Line 00: Volkswagen RENTING, S.A.
+Line 01: A80185051
+Line 02: Av. Bruselas, 34
+Line 03: 28108 Alcobendas (Madrid)
+Line 04: Cliente:
+Line 05: NEW SATELITE, SL.
+Line 06: CL SIERRA DE ARACENA 62
+Line 07: 28691/VILLANUEVA DE LA CAÑADA
+Line 08: MADRID
+Line 09: Fecha
+Line 10: : 02-09-2024
+Line 11: NIF
+Line 12: : B85629020
+Line 13: Nº Factura
+Line 14: : 2415352
+Line 15: Serie
+Line 16: : FA
+Line 17: Concepto
+Line 18: Importe
+Line 19: Factura en concepto de venta de vehículos pertenecientes a nuestro inmovilzado 
+Line 20: material
+Line 21: 6.859,50 €
+Line 22: Matrícula
+Line 23: : 6150KYY
+Line 24: Bastidor
+Line 25: : TMBEB6NJ5KZ132786
+Line 26: Modelo
+Line 27: : SKODA FABIA
+Line 28: Kilometraje actual
+Line 29: : 84.359 km
+Line 30: TOTAL BASE IMPONIBLE
+Line 31: :
+Line 32: 6.859,50 €
+Line 33: I.V.A. (21,00 %)
+Line 34: :
+Line 35: 1.440,50 €
+Line 36: TOTAL FACTURA
+Line 37: :
+Line 38: 8.300,00 €
+Line 39: El pago de la presente factura se acredita mediante el correspondiente adeudo bancario o ingreso en cuenta 
+Line 40: Por VOLKSWAGEN RENTING S.A.
+Line 41: VOLKSWAGEN RENTING, S.A. Avda. Bruselas 34 – 28108 Alcobendas (Madrid) Datos mercantiles: Registro Mercantil de la provincia de 
+Line 42: Madrid. Tomo 2.138. Folio 63. Hoja nº M-37860. Inscripción 1ª – CIF. A-80185051.
+Line 43: VOLKSWAGEN RENTING, S.A. 
+
+➡️ Extractor encontrado en mapeo: extractors.volkswagen_extractor.VolkswagenExtractor
+✅ Extracción exitosa con extractors.volkswagen_extractor.VolkswagenExtractor.
+";0;0.21
+C:/Users/temuh/OneDrive/Documentos/GitHub/lecturaFacturas/facturaPrueba/805323_pinchete.pdf;805323_pinchete.pdf;COMPRA;31/03/2025;FC I25 0100000370;RECAMBIOS PINCHETE S.L;NEWSATELITE S.L;B86898384;No encontrado;No encontrado;262.71;55.17;317.88;0.0;2025-10-23 11:38:53;"🔍 DEBUG MODE ACTIVATED: Showing all lines in file
+
+Line 00: FC I25 0100000370
+Line 01: 31/03/2025
+Line 02: 02055
+Line 03: NEWSATELITE S.L
+Line 04: CL SIERRA DE ARACENA 62
+Line 05: 28691 VILLANUEVA DE LA CAÑADA, MADRID
+Line 06: Familia
+Line 07: Referencia
+Line 08: Denominación
+Line 09: Precio
+Line 10: % Descuentos
+Line 11: Cantidad
+Line 12: Imp. Línea
+Line 13: Fecha
+Line 14: Tipo/Serie/Nº Factura
+Line 15: RECAMBIOS PINCHETE  S.L
+Line 16: CL SOFIA 34 NAVE D
+Line 17: 28022 MADRID, MADRID
+Line 18: Tlf.: 917754480 Fax.: 917758606
+Line 19: Cif. : B86898384
+Line 20: B85629020
+Line 21: C.I.F. / D.N.I.
+Line 22: Albarán AC/B25/0100005074 de fecha lunes, 17 marzo 2025
+Line 23: 96,10
+Line 24: TUDOR
+Line 25: TL700
+Line 26: 1,00
+Line 27: 192,20
+Line 28: 50,00
+Line 29: 96,10
+Line 30: BATERIA 12 V 70AH 760A +ETN 0 278X1
+Line 31: Albarán AC/B25/0100005141 de fecha lunes, 17 marzo 2025
+Line 32: 44,75
+Line 33: FORD
+Line 34: 1883846
+Line 35: 1,00
+Line 36: 16,50
+Line 37: 16,50
+Line 38: CUBIERTA
+Line 39: RECOF
+Line 40: SRS720100
+Line 41: 1,00
+Line 42: 33,00
+Line 43: 25,00
+Line 44: 24,75
+Line 45: REC OF RESISTENCIA
+Line 46: LUCAS
+Line 47: LLB501
+Line 48: 10,00
+Line 49: 0,70
+Line 50: 50,00
+Line 51: 3,50
+Line 52: LAMPARA
+Line 53: Albarán AC/B25/0100005206 de fecha martes, 18 marzo 2025
+Line 54: 24,17
+Line 55: PURFL
+Line 56: AHC244
+Line 57: 1,00
+Line 58: 48,64
+Line 59: 67,00
+Line 60: 16,05
+Line 61: FILTRO HABITACULO AHC244 PFX BAG
+Line 62: PURFL
+Line 63: A1238
+Line 64: 1,00
+Line 65: 24,61
+Line 66: 67,00
+Line 67: 8,12
+Line 68: FILTRO AIRE A1238 PFX BOX
+Line 69: Albarán AC/B25/0100005512 de fecha viernes, 21 marzo 2025
+Line 70: 8,50
+Line 71: SPM
+Line 72: NR1 520 PC E
+Line 73: 1,00
+Line 74: 8,50
+Line 75: 8,50
+Line 76: PLACA NR1 COMPLETA ORDINARIA LARGA BLAN
+Line 77: 9670 KTW
+Line 78: W0V0XEP68K4106867
+Line 79: Albarán AC/B25/0100005614 de fecha lunes, 24 marzo 2025
+Line 80: 21,60
+Line 81: JBM
+Line 82: 50966
+Line 83: 10,00
+Line 84: 2,70
+Line 85: 20,00
+Line 86: 21,60
+Line 87: CHALECO AMARILLO REFLECTANTE AMARILLO H
+Line 88: Albarán AC/B25/0100005768 de fecha miércoles, 26 marzo 2025
+Line 89: 46,24
+Line 90: ALKAR
+Line 91: 2202168
+Line 92: 1,00
+Line 93: 68,00
+Line 94: 32,00
+Line 95: 46,24
+Line 96: DERECHO,PILOTO TRASERO,SIN PORTALAMPAR
+Line 97: Albarán AC/B25/0100005828 de fecha jueves, 27 marzo 2025
+Line 98: 18,20
+Line 99: ALKAR
+Line 100: 6481698
+Line 101: 1,00
+Line 102: 28,00
+Line 103: 35,00
+Line 104: 18,20
+Line 105: IZQUIERDO,CRISTAL+SOPORTE,ASFERICO,
+Line 106: Albarán AC/B25/0100005919 de fecha viernes, 28 marzo 2025
+Line 107: 3,15
+Line 108: VALEO
+Line 109: 574668
+Line 110: -1,00
+Line 111: 45,43
+Line 112: 52,00
+Line 113: -21,81
+Line 114: VF468 650-400MM X2 SILENCIO PLANA
+Line 115: ABONO PARC.DCMTO. B25/0100004986 DE FECH
+Line 116: VALEO
+Line 117: 574361
+Line 118: 1,00
+Line 119: 51,99
+Line 120: 52,00
+Line 121: 24,96
+Line 122: VF423 650-600MM X2 SILENCIO PLANA
+Line 123: 317,88
+Line 124: 55,17
+Line 125: 262,71
+Line 126: 262,71
+Line 127: Pág.: 1 de 1
+Line 128: 21,00
+Line 129: TRANSFERENCIA BANCARIA A 15 DIAS F.F.
+Line 130: Vto.: 15/04/2025 Imp.: 317,88 
+Line 131: * Datos bancarios ocultos por su seguridad
+Line 132: Importe Neto
+Line 133: Base Imponible
+Line 134: Imp. I.V.A.
+Line 135: %
+Line 136: Importe Total
+Line 137: Observaciones
+Line 138: Forma de Pago / Vencimientos
+Line 139: ( LAS CADENAS DE NIEVE Y MATERIAL ELECTRICO NO TIENEN NI CAMBIO NI DEVOLUCION )
+Line 140: NO SE ADMITEN DEVOLUCIONES TRANSCURRIDOS 8 DIAS - PARA ABONO O CAMBIO PRESENTAR FACTURA
+Line 141: 0,00
+Line 142: Portes
+Line 143: 0,00
+Line 144: 0
+Line 145: %PP.
+Line 146: 0,00
+Line 147: 0
+Line 148: %Gst
+
+➡️ Extractor encontrado en mapeo: extractors.pinchete_extractor.PincheteExtractor
+✅ Extracción exitosa con extractors.pinchete_extractor.PincheteExtractor.
+";0;0.21
+C:/Users/temuh/OneDrive/Documentos/GitHub/lecturaFacturas/facturaPrueba/811974_pinchete.pdf;811974_pinchete.pdf;COMPRA;15/04/2025;FC I25 0100000402;RECAMBIOS PINCHETE S.L;NEWSATELITE S.L;B86898384;No encontrado;No encontrado;266.39;55.94;322.33;0.0;2025-10-23 11:39:04;"🔍 DEBUG MODE ACTIVATED: Showing all lines in file
+
+Line 00: FC I25 0100000402
+Line 01: 15/04/2025
+Line 02: 02055
+Line 03: NEWSATELITE S.L
+Line 04: CL SIERRA DE ARACENA 62
+Line 05: 28691 VILLANUEVA DE LA CAÑADA, MADRID
+Line 06: Familia
+Line 07: Referencia
+Line 08: Denominación
+Line 09: Precio
+Line 10: % Descuentos
+Line 11: Cantidad
+Line 12: Imp. Línea
+Line 13: Fecha
+Line 14: Tipo/Serie/Nº Factura
+Line 15: RECAMBIOS PINCHETE  S.L
+Line 16: CL SOFIA 34 NAVE D
+Line 17: 28022 MADRID, MADRID
+Line 18: Tlf.: 917754480 Fax.: 917758606
+Line 19: Cif. : B86898384
+Line 20: B85629020
+Line 21: C.I.F. / D.N.I.
+Line 22: Albarán AC/B25/0100006141 de fecha martes, 01 abril 2025
+Line 23: 174,10
+Line 24: DELPH
+Line 25: BG3868C
+Line 26: 1,00
+Line 27: 125,92
+Line 28: 40,00
+Line 29: 75,55
+Line 30: JUEGO DE DISCOS DE FRENO REVESTIDOS
+Line 31: DELPH
+Line 32: LP1869
+Line 33: 1,00
+Line 34: 43,91
+Line 35: 40,00
+Line 36: 26,35
+Line 37: JUEGO DE PASTILLAS DE FRENO
+Line 38: DELPH
+Line 39: BG3897C
+Line 40: 1,00
+Line 41: 83,23
+Line 42: 40,00
+Line 43: 49,94
+Line 44: JUEGO DE DISCOS DE FRENO REVESTIDOS
+Line 45: DELPH
+Line 46: LP1958
+Line 47: 1,00
+Line 48: 37,10
+Line 49: 40,00
+Line 50: 22,26
+Line 51: JUEGO DE PASTILLAS DE FRENO
+Line 52: Albarán AC/B25/0100006149 de fecha martes, 01 abril 2025
+Line 53: 49,14
+Line 54: BOSCH
+Line 55: 0261230109
+Line 56: 1,00
+Line 57: 75,60
+Line 58: 35,00
+Line 59: 49,14
+Line 60: SENSOR PRESION
+Line 61: Albarán AC/B25/0100006165 de fecha martes, 01 abril 2025
+Line 62: 77,74
+Line 63: BREMB
+Line 64: 09946814
+Line 65: 2,00
+Line 66: 70,67
+Line 67: 45,00
+Line 68: 77,74
+Line 69: DISCO FRENO
+Line 70: Albarán AC/B25/0100006180 de fecha martes, 01 abril 2025
+Line 71: -75,55
+Line 72: DELPH
+Line 73: BG3868C
+Line 74: -1,00
+Line 75: 125,92
+Line 76: 40,00
+Line 77: -75,55
+Line 78: JUEGO DE DISCOS DE FRENO REVESTIDOS
+Line 79: ABONO PARC.DCMTO. B25/0100006141 DE FECH
+Line 80: Albarán AC/B25/0100006468 de fecha viernes, 04 abril 2025
+Line 81: 32,71
+Line 82: PURFL
+Line 83: LS946
+Line 84: 1,00
+Line 85: 19,53
+Line 86: 67,00
+Line 87: 6,44
+Line 88: FILTRO ACEITE LS946 PFX BOX
+Line 89: ELF
+Line 90: 5L5W30 DPF
+Line 91: 1,00
+Line 92: 25,85
+Line 93: 25,85
+Line 94: ACEITE EVOLUTION (FULL-TECH FE DPF)
+Line 95: RA
+Line 96: RA105
+Line 97: 0,05
+Line 98: APORTACION SIGAUS (R.D. 679 02/06/2006) PO
+Line 99: METAL
+Line 100: 02025
+Line 101: 1,00
+Line 102: 0,70
+Line 103: 40,00
+Line 104: 0,42
+Line 105: ARANDELA CART GOMA-METAL 16X24
+Line 106: Albarán AC/B25/0100006575 de fecha lunes, 07 abril 2025
+Line 107: 8,25
+Line 108: SPM
+Line 109: NR1 520 PC E
+Line 110: 1,00
+Line 111: 8,25
+Line 112: 8,25
+Line 113: PLACA NR1 COMPLETA ORDINARIA LARGA BLAN
+Line 114: 7645 LCL
+Line 115: 322,33
+Line 116: 55,94
+Line 117: 266,39
+Line 118: 266,39
+Line 119: Pág.: 1 de 1
+Line 120: 21,00
+Line 121: TRANSFERENCIA BANCARIA A 15 DIAS F.F.
+Line 122: Vto.: 30/04/2025 Imp.: 322,33 
+Line 123: * Datos bancarios ocultos por su seguridad
+Line 124: Importe Neto
+Line 125: Base Imponible
+Line 126: Imp. I.V.A.
+Line 127: %
+Line 128: Importe Total
+Line 129: Observaciones
+Line 130: Forma de Pago / Vencimientos
+Line 131: ( LAS CADENAS DE NIEVE Y MATERIAL ELECTRICO NO TIENEN NI CAMBIO NI DEVOLUCION )
+Line 132: NO SE ADMITEN DEVOLUCIONES TRANSCURRIDOS 8 DIAS - PARA ABONO O CAMBIO PRESENTAR FACTURA
+Line 133: 0,00
+Line 134: Portes
+Line 135: 0,00
+Line 136: 0
+Line 137: %PP.
+Line 138: 0,00
+Line 139: 0
+Line 140: %Gst
+
+➡️ Extractor encontrado en mapeo: extractors.pinchete_extractor.PincheteExtractor
+✅ Extracción exitosa con extractors.pinchete_extractor.PincheteExtractor.
+";0;0.21
+C:/Users/temuh/OneDrive/Documentos/GitHub/lecturaFacturas/facturaPrueba/817222_pinchete.pdf;817222_pinchete.pdf;COMPRA;30/04/2025;FC I25 0100000474;RECAMBIOS PINCHETE S.L;NEWSATELITE S.L;B86898384;No encontrado;No encontrado;133.28;27.99;161.27;0.0;2025-10-23 11:39:18;"🔍 DEBUG MODE ACTIVATED: Showing all lines in file
+
+Line 00: FC I25 0100000474
+Line 01: 30/04/2025
+Line 02: 02055
+Line 03: NEWSATELITE S.L
+Line 04: CL SIERRA DE ARACENA 62
+Line 05: 28691 VILLANUEVA DE LA CAÑADA, MADRID
+Line 06: Familia
+Line 07: Referencia
+Line 08: Denominación
+Line 09: Precio
+Line 10: % Descuentos
+Line 11: Cantidad
+Line 12: Imp. Línea
+Line 13: Fecha
+Line 14: Tipo/Serie/Nº Factura
+Line 15: RECAMBIOS PINCHETE  S.L
+Line 16: CL SOFIA 34 NAVE D
+Line 17: 28022 MADRID, MADRID
+Line 18: Tlf.: 917754480 Fax.: 917758606
+Line 19: Cif. : B86898384
+Line 20: B85629020
+Line 21: C.I.F. / D.N.I.
+Line 22: Albarán AC/B25/0100007340 de fecha lunes, 21 abril 2025
+Line 23: 8,25
+Line 24: SPM
+Line 25: NR1 520 PC E
+Line 26: 1,00
+Line 27: 8,25
+Line 28: 8,25
+Line 29: PLACA NR1 COMPLETA ORDINARIA LARGA BLAN
+Line 30: VF1WF000X67122517
+Line 31: 3441 LPT
+Line 32: Albarán AC/B25/0100007363 de fecha lunes, 21 abril 2025
+Line 33: 41,18
+Line 34: CASTR
+Line 35: 5L5W30
+Line 36: 1,00
+Line 37: 35,50
+Line 38: 35,50
+Line 39: ACEITE CASTROL 5W30 EDGE 5L ( VW )
+Line 40: RA
+Line 41: RA105
+Line 42: 4,50
+Line 43: 0,05
+Line 44: 0,23
+Line 45: APORTACION SIGAUS (R.D. 679 02/06/2006) PO
+Line 46: PURFL
+Line 47: LS969
+Line 48: 1,00
+Line 49: 16,53
+Line 50: 67,00
+Line 51: 5,45
+Line 52: FILTRO ACEITE LS969 PFX BOX
+Line 53: Albarán AC/B25/0100007441 de fecha martes, 22 abril 2025
+Line 54: 18,40
+Line 55: PURFL
+Line 56: AH191
+Line 57: 1,00
+Line 58: 27,53
+Line 59: 67,00
+Line 60: 9,08
+Line 61: FILTRO HABITACULO AH191 PFX BAG
+Line 62: PURFL
+Line 63: A1555
+Line 64: 1,00
+Line 65: 28,25
+Line 66: 67,00
+Line 67: 9,32
+Line 68: FILTRO AIRE A1555 PFX BOX
+Line 69: Albarán AC/B25/0100007721 de fecha viernes, 25 abril 2025
+Line 70: 34,09
+Line 71: CASTR
+Line 72: 5L5W30 RN17 5L
+Line 73: 1,00
+Line 74: 28,40
+Line 75: 28,40
+Line 76: ACEITE CASTROL GTX 5W30 RN17 5L
+Line 77: RA
+Line 78: RA105
+Line 79: 4,50
+Line 80: 0,05
+Line 81: 0,23
+Line 82: APORTACION SIGAUS (R.D. 679 02/06/2006) PO
+Line 83: PURFL
+Line 84: L1089
+Line 85: 1,00
+Line 86: 16,56
+Line 87: 67,00
+Line 88: 5,46
+Line 89: FILTRO ACEITE L1089 PFX BOX
+Line 90: Albarán AC/B25/0100008000 de fecha miércoles, 30 abril 2025
+Line 91: 31,36
+Line 92: DOGA
+Line 93: 2012473
+Line 94: 2,00
+Line 95: 22,40
+Line 96: 30,00
+Line 97: 31,36
+Line 98: LEXUS RX350 - RX450H (2010-2015) 4P MALETE
+Line 99: 161,27
+Line 100: 27,99
+Line 101: 133,28
+Line 102: 133,28
+Line 103: Pág.: 1 de 1
+Line 104: 21,00
+Line 105: TRANSFERENCIA BANCARIA A 15 DIAS F.F.
+Line 106: Vto.: 15/05/2025 Imp.: 161,27 
+Line 107: * Datos bancarios ocultos por su seguridad
+Line 108: Importe Neto
+Line 109: Base Imponible
+Line 110: Imp. I.V.A.
+Line 111: %
+Line 112: Importe Total
+Line 113: Observaciones
+Line 114: Forma de Pago / Vencimientos
+Line 115: ( LAS CADENAS DE NIEVE Y MATERIAL ELECTRICO NO TIENEN NI CAMBIO NI DEVOLUCION )
+Line 116: NO SE ADMITEN DEVOLUCIONES TRANSCURRIDOS 8 DIAS - PARA ABONO O CAMBIO PRESENTAR FACTURA
+Line 117: 0,00
+Line 118: Portes
+Line 119: 0,00
+Line 120: 0
+Line 121: %PP.
+Line 122: 0,00
+Line 123: 0
+Line 124: %Gst
+
+➡️ Extractor encontrado en mapeo: extractors.pinchete_extractor.PincheteExtractor
+✅ Extracción exitosa con extractors.pinchete_extractor.PincheteExtractor.
+";0;0.21
+C:/Users/temuh/OneDrive/Documentos/GitHub/lecturaFacturas/facturaPrueba/821996_pinchete.pdf;821996_pinchete.pdf;COMPRA;15/05/2025;FC I25 0100000519;RECAMBIOS PINCHETE S.L;NEWSATELITE S.L;B86898384;No encontrado;No encontrado;326.41;68.55;394.96;0.0;2025-10-23 11:39:32;"🔍 DEBUG MODE ACTIVATED: Showing all lines in file
+
+Line 00: FC I25 0100000519
+Line 01: 15/05/2025
+Line 02: 02055
+Line 03: NEWSATELITE S.L
+Line 04: CL SIERRA DE ARACENA 62
+Line 05: 28691 VILLANUEVA DE LA CAÑADA, MADRID
+Line 06: Familia
+Line 07: Referencia
+Line 08: Denominación
+Line 09: Precio
+Line 10: % Descuentos
+Line 11: Cantidad
+Line 12: Imp. Línea
+Line 13: Fecha
+Line 14: Tipo/Serie/Nº Factura
+Line 15: RECAMBIOS PINCHETE  S.L
+Line 16: CL SOFIA 34 NAVE D
+Line 17: 28022 MADRID, MADRID
+Line 18: Tlf.: 917754480 Fax.: 917758606
+Line 19: Cif. : B86898384
+Line 20: B85629020
+Line 21: C.I.F. / D.N.I.
+Line 22: Albarán AC/B25/0100008106 de fecha lunes, 05 mayo 2025
+Line 23: 83,94
+Line 24: TUDOR
+Line 25: TL600
+Line 26: 1,00
+Line 27: 167,87
+Line 28: 50,00
+Line 29: 83,94
+Line 30: BATERIA 12 V 60AH 640A +ETN 0 242X1
+Line 31: Albarán AC/B25/0100008214 de fecha martes, 06 mayo 2025
+Line 32: 83,94
+Line 33: TUDOR
+Line 34: TL600
+Line 35: 1,00
+Line 36: 167,87
+Line 37: 50,00
+Line 38: 83,94
+Line 39: BATERIA 12 V 60AH 640A +ETN 0 242X1
+Line 40: Albarán AC/B25/0100008355 de fecha jueves, 08 mayo 2025
+Line 41: 34,09
+Line 42: CASTR
+Line 43: 5L5W30 RN17 5L
+Line 44: 1,00
+Line 45: 28,40
+Line 46: 28,40
+Line 47: ACEITE CASTROL GTX 5W30 RN17 5L
+Line 48: RA
+Line 49: RA105
+Line 50: 4,50
+Line 51: 0,05
+Line 52: 0,23
+Line 53: APORTACION SIGAUS (R.D. 679 02/06/2006) PO
+Line 54: PURFL
+Line 55: L1089
+Line 56: 1,00
+Line 57: 16,56
+Line 58: 67,00
+Line 59: 5,46
+Line 60: FILTRO ACEITE L1089 PFX BOX
+Line 61: Albarán AC/B25/0100008546 de fecha lunes, 12 mayo 2025
+Line 62: 90,35
+Line 63: GSP
+Line 64: 299229
+Line 65: 1,00
+Line 66: 139,00
+Line 67: 35,00
+Line 68: 90,35
+Line 69: ARBOL DE TRANSMISION
+Line 70: Albarán AC/B25/0100008640 de fecha martes, 13 mayo 2025
+Line 71: 0,00
+Line 72: GSP
+Line 73: 299229
+Line 74: -1,00
+Line 75: 139,00
+Line 76: 35,00
+Line 77: -90,35
+Line 78: ARBOL DE TRANSMISION
+Line 79: TALOS
+Line 80: 76RN8049
+Line 81: 1,00
+Line 82: 139,00
+Line 83: 35,00
+Line 84: 90,35
+Line 85: PALIER DEL DCHO RENAULT MEGANE II,
+Line 86: Albarán AC/B25/0100008766 de fecha miércoles, 14 mayo 2025
+Line 87: 34,09
+Line 88: PURFL
+Line 89: L1089
+Line 90: 1,00
+Line 91: 16,56
+Line 92: 67,00
+Line 93: 5,46
+Line 94: FILTRO ACEITE L1089 PFX BOX
+Line 95: CASTR
+Line 96: 5L5W30 RN17 5L
+Line 97: 1,00
+Line 98: 28,40
+Line 99: 28,40
+Line 100: ACEITE CASTROL GTX 5W30 RN17 5L
+Line 101: RA
+Line 102: RA105
+Line 103: 4,50
+Line 104: 0,05
+Line 105: 0,23
+Line 106: APORTACION SIGAUS (R.D. 679 02/06/2006) PO
+Line 107: 394,96
+Line 108: 68,55
+Line 109: 326,41
+Line 110: 326,41
+Line 111: Pág.: 1 de 1
+Line 112: 21,00
+Line 113: TRANSFERENCIA BANCARIA A 15 DIAS F.F.
+Line 114: Vto.: 30/05/2025 Imp.: 394,96 
+Line 115: * Datos bancarios ocultos por su seguridad
+Line 116: Importe Neto
+Line 117: Base Imponible
+Line 118: Imp. I.V.A.
+Line 119: %
+Line 120: Importe Total
+Line 121: Observaciones
+Line 122: Forma de Pago / Vencimientos
+Line 123: ( LAS CADENAS DE NIEVE Y MATERIAL ELECTRICO NO TIENEN NI CAMBIO NI DEVOLUCION )
+Line 124: NO SE ADMITEN DEVOLUCIONES TRANSCURRIDOS 8 DIAS - PARA ABONO O CAMBIO PRESENTAR FACTURA
+Line 125: 0,00
+Line 126: Portes
+Line 127: 0,00
+Line 128: 0
+Line 129: %PP.
+Line 130: 0,00
+Line 131: 0
+Line 132: %Gst
+
+➡️ Extractor encontrado en mapeo: extractors.pinchete_extractor.PincheteExtractor
+✅ Extracción exitosa con extractors.pinchete_extractor.PincheteExtractor.
+";0;0.21
+C:/Users/temuh/OneDrive/Documentos/GitHub/lecturaFacturas/facturaPrueba/828613_pinchete.pdf;828613_pinchete.pdf;COMPRA;31/05/2025;FC I25 0100000604;RECAMBIOS PINCHETE S.L;NEWSATELITE S.L;B86898384;No encontrado;No encontrado;574.23;120.59;694.82;0.0;2025-10-23 11:39:46;"🔍 DEBUG MODE ACTIVATED: Showing all lines in file
+
+Line 00: FC I25 0100000604
+Line 01: 31/05/2025
+Line 02: 02055
+Line 03: NEWSATELITE S.L
+Line 04: CL SIERRA DE ARACENA 62
+Line 05: 28691 VILLANUEVA DE LA CAÑADA, MADRID
+Line 06: Familia
+Line 07: Referencia
+Line 08: Denominación
+Line 09: Precio
+Line 10: % Descuentos
+Line 11: Cantidad
+Line 12: Imp. Línea
+Line 13: Fecha
+Line 14: Tipo/Serie/Nº Factura
+Line 15: RECAMBIOS PINCHETE  S.L
+Line 16: CL SOFIA 34 NAVE D
+Line 17: 28022 MADRID, MADRID
+Line 18: Tlf.: 917754480 Fax.: 917758606
+Line 19: Cif. : B86898384
+Line 20: B85629020
+Line 21: C.I.F. / D.N.I.
+Line 22: Albarán AC/B25/0100009007 de fecha lunes, 19 mayo 2025
+Line 23: 26,40
+Line 24: DIGAT
+Line 25: ZH4
+Line 26: 1,00
+Line 27: 35,20
+Line 28: 25,00
+Line 29: 26,40
+Line 30: TORNILLO ANTIRROBO RUEDA ZH4
+Line 31: Albarán AC/B25/0100009199 de fecha miércoles, 21 mayo 2025
+Line 32: 32,29
+Line 33: ELF
+Line 34: 5L5W30 DPF
+Line 35: 1,00
+Line 36: 25,85
+Line 37: 25,85
+Line 38: ACEITE EVOLUTION (FULL-TECH FE DPF)
+Line 39: RA
+Line 40: RA105
+Line 41: 0,05
+Line 42: APORTACION SIGAUS (R.D. 679 02/06/2006) PO
+Line 43: PURFL
+Line 44: LS946
+Line 45: 1,00
+Line 46: 19,53
+Line 47: 67,00
+Line 48: 6,44
+Line 49: FILTRO ACEITE LS946 PFX BOX
+Line 50: Albarán AC/B25/0100009431 de fecha viernes, 23 mayo 2025
+Line 51: 8,25
+Line 52: SPM
+Line 53: NR1 520 PC E
+Line 54: 1,00
+Line 55: 8,25
+Line 56: 8,25
+Line 57: PLACA NR1 COMPLETA ORDINARIA LARGA BLAN
+Line 58: 5819LGY
+Line 59: VF1WF000765418266
+Line 60: Albarán AC/B25/0100009537 de fecha lunes, 26 mayo 2025
+Line 61: 407,90
+Line 62: LUK
+Line 63: 600013600
+Line 64: 1,00
+Line 65: 709,00
+Line 66: 50,00
+Line 67: 354,50
+Line 68: REPSET DMF SAC TURISMO
+Line 69: AJUSA
+Line 70: 15088600
+Line 71: 1,00
+Line 72: 89,00
+Line 73: 40,00
+Line 74: 53,40
+Line 75: RETEN ACEITE RETENES ACEITE
+Line 76: Albarán AC/B25/0100009564 de fecha lunes, 26 mayo 2025
+Line 77: 9,93
+Line 78: KRAFF
+Line 79: 14223
+Line 80: 1,00
+Line 81: 12,41
+Line 82: 20,00
+Line 83: 9,93
+Line 84: PULIMENTO 650ML
+Line 85: Albarán AC/B25/0100009652 de fecha martes, 27 mayo 2025
+Line 86: 52,59
+Line 87: TUDOR
+Line 88: TB357
+Line 89: 1,00
+Line 90: 105,18
+Line 91: 50,00
+Line 92: 52,59
+Line 93: BATERIA 12 V 35AH 240A +ETN 1 187X1
+Line 94: Albarán AC/B25/0100009668 de fecha martes, 27 mayo 2025
+Line 95: 19,03
+Line 96: AJUSA
+Line 97: 15088500
+Line 98: 1,00
+Line 99: 31,72
+Line 100: 40,00
+Line 101: 19,03
+Line 102: RETEN ACEITE RETENES ACEITE
+Line 103: Albarán AC/B25/0100009953 de fecha viernes, 30 mayo 2025
+Line 104: 21,06
+Line 105: PURFL
+Line 106: AH207
+Line 107: 1,00
+Line 108: 29,58
+Line 109: 67,00
+Line 110: 9,76
+Line 111: FILTRO HABITACULO AH207 PFX BAG
+Line 112: PURFL
+Line 113: A1275
+Line 114: 1,00
+Line 115: 34,25
+Line 116: 67,00
+Line 117: 11,30
+Line 118: FILTRO AIRE A1275 PFX BOX
+Line 119: Albarán AC/B25/0100009954 de fecha viernes, 30 mayo 2025
+Line 120: -3,22
+Line 121: PURFL
+Line 122: AH207
+Line 123: -1,00
+Line 124: 29,58
+Line 125: 67,00
+Line 126: -9,76
+Line 127: FILTRO HABITACULO AH207 PFX BAG
+Line 128: ABONO PARC.DCMTO. B25/0100009953 DE FECH
+Line 129: PURFL
+Line 130: AH143
+Line 131: 1,00
+Line 132: 19,83
+Line 133: 67,00
+Line 134: 6,54
+Line 135: FILTRO HABITACULO AH143 PFX BAG
+Line 136: 694,82
+Line 137: 120,59
+Line 138: 574,23
+Line 139: 574,23
+Line 140: Pág.: 1 de 1
+Line 141: 21,00
+Line 142: TRANSFERENCIA BANCARIA A 15 DIAS F.F.
+Line 143: Vto.: 15/06/2025 Imp.: 694,82 
+Line 144: * Datos bancarios ocultos por su seguridad
+Line 145: Importe Neto
+Line 146: Base Imponible
+Line 147: Imp. I.V.A.
+Line 148: %
+Line 149: Importe Total
+Line 150: Observaciones
+Line 151: Forma de Pago / Vencimientos
+Line 152: ( LAS CADENAS DE NIEVE Y MATERIAL ELECTRICO NO TIENEN NI CAMBIO NI DEVOLUCION )
+Line 153: NO SE ADMITEN DEVOLUCIONES TRANSCURRIDOS 8 DIAS - PARA ABONO O CAMBIO PRESENTAR FACTURA
+Line 154: 0,00
+Line 155: Portes
+Line 156: 0,00
+Line 157: 0
+Line 158: %PP.
+Line 159: 0,00
+Line 160: 0
+Line 161: %Gst
+
+➡️ Extractor encontrado en mapeo: extractors.pinchete_extractor.PincheteExtractor
+✅ Extracción exitosa con extractors.pinchete_extractor.PincheteExtractor.
+";0;0.21
+C:/Users/temuh/OneDrive/Documentos/GitHub/lecturaFacturas/facturaPrueba/835485_pinchete.pdf;835485_pinchete.pdf;COMPRA;15/06/2025;FC I25 0100000630;RECAMBIOS PINCHETE S.L;NEWSATELITE S.L;B86898384;No encontrado;No encontrado;170.73;35.85;206.58;0.0;2025-10-23 11:39:58;"🔍 DEBUG MODE ACTIVATED: Showing all lines in file
+
+Line 00: FC I25 0100000630
+Line 01: 15/06/2025
+Line 02: 02055
+Line 03: NEWSATELITE S.L
+Line 04: CL SIERRA DE ARACENA 62
+Line 05: 28691 VILLANUEVA DE LA CAÑADA, MADRID
+Line 06: Familia
+Line 07: Referencia
+Line 08: Denominación
+Line 09: Precio
+Line 10: % Descuentos
+Line 11: Cantidad
+Line 12: Imp. Línea
+Line 13: Fecha
+Line 14: Tipo/Serie/Nº Factura
+Line 15: RECAMBIOS PINCHETE  S.L
+Line 16: CL SOFIA 34 NAVE D
+Line 17: 28022 MADRID, MADRID
+Line 18: Tlf.: 917754480 Fax.: 917758606
+Line 19: Cif. : B86898384
+Line 20: B85629020
+Line 21: C.I.F. / D.N.I.
+Line 22: Albarán AC/B25/0100010215 de fecha Martes, 03 junio 2025
+Line 23: 10,47
+Line 24: SACOR
+Line 25: ADBLUE
+Line 26: 1,00
+Line 27: 10,47
+Line 28: 10,47
+Line 29: ADBLUE 10 LITROS + CANULA
+Line 30: Albarán AC/B25/0100010216 de fecha Martes, 03 junio 2025
+Line 31: 102,83
+Line 32: TUDOR
+Line 33: TL700
+Line 34: 1,00
+Line 35: 205,65
+Line 36: 50,00
+Line 37: 102,83
+Line 38: BATERIA 12 V 70AH 760A +ETN 0 278X1
+Line 39: Albarán AC/B25/0100010399 de fecha Jueves, 05 junio 2025
+Line 40: 32,22
+Line 41: ELF
+Line 42: 5L5W30 DPF
+Line 43: 1,00
+Line 44: 25,85
+Line 45: 25,85
+Line 46: ACEITE EVOLUTION (FULL-TECH FE DPF)
+Line 47: RA
+Line 48: RA105
+Line 49: 0,05
+Line 50: APORTACION SIGAUS (R.D. 679 02/06/2006) PO
+Line 51: PURFL
+Line 52: L441
+Line 53: 1,00
+Line 54: 19,31
+Line 55: 67,00
+Line 56: 6,37
+Line 57: FILTRO ACEITE L441 PFX BOX
+Line 58: Albarán AC/B25/0100010935 de fecha Miércoles, 11 junio 2025
+Line 59: 25,21
+Line 60: MEAT
+Line 61: K52086
+Line 62: 1,00
+Line 63: 28,01
+Line 64: 10,00
+Line 65: 25,21
+Line 66: PRESOSTATO
+Line 67: 206,58
+Line 68: 35,85
+Line 69: 170,73
+Line 70: 170,73
+Line 71: Pág.: 1 de 1
+Line 72: 21,00
+Line 73: TRANSFERENCIA BANCARIA A 15 DIAS F.F.
+Line 74: Vto.: 30/06/2025 Imp.: 206,58 
+Line 75: * Datos bancarios ocultos por su seguridad
+Line 76: Importe Neto
+Line 77: Base Imponible
+Line 78: Imp. I.V.A.
+Line 79: %
+Line 80: Importe Total
+Line 81: Observaciones
+Line 82: Forma de Pago / Vencimientos
+Line 83: ( LAS CADENAS DE NIEVE Y MATERIAL ELECTRICO NO TIENEN NI CAMBIO NI DEVOLUCION )
+Line 84: NO SE ADMITEN DEVOLUCIONES TRANSCURRIDOS 8 DIAS - PARA ABONO O CAMBIO PRESENTAR FACTURA
+Line 85: 0,00
+Line 86: Portes
+Line 87: 0,00
+Line 88: 0
+Line 89: %PP.
+Line 90: 0,00
+Line 91: 0
+Line 92: %Gst
+
+➡️ Extractor encontrado en mapeo: extractors.pinchete_extractor.PincheteExtractor
+✅ Extracción exitosa con extractors.pinchete_extractor.PincheteExtractor.
+";0;0.21
+C:/Users/temuh/OneDrive/Documentos/GitHub/lecturaFacturas/facturaPrueba/A19440_refialias.pdf;A19440_refialias.pdf;COMPRA;01-04-25;A /19440;REFIALIAS S.L;NEW SATELITE, S.L.;B80843055;No encontrado;PARAGOLPES;40.0;21.0;48.4;0.0;2025-10-23 11:48:24;"🔍 DEBUG MODE ACTIVATED: Showing all lines in file
+
+Line 00: REPARACIÓN DE PARAGOLPES
+Line 01: Montes de Toledo, 4
+Line 02: 28830 San Fernando de Henares (Madrid)
+Line 03: Tfno.: 91 677 74 20
+Line 04: C.I.F.: B80843055
+Line 05: NEW SATELITE, S.L.
+Line 06: FACTURA :
+Line 07: A /19440
+Line 08: Sierra de Aracena, 62
+Line 09: 28691
+Line 10: Villanueva de la Cañada
+Line 11: FECHA:
+Line 12: 01-04-25
+Line 13: Madrid
+Line 14: Forma de pago:
+Line 15: Contado
+Line 16: B85629020
+Line 17: 01-04-25
+Line 18: Para transferencias IBAN ES53 0182 0881 0702 0854 6158
+Line 19: Cantidad
+Line 20: CONCEPTO
+Line 21: % Dto.
+Line 22: PRECIO
+Line 23: TOTAL
+Line 24: 1
+Line 25: Renault Kangoo D
+Line 26: 40,00
+Line 27: 40,00
+Line 28: Base Imponible
+Line 29: Tipo I.V.A.
+Line 30: I.V.A.
+Line 31: TOTAL
+Line 32: 40,00
+Line 33: 21,0 %
+Line 34: 8,40
+Line 35: 48,40 €
+Line 36: Registro Mercantil de Madrid, Tomo 7796, Libro 0, Folio 171, Seccion 8ª, Hoja M-126024 Insc. 1ª
+
+➡️ Extractor encontrado en mapeo: extractors.refialias_extractor.RefialiasExtractor
+✅ Extracción exitosa con extractors.refialias_extractor.RefialiasExtractor.
+";0;0.21
+C:/Users/temuh/OneDrive/Documentos/GitHub/lecturaFacturas/facturaPrueba/C280__25_0353097_sumauto.pdf;C280__25_0353097_sumauto.pdf;COMPRA;09/04/2025;C280FP25_0353097;Sumauto Motor, S.L.;NEW SATELITE, S.L.;B88049341;No encontrado;8691 VIL;92.0;19.32;0.0;0.0;2025-10-23 11:52:15;"🔍 DEBUG MODE ACTIVATED: Showing all lines in file
+
+Line 00: 1
+Line 01:     2054
+Line 02: 08/04/2025
+Line 03: 28691 VILLANUEVA DE LA CAÑADA
+Line 04: CANT.
+Line 05: I.NETO
+Line 06: TARIFA
+Line 07: Datos fiscales
+Line 08: DTO COM.
+Line 09: PRODUCTO
+Line 10: CIF/NIF:
+Line 11: NEW SATELITE, S.L.
+Line 12: SIERRA DE ARACENA, 62
+Line 13: MADRID
+Line 14: B85629020
+Line 15: Enviar a:
+Line 16: NEW SATELITE, S.L.
+Line 17: CL. SOFIA, S/N
+Line 18: 28022 MADRID
+Line 19: MADRID
+Line 20: CIF/NIF:B85629020
+Line 21: DTO AG.
+Line 22: I.BRUTO
+Line 23: DÍAS INSERCIÓN
+Line 24: PUBLICACION
+Line 25: Nº factura
+Line 26: Fecha de operación Cliente SAP
+Line 27: Pág.
+Line 28: Agente mediador
+Line 29: DAVID GOMEZ RUIZ
+Line 30: Cliente FAC
+Line 31: 0533947000
+Line 32: C280FP25_0353097
+Line 33: Fecha de expedición: 09/04/2025
+Line 34: 92,00
+Line 35: PAQUETE BÁSICO 14
+Line 36: 1
+Line 37: 92,00
+Line 38: 0,00 %
+Line 39: 0,00 %
+Line 40: 92,00
+Line 41: 30
+Line 42: SUMAUTO VO
+Line 43: - Hasta 14 Vehículos clasificados - 1 Call Tracking - Vídeos en los anuncios
+Line 44: 92,00
+Line 45: Sumauto Motor, S.L. Inscrito en el Registro Mercantil de Madrid, tomo 39414, folio 122, inscripción 12 Hoja M-667412. CIF B88049341. Domicilio Social: Josefa Valcárcel, 40 bis. 28027 Madrid. Tel: 902 121 479
+Line 46: 0,00
+Line 47: 19,32
+Line 48: 111,32
+Line 49: TOTAL TARIFA
+Line 50: IRPF 0 %
+Line 51: 0,00
+Line 52: CONDICIONES DE PAGO
+Line 53: Forma de pago:PAGO / COBRO A 7 DÍAS FECHA FACTURA
+Line 54: Doc. de pago:
+Line 55: Vtos 15/04/2025
+Line 56: Domiciliación bancaria (SEPA)
+Line 57: 111,32
+Line 58: CC:
+Line 59: TOT. FACTURA (Eur)
+Line 60: R.EQUIV.
+Line 61: IVA
+Line 62: 92,00
+Line 63: 92,00
+Line 64: DESCUENTO
+Line 65: IMP. BRUTO
+Line 66: DESC. AGENCIA
+Line 67: 0,00
+Line 68: OBSERVACIONES
+Line 69: 0,00
+Line 70: B.IMPONIBLE
+Line 71: 92,00
+Line 72: 21%
+Line 73: ES09-0081-5124-01-000106****
+Line 74: BANCO DE SABADELL
+Line 75: Cumpliendo con la normativa SEPA, se comunica el aviso de cargo en su cuenta bancaria mediante el cobro de recibo domiciliado con ID mandato C280-PUBLI1-
+Line 76: 000000002739, ID del acreedor ES11000A81822587 de esta factura.
+
+➡️ Extractor encontrado en mapeo: extractors.sumauto_extractor.SumautoExtractor
+✅ Extracción exitosa con extractors.sumauto_extractor.SumautoExtractor.
+";0;0.21
+C:/Users/temuh/OneDrive/Documentos/GitHub/lecturaFacturas/facturaPrueba/DCAA30D123B209A27E3121CC8AC1E489_LEROY.pdf;DCAA30D123B209A27E3121CC8AC1E489_LEROY.pdf;COMPRA;25/03/2025;050-0003-049022;Leroy Merlin Espana S.L.U;NEW SATELITE, S.L.;B84818442;No encontrado;BRICOLAJE;45.61904761904762;9.58;55.19904761904762;0.0;2025-10-23 13:52:18;"🔍 DEBUG MODE ACTIVATED: Showing all lines in file
+
+Line 00: BRICOLAJE - CONSTRUCCIÓN - DECORACIÓN - JARDINERÍA
+Line 01: Leroy Merlin Espana S.L.U. Avenida de la Vega 2, 28108 Alcobendas Madrid N.I.F.B-84818442.Inscrita en el
+Line 02: Registro Mercantil de Madrid.Tomo 23168,Libro 0,Folio 60,Seccion 8,Hoja M-415204,Inscripcion 1ª.
+Line 03: Ejemplar cliente
+Line 04: FACTURA 050-0003-049022
+Line 05: ORIGINAL
+Line 06: Madrid Barajas, a 26 Marzo 2025
+Line 07: Leroy Merlin Madrid_A2
+Line 08: LEROY MERLIN ESPAÑA S.L.U
+Line 09: B84818442
+Line 10: CENTRO COMERCIAL MADRID BARAJAS
+Line 11: P.I. LAS MERCEDES
+Line 12: CP 28022 MADRID
+Line 13: TLF: 91.490.66.00
+Line 14: NEW SATELITE SL
+Line 15: C SIERRA DE ARACENA 62
+Line 16: 28691 VILLANUEVA DE LA CANADA
+Line 17: MADRID
+Line 18: España
+Line 19: Número NIF:
+Line 20: B85629020
+Line 21: Teléfono:
+Line 22: Fecha de venta:
+Line 23: 25/03/2025
+Line 24: Condiciones de reglamen.:
+Line 25: Registro de productor de producto:ENV/2023/000012146
+Line 26: Condiciones de venta:
+Line 27: Mencionados sobre el documento
+Line 28: Ticket de caja:
+Line 29: 050-000043-005-7955-NFS: 023631 25/03/2025 16:23 Venta
+Line 30: Observaciones:
+Line 31: Pag. 1 / 1
+Line 32: Tickets Originales:
+Line 33: N°
+Line 34: Designación y Referencia artículo
+Line 35: Cantidad
+Line 36: Unid.
+Line 37: Venta
+Line 38: Prec. unid
+Line 39: SI (EUR)
+Line 40: Descu.
+Line 41: unid SI
+Line 42: (EUR)
+Line 43: Total. SI
+Line 44: (EUR)
+Line 45: Tasa
+Line 46: IVA/
+Line 47: IGIC/
+Line 48: IPSI
+Line 49: Precio
+Line 50: Unidad
+Line 51: TTI (EUR)
+Line 52: Importe
+Line 53: TTI (EUR)
+Line 54: 1
+Line 55: HDF 1220X610X3MM
+Line 56: 13677755
+Line 57: 6
+Line 58: UNID.
+Line 59: 4,96
+Line 60: 0,00
+Line 61: 4,96
+Line 62: 21,00
+Line 63: 6,00
+Line 64: 36,00
+Line 65: 2
+Line 66: BOLSA PAPEL CLIENTE PEQUEÑ 32X12X41 KOEX
+Line 67: 83687685
+Line 68: 1
+Line 69: UNID.
+Line 70: 0,15
+Line 71: 0,00
+Line 72: 0,15
+Line 73: 21,00
+Line 74: 0,18
+Line 75: 0,18
+Line 76: 3
+Line 77: SPRAY MATE ECONOMICO 400ML NEGRO
+Line 78: 82992594
+Line 79: 5
+Line 80: UNID.
+Line 81: 3,14
+Line 82: 0,00
+Line 83: 3,14
+Line 84: 21,00
+Line 85: 3,80
+Line 86: 19,00
+Line 87: Modos de pago
+Line 88: EFECTIVO (EUR)
+Line 89: 60,00
+Line 90: CAMBIO (EUR)
+Line 91: 4,82
+Line 92: Tasa IVA/IGIC/IPSI
+Line 93: Total SI (EUR)
+Line 94: Total IVA/IGIC/IPSI
+Line 95: Total TII (EUR)
+Line 96: IVA 21.00%
+Line 97: 45,60
+Line 98: 9,58
+Line 99: 55,18
+Line 100: EUR
+Line 101: 45,60
+Line 102: 9,58
+Line 103: 55,18
+
+➡️ Extractor encontrado en mapeo: extractors.leroy_extractor.LeroyExtractor
+✅ Extracción exitosa con extractors.leroy_extractor.LeroyExtractor.
+";0;0.21
+C:/Users/temuh/OneDrive/Documentos/GitHub/lecturaFacturas/facturaPrueba/F2501759_desguace caravana.pdf;F2501759_desguace caravana.pdf;COMPRA;09/04/2025;F-25-01759;LA CARAVANA SL;NEW SATELITE, S.L.;B30378129;No encontrado;Importe;58.68;12.32;71.0;0.0;2025-10-23 14:00:28;"🔍 DEBUG MODE ACTIVATED: Showing all lines in file
+
+Line 00: Importe Línea
+Line 01: Precio
+Line 02: Uds.
+Line 03: Descripción
+Line 04: Referencia
+Line 05: FECHA
+Line 06: AUTOVIA DEL MEDITERRANEO KM 645
+Line 07: 30890 PUERTO LUMBRERAS (MURCIA)
+Line 08: TELF :968402125
+Line 09: e-mail: lacaravana@desguacecaravana.com
+Line 10: 09/04/2025
+Line 11: F-25-01759
+Line 12: B8904165601641642546121216460550<@
+Line 13: Cliente : 43011149
+Line 14: NEWSATELITE SL
+Line 15: CALLE SIERRA DE ARACENA 62
+Line 16: 28691
+Line 17: VILLANUEVA DE LA CAÑADA (MADRID)
+Line 18: CIF CLIENTE:
+Line 19: B85629020
+Line 20: FACTURA
+Line 21: Nº pedido: P-16901-25
+Line 22:  1,00
+Line 23:  REJILLA DELANTERA RENAULT KANGOO *   |   0.08 - ...
+Line 24: 2250803
+Line 25:  46,28 €
+Line 26:  46,28
+Line 27:  1,00
+Line 28: ENVIO
+Line 29:  12,40 €
+Line 30:  12,40
+Line 31: Página
+Line 32: 1
+Line 33: de
+Line 34: 1
+Line 35: TRANSFERENCIA
+Line 36: Forma Pago:
+Line 37: Base Imp.:
+Line 38: TOTAL:
+Line 39:  12,32  €
+Line 40:  71,00  €
+Line 41: IVA(21,00%) :
+Line 42: Dto.(0,00%) :
+Line 43:  58,68 €
+Line 44: Bruto:
+Line 45:  58,68€
+Line 46: Observaciones:
+Line 47: Entregado:
+Line 48:  71,00€
+Line 49: **La posesión del presente documento no presupone su pago**
+Line 50: Inc Reg Mercantil de Murcia como MU-2675 folio 53 hoja MU-71542 Inscripcion 1 CIF: B30378129
+Line 51: Nuestra cuenta: ES36 2100 7875 1222 0000 5777
+
+➡️ Extractor encontrado en mapeo: extractors.lacaravana_extractor.LacaravanaExtractor
+✅ Extracción exitosa con extractors.lacaravana_extractor.LacaravanaExtractor.
+";0;0.21
+C:/Users/temuh/OneDrive/Documentos/GitHub/lecturaFacturas/facturaPrueba/FACTURA_AUTOCASHER PILAS_CASCAJO.pdf;FACTURA_AUTOCASHER PILAS_CASCAJO.pdf;COMPRA;29/05/2025;2501416;AUTOCASHER PILAS, SL;NEW SATELITE, S.L.;B10754588;No encontrado;NEWSATELITE;250.0;21.0;302.5;0.0;2025-10-23 14:43:57;"🔍 DEBUG MODE ACTIVATED: Showing all lines in file
+
+Line 00: NEWSATELITE SL
+Line 01: B-85629020
+Line 02: 2501416
+Line 03: 29/05/2025
+Line 04: CALLE SOFIA 30
+Line 05: 28022 MADRID
+Line 06: FACTURA Nº:
+Line 07: FECHA...........:
+Line 08: TELF.  954751612
+Line 09: AUTOCASHER PILAS, SL
+Line 10: CIF: B10754588
+Line 11: 695 395 615
+Line 12: 002986
+Line 13: Nº Cliente:
+Line 14: DATOS DEL CLIENTE
+Line 15: Codigo
+Line 16: Descripción
+Line 17: Cantid.Precio u.Dto. %
+Line 18: Importe
+Line 19: C/ SANLUCAR LA MAYOR, Nº 2
+Line 20: 41840 PILAS (SEVILLA)
+Line 21: administracion@desguacescascajo.com
+Line 22: info@desguacescascajo.com
+Line 23: 40638
+Line 24: CENTRALITA CHECK CONTROL MERCEDES CITAN  237106319R
+Line 25: 1
+Line 26: 250,00
+Line 27: 0
+Line 28: 21
+Line 29: 250,00
+Line 30: Base Imponible
+Line 31: 250,00
+Line 32: 52,50
+Line 33: I.V.A. 21%
+Line 34: TOTAL  FACTURA  
+Line 35: 302,50 Euros
+Line 36: Observaciones:
+Line 37: Importe:
+Line 38: Formas de pagos:
+Line 39: Forma de pago:
+Line 40: LOLI
+Line 41: Atendido por:
+Line 42: Import. Vencimiento:
+Line 43: LA CAIXA. ES79 2100 7812 4702 0021 8548
+Line 44: BBVA. ES07 0182 7111 7402 0159 6627
+Line 45: En nombre de la empresa tratamos la información que nos facilita con el fin de prestarles el servicio solicitado y realizar la facturación del mismo. 
+Line 46: Los datos proporcionados se conservaran mientras se mantenga la relación comercial o durante los años necesarios para cumplir con las 
+Line 47: obligaciones legales. Los datos no se cederán a terceros salvo en los casos que exista una obligación legal. Usted tiene derecho a obtener 
+Line 48: confirmación sobre si nuestra empresa está  tratando sus datos personales por tanto tiene derecho a acceder a sus datos personales, rectificar
+Line 49: los datos inexactos o solicitar su supresión cuando los datos ya no sean necesarios. Para ello puede contactar con nuestra dirección.
+Line 50: RESPONSABLE DEL TRATAMIENTO: AUTOCASHER PILAS, SL. CIF: B10754588. C/ SANLUCAR LA MAYOR, 2. PILAS 41840 SEVILLA
+Line 51: TELEFONO: 954751612, CORREO ELECTRONICO: administración@desguacescascajo.com
+Line 52: LAS PIEZAS ANOTADAS EN ESTE DOCUMENTO SON USADAS A NO SER QUE SE INDIQUE LO CONTRARIO. LAS PIEZAS ELECTRICAS NO TIENEN DEVOLUCIÓN.
+Line 53: LAS PIEZAS USADAS VAN MARCADAS, LA CUAL NO DEBE SER MANIPULADA. EN CASO DE MANIPULACIÓN PERDERÁ TODO TIPO DE GARANTÍA
+Line 54: TRANSFERENCIA CAIXA
+
+➡️ Extractor encontrado en mapeo: extractors.autocasher_extractor.AutocasherExtractor
+✅ Extracción exitosa con extractors.autocasher_extractor.AutocasherExtractor.
+";0;0.21
+C:/Users/temuh/OneDrive/Documentos/GitHub/lecturaFacturas/facturaPrueba/FE_M5002270_20250429_combustibles_fiel_marco.PDF;FE_M5002270_20250429_combustibles_fiel_marco.PDF;COMPRA;29-04-2025;M5 2270;COMBUSTIBLES FIEL, S.L.;NEW SATELITE, S.L.;B84192483;No encontrado;Cliente;247.93;21.0;300.0;0.0;2025-10-23 14:58:07;"🔍 DEBUG MODE ACTIVATED: Showing all lines in file
+
+Line 00: 4300017302
+Line 01: MARCO Y POMARES PROMOTORA SL
+Line 02: B84192483
+Line 03: Cif:
+Line 04: Cliente:
+Line 05: SIERRA ARACENA, 62
+Line 06: Fecha
+Line 07: Albarán
+Line 08: Producto
+Line 09: Litros
+Line 10: Pvp
+Line 11: Importe
+Line 12: VILLANUEVA DE LA CAÑADA
+Line 13: MADRID
+Line 14: 28691
+Line 15: M5  2270
+Line 16: 29-04-2025
+Line 17: C/ ARQUÍMEDES, 62
+Line 18: 02600 - VILLARROBLEDO
+Line 19: ALBACETE. 
+Line 20: CIF.: B02223139
+Line 21: Tfno. Móstoles: 916 165576  info@combustiblesfiel.com
+Line 22: Fecha:
+Line 23: COMBUSTIBLES FIEL, S.L.
+Line 24: Nº Factura:
+Line 25: 0003
+Line 26:     337.00
+Line 27:  0.890207
+Line 28:      300.00
+Line 29: 29-04-2025
+Line 30: M5   722
+Line 31: GASOLEO C
+Line 32: Base imponible
+Line 33: %IVA
+Line 34: Cuota IVA
+Line 35: Total
+Line 36: Total factura
+Line 37:     300.00
+Line 38: Vencimientos:
+Line 39: TARJETA
+Line 40: Forma de pago:
+Line 41: 300.00
+Line 42: 247.93
+Line 43: 21.00
+Line 44: 52.07
+Line 45:       6.07
+Line 46: Impuestos especiales incluidos:
+Line 47: COMBUSTIBLES FIEL S.L. es Responsable del tratamiento de conformidad con el GDPR y la LOPDGDD  con la finalidad de mantener una relación comercial y conservarlos durante no más tiempo del
+Line 48: necesario para ello. No se comunicarán los datos a terceros. Puede ejercer los derechos de acceso, rectificación, portabilidad, supresión, limitación y oposición en COMBUSTIBLES FIEL S.L. en CALLE
+Line 49: ARQUIMEDES 62 02600 VILLARROBLEDO (ALBACETE) y el de reclamación a www.aepd.es.
+Line 50: Cuentas bancarias para transferencias:
+Line 51: GLOBALCAJA: ES76-3190-0958-7923-8542-4623
+Line 52: BSCH:               ES28-0049-5984-9726-1604-5299
+
+➡️ Extractor encontrado en mapeo: extractors.fiel_extractor.FielExtractor
+✅ Extracción exitosa con extractors.fiel_extractor.FielExtractor.
+";0;0.21
+C:/Users/temuh/OneDrive/Documentos/GitHub/lecturaFacturas/facturaPrueba/FRA502-2025-25_boxes.pdf;FRA502-2025-25_boxes.pdf;COMPRA;28/03/2025;502/25;BOXES INTEGRALCAR, S.L;NEW SATELITE, S.L.;B-84962851;No encontrado;2416KZM;400.7;21.0;484.85;0.0;2025-10-24 08:22:49;"🔍 DEBUG MODE ACTIVATED: Showing all lines in file
+
+Line 00: Marca:
+Line 01: Modelo:
+Line 02: Matrícula:
+Line 03: Bastidor
+Line 04: KM
+Line 05: Entrada
+Line 06: Salida
+Line 07:  -
+Line 08:  Tlfno.
+Line 09: Factura / Serie 
+Line 10: Fecha
+Line 11: Precio Hora
+Line 12:  /
+Line 13: Orden / Serie
+Line 14:  /
+Line 15: NEW SATELITE S.L
+Line 16: SIERRA ARACENA N 62
+Line 17: 28691
+Line 18: VILLANUEVA DE LA CAÑADA
+Line 19: MADRID
+Line 20: B85629020
+Line 21: 695395615
+Line 22: RENAULT
+Line 23: CAPTUR
+Line 24: VF1R8700463335065
+Line 25: 06/03/2025
+Line 26: 14/03/2025
+Line 27:  102.048
+Line 28: 502
+Line 29: 10749
+Line 30: P
+Line 31:  44,10
+Line 32:      PUERTA TR DR
+Line 33: ALETA TR DR
+Line 34: PUNTA TR DR PARG TR
+Line 35: CAPOT
+Line 36: PUERTA TR IZ
+Line 37: PUNTA TR IZ PARG TR
+Line 38: 25
+Line 39: 28/03/2025
+Line 40: 2416KZM
+Line 41:  475
+Line 42: CTE:
+Line 43: Detalle de Mano de Obra
+Line 44: Tiempo
+Line 45: Dto %
+Line 46: Importe
+Line 47: P.vp.
+Line 48: MANO DE OBRA EN CHAPA
+Line 49:  44,10
+Line 50: MANO DE OBRA EN PINTURA
+Line 51:  7,00
+Line 52:  280,70
+Line 53:  40,10
+Line 54: PINTAR SIETE PIEZAS
+Line 55: SubTotal de Detalles de Mano de Obra :
+Line 56:  280,70
+Line 57: Dto %
+Line 58: Cantidad
+Line 59: P.v.p.
+Line 60: Referencia
+Line 61: Descripción de detalle de pintura
+Line 62: Importe
+Line 63: SK\TOT/PINT
+Line 64:  20,00
+Line 65:  6,00
+Line 66:  120,00
+Line 67: TOTAL MATERIAL DE PINTURA
+Line 68: SubTotal Detalles de Pintura :
+Line 69:  120,00
+Line 70: Conforme Cliente
+Line 71:  484,85 €
+Line 72: €
+Line 73: %
+Line 74: %
+Line 75: €
+Line 76: €
+Line 77:  0,00
+Line 78:  0,00
+Line 79:  400,70
+Line 80:  21,00
+Line 81:  84,15
+Line 82: Importe dto
+Line 83: Base Imponible 
+Line 84: I.V.A.
+Line 85:  Importe I.V.A.
+Line 86: TOTAL FACTURA
+Line 87: Descuento
+Line 88: Vtos: 28/03/2025
+Line 89:  484,85 €
+Line 90: Forma de Pago: 
+Line 91: IBERCA.CTA.ES56 2085-9273-1403-3521-8146
+Line 92: Codigo QR
+Line 93: Bruto 
+Line 94: €
+Line 95:  400,70
+Line 96: REPARACIÓN 
+Line 97: GARANTIZADA 
+Line 98: POR 
+Line 99: 3 MESES 
+Line 100: Ó 
+Line 101: 2000KM. 
+Line 102: El 
+Line 103: que 
+Line 104: se 
+Line 105: suscribe, 
+Line 106: como 
+Line 107: consecuencia 
+Line 108: de 
+Line 109: la 
+Line 110: prueba 
+Line 111: y 
+Line 112: verificación 
+Line 113: efectuadas 
+Line 114: en 
+Line 115: el 
+Line 116: vehículo 
+Line 117: reparado en este taller, declara que la reparación es de completa conformidad y retira el vehículo en perfecto estado, habiendo sido efectuadas las 
+Line 118: reparaciones por el importe al que se refiere esta factura.
+Line 119:  En cumplimiento de lo que dispone la normativa vigente en materia de protección de datos personales, le informamos que los datos personales 
+Line 120: incorporados 
+Line 121: en 
+Line 122: este 
+Line 123: documento 
+Line 124: serán 
+Line 125: tratados 
+Line 126: por 
+Line 127: BOXES 
+Line 128: INTEGRALCAR, 
+Line 129: S.L. 
+Line 130: (Responsable 
+Line 131: del 
+Line 132: Tratamiento), 
+Line 133: con 
+Line 134: el 
+Line 135: fin 
+Line 136: de 
+Line 137: mantener 
+Line 138: una 
+Line 139: relación 
+Line 140: comercial 
+Line 141: . 
+Line 142: No 
+Line 143: se 
+Line 144: comunicarán 
+Line 145: los 
+Line 146: datos 
+Line 147: a 
+Line 148: terceros, 
+Line 149: excepto 
+Line 150: por 
+Line 151: obligación 
+Line 152: legal, 
+Line 153: ni 
+Line 154: se 
+Line 155: realizará 
+Line 156: ninguna 
+Line 157: transferencia 
+Line 158: internacional 
+Line 159: sin 
+Line 160: su 
+Line 161: consentimiento previo. Así mismo, se le informa que puede ejercer los derechos de acceso, rectificación, portabilidad y supresión de sus datos y los de 
+Line 162: limitación y oposición a su tratamiento dirigiéndose a 
+Line 163: BOXES INTEGRALCAR, S.L. con domicilio TIMANFAYA, 
+Line 164: 11, 28970, HUMANES DE MADRID, o enviando 
+Line 165: un correo electrónico a JCARLOSFMV@HOTMAIL.COM, junto con una fotocopia de su DNI indicando el tipo de derecho que quiere ejercer. Si considera 
+Line 166: que el tratamiento no se ajusta a la normativa vigente, podrá presentar una reclamación ante la autoridad de control en agpd.es.
+Line 167: Página 1 de 1
+
+➡️ Extractor encontrado en mapeo: extractors.boxes_extractor.BoxesExtractor
+✅ Extracción exitosa con extractors.boxes_extractor.BoxesExtractor.
+";0;0.21
+C:/Users/temuh/OneDrive/Documentos/GitHub/lecturaFacturas/facturaPrueba/FRA503-2025-25_boxes.pdf;FRA503-2025-25_boxes.pdf;COMPRA;28/03/2025;503/25;BOXES INTEGRALCAR, S.L;NEW SATELITE, S.L.;B-84962851;No encontrado;3902LJS;153.48;21.0;185.71;0.0;2025-10-24 08:23:09;"🔍 DEBUG MODE ACTIVATED: Showing all lines in file
+
+Line 00: Marca:
+Line 01: Modelo:
+Line 02: Matrícula:
+Line 03: Bastidor
+Line 04: KM
+Line 05: Entrada
+Line 06: Salida
+Line 07:  -
+Line 08:  Tlfno.
+Line 09: Factura / Serie 
+Line 10: Fecha
+Line 11: Precio Hora
+Line 12:  /
+Line 13: Orden / Serie
+Line 14:  /
+Line 15: NEW SATELITE S.L
+Line 16: SIERRA ARACENA N 62
+Line 17: 28691
+Line 18: VILLANUEVA DE LA CAÑADA
+Line 19: MADRID
+Line 20: B85629020
+Line 21: 695395615
+Line 22: RENAULT
+Line 23: KANGOO
+Line 24: VF1WF000465188640
+Line 25: 20/03/2025
+Line 26: 28/03/2025
+Line 27:  62.435
+Line 28: 503
+Line 29: 10829
+Line 30: P
+Line 31:  44,10
+Line 32:      REPARAR TECHO Y PINTAR
+Line 33: 25
+Line 34: 28/03/2025
+Line 35: 3902LJS
+Line 36:  475
+Line 37: CTE:
+Line 38: Detalle de Mano de Obra
+Line 39: Tiempo
+Line 40: Dto %
+Line 41: Importe
+Line 42: P.vp.
+Line 43: MANO DE OBRA EN CHAPA
+Line 44:  1,30
+Line 45:  57,33
+Line 46:  44,10
+Line 47: MANO DE OBRA EN PINTURA
+Line 48:  1,50
+Line 49:  66,15
+Line 50:  44,10
+Line 51: SubTotal de Detalles de Mano de Obra :
+Line 52:  123,48
+Line 53: Dto %
+Line 54: Cantidad
+Line 55: P.v.p.
+Line 56: Referencia
+Line 57: Descripción de detalle de pintura
+Line 58: Importe
+Line 59:  30,00
+Line 60:  1,00
+Line 61:  30,00
+Line 62: MATERIAL DE PINTURA
+Line 63: SubTotal Detalles de Pintura :
+Line 64:  30,00
+Line 65: Conforme Cliente
+Line 66:  185,71 €
+Line 67: €
+Line 68: %
+Line 69: %
+Line 70: €
+Line 71: €
+Line 72:  0,00
+Line 73:  0,00
+Line 74:  153,48
+Line 75:  21,00
+Line 76:  32,23
+Line 77: Importe dto
+Line 78: Base Imponible 
+Line 79: I.V.A.
+Line 80:  Importe I.V.A.
+Line 81: TOTAL FACTURA
+Line 82: Descuento
+Line 83: Vtos: 28/03/2025
+Line 84:  185,71 €
+Line 85: Forma de Pago: 
+Line 86: IBERCA.CTA.ES56 2085-9273-1403-3521-8146
+Line 87: Codigo QR
+Line 88: Bruto 
+Line 89: €
+Line 90:  153,48
+Line 91: REPARACIÓN 
+Line 92: GARANTIZADA 
+Line 93: POR 
+Line 94: 3 MESES 
+Line 95: Ó 
+Line 96: 2000KM. 
+Line 97: El 
+Line 98: que 
+Line 99: se 
+Line 100: suscribe, 
+Line 101: como 
+Line 102: consecuencia 
+Line 103: de 
+Line 104: la 
+Line 105: prueba 
+Line 106: y 
+Line 107: verificación 
+Line 108: efectuadas 
+Line 109: en 
+Line 110: el 
+Line 111: vehículo 
+Line 112: reparado en este taller, declara que la reparación es de completa conformidad y retira el vehículo en perfecto estado, habiendo sido efectuadas las 
+Line 113: reparaciones por el importe al que se refiere esta factura.
+Line 114:  En cumplimiento de lo que dispone la normativa vigente en materia de protección de datos personales, le informamos que los datos personales 
+Line 115: incorporados 
+Line 116: en 
+Line 117: este 
+Line 118: documento 
+Line 119: serán 
+Line 120: tratados 
+Line 121: por 
+Line 122: BOXES 
+Line 123: INTEGRALCAR, 
+Line 124: S.L. 
+Line 125: (Responsable 
+Line 126: del 
+Line 127: Tratamiento), 
+Line 128: con 
+Line 129: el 
+Line 130: fin 
+Line 131: de 
+Line 132: mantener 
+Line 133: una 
+Line 134: relación 
+Line 135: comercial 
+Line 136: . 
+Line 137: No 
+Line 138: se 
+Line 139: comunicarán 
+Line 140: los 
+Line 141: datos 
+Line 142: a 
+Line 143: terceros, 
+Line 144: excepto 
+Line 145: por 
+Line 146: obligación 
+Line 147: legal, 
+Line 148: ni 
+Line 149: se 
+Line 150: realizará 
+Line 151: ninguna 
+Line 152: transferencia 
+Line 153: internacional 
+Line 154: sin 
+Line 155: su 
+Line 156: consentimiento previo. Así mismo, se le informa que puede ejercer los derechos de acceso, rectificación, portabilidad y supresión de sus datos y los de 
+Line 157: limitación y oposición a su tratamiento dirigiéndose a 
+Line 158: BOXES INTEGRALCAR, S.L. con domicilio TIMANFAYA, 
+Line 159: 11, 28970, HUMANES DE MADRID, o enviando 
+Line 160: un correo electrónico a JCARLOSFMV@HOTMAIL.COM, junto con una fotocopia de su DNI indicando el tipo de derecho que quiere ejercer. Si considera 
+Line 161: que el tratamiento no se ajusta a la normativa vigente, podrá presentar una reclamación ante la autoridad de control en agpd.es.
+Line 162: Página 1 de 1
+
+➡️ Extractor encontrado en mapeo: extractors.boxes_extractor.BoxesExtractor
+✅ Extracción exitosa con extractors.boxes_extractor.BoxesExtractor.
+";0;0.21
+C:/Users/temuh/OneDrive/Documentos/GitHub/lecturaFacturas/facturaPrueba/FRA656-2025-25_boxes.pdf;FRA656-2025-25_boxes.pdf;COMPRA;22/04/2025;656/25;BOXES INTEGRALCAR, S.L;NEW SATELITE, S.L.;B-84962851;No encontrado;9670KTW;405.84;21.0;491.07;0.0;2025-10-24 08:23:20;"🔍 DEBUG MODE ACTIVATED: Showing all lines in file
+
+Line 00: Marca:
+Line 01: Modelo:
+Line 02: Matrícula:
+Line 03: Bastidor
+Line 04: KM
+Line 05: Entrada
+Line 06: Salida
+Line 07:  -
+Line 08:  Tlfno.
+Line 09: Factura / Serie 
+Line 10: Fecha
+Line 11: Precio Hora
+Line 12:  /
+Line 13: Orden / Serie
+Line 14:  /
+Line 15: NEW SATELITE S.L
+Line 16: SIERRA ARACENA N 62
+Line 17: 28691
+Line 18: VILLANUEVA DE LA CAÑADA
+Line 19: MADRID
+Line 20: B85629020
+Line 21: 695395615
+Line 22: OPEL
+Line 23: CORSA ECOTEC
+Line 24: W0V0XEP68K4106867
+Line 25: 01/04/2025
+Line 26: 01/04/2025
+Line 27:  56.424
+Line 28: 656
+Line 29: 10898
+Line 30: P
+Line 31:  44,10
+Line 32:      PUERTA TR DR
+Line 33: PARAGOLPES DL
+Line 34: CAPOT DL
+Line 35: COSTADO TR IZ
+Line 36: PUERTA TR IZ
+Line 37: 25
+Line 38: 22/04/2025
+Line 39: 9670KTW
+Line 40:  475
+Line 41: CTE:
+Line 42: Detalle de Mano de Obra
+Line 43: Tiempo
+Line 44: Dto %
+Line 45: Importe
+Line 46: P.vp.
+Line 47: MANO DE OBRA EN PINTURA
+Line 48:  5,00
+Line 49:  200,00
+Line 50:  40,00
+Line 51: MANO DE OBRA EN CHAPA
+Line 52:  1,50
+Line 53:  66,15
+Line 54:  44,10
+Line 55:    DYM PARAGOLPES DELT
+Line 56: REPARARLO
+Line 57: MANO DE OBRA EN CHAPA
+Line 58:  0,90
+Line 59:  39,69
+Line 60:  44,10
+Line 61: REPARAR ALETA TRAS IZQ
+Line 62: SubTotal de Detalles de Mano de Obra :
+Line 63:  305,84
+Line 64: Dto %
+Line 65: Cantidad
+Line 66: P.v.p.
+Line 67: Referencia
+Line 68: Descripción de detalle de pintura
+Line 69: Importe
+Line 70:  20,00
+Line 71:  5,00
+Line 72:  100,00
+Line 73: MATERIAL DE PINTURA
+Line 74: SubTotal Detalles de Pintura :
+Line 75:  100,00
+Line 76: Conforme Cliente
+Line 77:  491,07 €
+Line 78: €
+Line 79: %
+Line 80: %
+Line 81: €
+Line 82: €
+Line 83:  0,00
+Line 84:  0,00
+Line 85:  405,84
+Line 86:  21,00
+Line 87:  85,23
+Line 88: Importe dto
+Line 89: Base Imponible 
+Line 90: I.V.A.
+Line 91:  Importe I.V.A.
+Line 92: TOTAL FACTURA
+Line 93: Descuento
+Line 94: Vtos: 22/04/2025
+Line 95:  491,07 €
+Line 96: Forma de Pago: 
+Line 97: IBERCA.CTA.ES56 2085-9273-1403-3521-8146
+Line 98: Codigo QR
+Line 99: Bruto 
+Line 100: €
+Line 101:  405,84
+Line 102: REPARACIÓN 
+Line 103: GARANTIZADA 
+Line 104: POR 
+Line 105: 3 MESES 
+Line 106: Ó 
+Line 107: 2000KM. 
+Line 108: El 
+Line 109: que 
+Line 110: se 
+Line 111: suscribe, 
+Line 112: como 
+Line 113: consecuencia 
+Line 114: de 
+Line 115: la 
+Line 116: prueba 
+Line 117: y 
+Line 118: verificación 
+Line 119: efectuadas 
+Line 120: en 
+Line 121: el 
+Line 122: vehículo 
+Line 123: reparado en este taller, declara que la reparación es de completa conformidad y retira el vehículo en perfecto estado, habiendo sido efectuadas las 
+Line 124: reparaciones por el importe al que se refiere esta factura.
+Line 125:  En cumplimiento de lo que dispone la normativa vigente en materia de protección de datos personales, le informamos que los datos personales 
+Line 126: incorporados 
+Line 127: en 
+Line 128: este 
+Line 129: documento 
+Line 130: serán 
+Line 131: tratados 
+Line 132: por 
+Line 133: BOXES 
+Line 134: INTEGRALCAR, 
+Line 135: S.L. 
+Line 136: (Responsable 
+Line 137: del 
+Line 138: Tratamiento), 
+Line 139: con 
+Line 140: el 
+Line 141: fin 
+Line 142: de 
+Line 143: mantener 
+Line 144: una 
+Line 145: relación 
+Line 146: comercial 
+Line 147: . 
+Line 148: No 
+Line 149: se 
+Line 150: comunicarán 
+Line 151: los 
+Line 152: datos 
+Line 153: a 
+Line 154: terceros, 
+Line 155: excepto 
+Line 156: por 
+Line 157: obligación 
+Line 158: legal, 
+Line 159: ni 
+Line 160: se 
+Line 161: realizará 
+Line 162: ninguna 
+Line 163: transferencia 
+Line 164: internacional 
+Line 165: sin 
+Line 166: su 
+Line 167: consentimiento previo. Así mismo, se le informa que puede ejercer los derechos de acceso, rectificación, portabilidad y supresión de sus datos y los de 
+Line 168: limitación y oposición a su tratamiento dirigiéndose a 
+Line 169: BOXES INTEGRALCAR, S.L. con domicilio TIMANFAYA, 
+Line 170: 11, 28970, HUMANES DE MADRID, o enviando 
+Line 171: un correo electrónico a JCARLOSFMV@HOTMAIL.COM, junto con una fotocopia de su DNI indicando el tipo de derecho que quiere ejercer. Si considera 
+Line 172: que el tratamiento no se ajusta a la normativa vigente, podrá presentar una reclamación ante la autoridad de control en agpd.es.
+Line 173: Página 1 de 1
+
+➡️ Extractor encontrado en mapeo: extractors.boxes_extractor.BoxesExtractor
+✅ Extracción exitosa con extractors.boxes_extractor.BoxesExtractor.
+";0;0.21
+C:/Users/temuh/OneDrive/Documentos/GitHub/lecturaFacturas/facturaPrueba/FRA763-2025-25_boxes.pdf;FRA763-2025-25_boxes.pdf;COMPRA;19/05/2025;763/25;BOXES INTEGRALCAR, S.L;NEW SATELITE, S.L.;B-84962851;No encontrado;5816LGY;100.69;21.0;121.83;0.0;2025-10-24 08:23:31;"🔍 DEBUG MODE ACTIVATED: Showing all lines in file
+
+Line 00: Marca:
+Line 01: Modelo:
+Line 02: Matrícula:
+Line 03: Bastidor
+Line 04: KM
+Line 05: Entrada
+Line 06: Salida
+Line 07:  -
+Line 08:  Tlfno.
+Line 09: Factura / Serie 
+Line 10: Fecha
+Line 11: Precio Hora
+Line 12:  /
+Line 13: Orden / Serie
+Line 14:  /
+Line 15: NEW SATELITE S.L
+Line 16: SIERRA ARACENA N 62
+Line 17: 28691
+Line 18: VILLANUEVA DE LA CAÑADA
+Line 19: MADRID
+Line 20: B85629020
+Line 21: 695395615
+Line 22: RENAULT
+Line 23: KANGOO
+Line 24: VF1WF000165418263
+Line 25: 29/04/2025
+Line 26: 29/04/2025
+Line 27:  68.185
+Line 28: 763
+Line 29: 11060
+Line 30: P
+Line 31:  44,10
+Line 32:      COSTADO TRASERO DERECHO
+Line 33: 25
+Line 34: 19/05/2025
+Line 35: 5816LGY
+Line 36:  475
+Line 37: CTE:
+Line 38: Detalle de Mano de Obra
+Line 39: Tiempo
+Line 40: Dto %
+Line 41: Importe
+Line 42: P.vp.
+Line 43: MANO DE OBRA EN PINTURA
+Line 44:  1,00
+Line 45:  40,00
+Line 46:  40,00
+Line 47:     PINTAR COSTADO TRAS DERCH
+Line 48: MANO DE OBRA EN CHAPA
+Line 49:  0,90
+Line 50:  39,69
+Line 51:  44,10
+Line 52: SubTotal de Detalles de Mano de Obra :
+Line 53:  79,69
+Line 54: Dto %
+Line 55: Cantidad
+Line 56: P.v.p.
+Line 57: Referencia
+Line 58: Descripción de detalle de pintura
+Line 59: Importe
+Line 60: SK\TOT/PINT
+Line 61:  21,00
+Line 62:  1,00
+Line 63:  21,00
+Line 64: TOTAL MATERIAL DE PINTURA
+Line 65: SubTotal Detalles de Pintura :
+Line 66:  21,00
+Line 67: Conforme Cliente
+Line 68:  121,83 €
+Line 69: €
+Line 70: %
+Line 71: %
+Line 72: €
+Line 73: €
+Line 74:  0,00
+Line 75:  0,00
+Line 76:  100,69
+Line 77:  21,00
+Line 78:  21,14
+Line 79: Importe dto
+Line 80: Base Imponible 
+Line 81: I.V.A.
+Line 82:  Importe I.V.A.
+Line 83: TOTAL FACTURA
+Line 84: Descuento
+Line 85: Vtos: 19/05/2025
+Line 86:  121,83 €
+Line 87: Forma de Pago: 
+Line 88: IBERCA.CTA.ES56 2085-9273-1403-3521-8146
+Line 89: Codigo QR
+Line 90: Bruto 
+Line 91: €
+Line 92:  100,69
+Line 93: REPARACIÓN 
+Line 94: GARANTIZADA 
+Line 95: POR 
+Line 96: 3 MESES 
+Line 97: Ó 
+Line 98: 2000KM. 
+Line 99: El 
+Line 100: que 
+Line 101: se 
+Line 102: suscribe, 
+Line 103: como 
+Line 104: consecuencia 
+Line 105: de 
+Line 106: la 
+Line 107: prueba 
+Line 108: y 
+Line 109: verificación 
+Line 110: efectuadas 
+Line 111: en 
+Line 112: el 
+Line 113: vehículo 
+Line 114: reparado en este taller, declara que la reparación es de completa conformidad y retira el vehículo en perfecto estado, habiendo sido efectuadas las 
+Line 115: reparaciones por el importe al que se refiere esta factura.
+Line 116:  En cumplimiento de lo que dispone la normativa vigente en materia de protección de datos personales, le informamos que los datos personales 
+Line 117: incorporados 
+Line 118: en 
+Line 119: este 
+Line 120: documento 
+Line 121: serán 
+Line 122: tratados 
+Line 123: por 
+Line 124: BOXES 
+Line 125: INTEGRALCAR, 
+Line 126: S.L. 
+Line 127: (Responsable 
+Line 128: del 
+Line 129: Tratamiento), 
+Line 130: con 
+Line 131: el 
+Line 132: fin 
+Line 133: de 
+Line 134: mantener 
+Line 135: una 
+Line 136: relación 
+Line 137: comercial 
+Line 138: . 
+Line 139: No 
+Line 140: se 
+Line 141: comunicarán 
+Line 142: los 
+Line 143: datos 
+Line 144: a 
+Line 145: terceros, 
+Line 146: excepto 
+Line 147: por 
+Line 148: obligación 
+Line 149: legal, 
+Line 150: ni 
+Line 151: se 
+Line 152: realizará 
+Line 153: ninguna 
+Line 154: transferencia 
+Line 155: internacional 
+Line 156: sin 
+Line 157: su 
+Line 158: consentimiento previo. Así mismo, se le informa que puede ejercer los derechos de acceso, rectificación, portabilidad y supresión de sus datos y los de 
+Line 159: limitación y oposición a su tratamiento dirigiéndose a 
+Line 160: BOXES INTEGRALCAR, S.L. con domicilio TIMANFAYA, 
+Line 161: 11, 28970, HUMANES DE MADRID, o enviando 
+Line 162: un correo electrónico a JCARLOSFMV@HOTMAIL.COM, junto con una fotocopia de su DNI indicando el tipo de derecho que quiere ejercer. Si considera 
+Line 163: que el tratamiento no se ajusta a la normativa vigente, podrá presentar una reclamación ante la autoridad de control en agpd.es.
+Line 164: Página 1 de 1
+
+➡️ Extractor encontrado en mapeo: extractors.boxes_extractor.BoxesExtractor
+✅ Extracción exitosa con extractors.boxes_extractor.BoxesExtractor.
+";0;0.21
+C:/Users/temuh/OneDrive/Documentos/GitHub/lecturaFacturas/facturaPrueba/FRA765-2025-25_boxes.pdf;FRA765-2025-25_boxes.pdf;COMPRA;19/05/2025;765/25;BOXES INTEGRALCAR, S.L;NEW SATELITE, S.L.;B-84962851;No encontrado;2086KZL;156.27;32.82;189.09;0.0;2025-10-24 08:23:58;"🔍 DEBUG MODE ACTIVATED: Showing all lines in file
+
+Line 00: Marca:
+Line 01: Modelo:
+Line 02: Matrícula:
+Line 03: Bastidor
+Line 04: KM
+Line 05: Entrada
+Line 06: Salida
+Line 07:  -
+Line 08:  Tlfno.
+Line 09: Factura / Serie 
+Line 10: Fecha
+Line 11: Precio Hora
+Line 12:  /
+Line 13: Orden / Serie
+Line 14:  /
+Line 15: NEW SATELITE S.L
+Line 16: SIERRA ARACENA N 62
+Line 17: 28691
+Line 18: VILLANUEVA DE LA CAÑADA
+Line 19: MADRID
+Line 20: B85629020
+Line 21: 695395615
+Line 22: RENAULT
+Line 23: KANGOO EXPRESS
+Line 24: VF1FW51H163669610
+Line 25: 09/04/2025
+Line 26: 23/04/2025
+Line 27:  69.596
+Line 28: 765
+Line 29: 10957
+Line 30: P
+Line 31:  44,10
+Line 32:      DAÑOS CHAPA Y PINTURA:
+Line 33: COSTADO IZDO
+Line 34: 25
+Line 35: 19/05/2025
+Line 36: 2086KZL
+Line 37:  475
+Line 38: CTE:
+Line 39: Detalle de Mano de Obra
+Line 40: Tiempo
+Line 41: Dto %
+Line 42: Importe
+Line 43: P.vp.
+Line 44: MANO DE OBRA EN PINTURA
+Line 45:  1,00
+Line 46:  15,00
+Line 47:  37,48
+Line 48:  44,10
+Line 49: MANO DE OBRA EN CHAPA
+Line 50:  1,90
+Line 51:  83,79
+Line 52:  44,10
+Line 53: SubTotal de Detalles de Mano de Obra :
+Line 54:  121,27
+Line 55: Dto %
+Line 56: Cantidad
+Line 57: P.v.p.
+Line 58: Referencia
+Line 59: Descripción de detalle de pintura
+Line 60: Importe
+Line 61: SK\TOT/PINT
+Line 62:  35,00
+Line 63:  1,00
+Line 64:  35,00
+Line 65: TOTAL MATERIAL DE PINTURA
+Line 66: SubTotal Detalles de Pintura :
+Line 67:  35,00
+Line 68: Conforme Cliente
+Line 69:  189,09 €
+Line 70: €
+Line 71: %
+Line 72: %
+Line 73: €
+Line 74: €
+Line 75:  0,00
+Line 76:  0,00
+Line 77:  156,27
+Line 78:  21,00
+Line 79:  32,82
+Line 80: Importe dto
+Line 81: Base Imponible 
+Line 82: I.V.A.
+Line 83:  Importe I.V.A.
+Line 84: TOTAL FACTURA
+Line 85: Descuento
+Line 86: Vtos: 19/05/2025
+Line 87:  189,09 €
+Line 88: Forma de Pago: 
+Line 89: IBERCA.CTA.ES56 2085-9273-1403-3521-8146
+Line 90: Codigo QR
+Line 91: Bruto 
+Line 92: €
+Line 93:  156,27
+Line 94: REPARACIÓN 
+Line 95: GARANTIZADA 
+Line 96: POR 
+Line 97: 3 MESES 
+Line 98: Ó 
+Line 99: 2000KM. 
+Line 100: El 
+Line 101: que 
+Line 102: se 
+Line 103: suscribe, 
+Line 104: como 
+Line 105: consecuencia 
+Line 106: de 
+Line 107: la 
+Line 108: prueba 
+Line 109: y 
+Line 110: verificación 
+Line 111: efectuadas 
+Line 112: en 
+Line 113: el 
+Line 114: vehículo 
+Line 115: reparado en este taller, declara que la reparación es de completa conformidad y retira el vehículo en perfecto estado, habiendo sido efectuadas las 
+Line 116: reparaciones por el importe al que se refiere esta factura.
+Line 117:  En cumplimiento de lo que dispone la normativa vigente en materia de protección de datos personales, le informamos que los datos personales 
+Line 118: incorporados 
+Line 119: en 
+Line 120: este 
+Line 121: documento 
+Line 122: serán 
+Line 123: tratados 
+Line 124: por 
+Line 125: BOXES 
+Line 126: INTEGRALCAR, 
+Line 127: S.L. 
+Line 128: (Responsable 
+Line 129: del 
+Line 130: Tratamiento), 
+Line 131: con 
+Line 132: el 
+Line 133: fin 
+Line 134: de 
+Line 135: mantener 
+Line 136: una 
+Line 137: relación 
+Line 138: comercial 
+Line 139: . 
+Line 140: No 
+Line 141: se 
+Line 142: comunicarán 
+Line 143: los 
+Line 144: datos 
+Line 145: a 
+Line 146: terceros, 
+Line 147: excepto 
+Line 148: por 
+Line 149: obligación 
+Line 150: legal, 
+Line 151: ni 
+Line 152: se 
+Line 153: realizará 
+Line 154: ninguna 
+Line 155: transferencia 
+Line 156: internacional 
+Line 157: sin 
+Line 158: su 
+Line 159: consentimiento previo. Así mismo, se le informa que puede ejercer los derechos de acceso, rectificación, portabilidad y supresión de sus datos y los de 
+Line 160: limitación y oposición a su tratamiento dirigiéndose a 
+Line 161: BOXES INTEGRALCAR, S.L. con domicilio TIMANFAYA, 
+Line 162: 11, 28970, HUMANES DE MADRID, o enviando 
+Line 163: un correo electrónico a JCARLOSFMV@HOTMAIL.COM, junto con una fotocopia de su DNI indicando el tipo de derecho que quiere ejercer. Si considera 
+Line 164: que el tratamiento no se ajusta a la normativa vigente, podrá presentar una reclamación ante la autoridad de control en agpd.es.
+Line 165: Página 1 de 1
+
+➡️ Extractor encontrado en mapeo: extractors.boxes_extractor.BoxesExtractor
+✅ Extracción exitosa con extractors.boxes_extractor.BoxesExtractor.
+";0;0.21
+C:/Users/temuh/OneDrive/Documentos/GitHub/lecturaFacturas/facturaPrueba\FRA838-2025-25_boxes.pdf;FRA838-2025-25_boxes.pdf;COMPRA;27/05/2025;838/25;BOXES INTEGRALCAR, S.L;NEW SATELITE, S.L.;B-84962851;No encontrado;7752LJX;177.00000000000003;37.17;214.17000000000002;0.0;2025-10-24 10:56:53;"🔍 DEBUG MODE ACTIVATED: Showing all lines in file
+
+Line 00: Marca:
+Line 01: Modelo:
+Line 02: Matrícula:
+Line 03: Bastidor
+Line 04: KM
+Line 05: Entrada
+Line 06: Salida
+Line 07:  -
+Line 08:  Tlfno.
+Line 09: Factura / Serie 
+Line 10: Fecha
+Line 11: Precio Hora
+Line 12:  /
+Line 13: Orden / Serie
+Line 14:  /
+Line 15: NEW SATELITE S.L
+Line 16: SIERRA ARACENA N 62
+Line 17: 28691
+Line 18: VILLANUEVA DE LA CAÑADA
+Line 19: MADRID
+Line 20: B85629020
+Line 21: 695395615
+Line 22: RENAULT
+Line 23: KANGOO
+Line 24: VF1WF000665822997
+Line 25: 12/05/2025
+Line 26: 12/05/2025
+Line 27:  104.720
+Line 28: 838
+Line 29: 11115
+Line 30: P
+Line 31:  44,10
+Line 32:      COSTADO TRASERO DERECHO
+Line 33: PUERTA CORREDERA DERECHA
+Line 34: 25
+Line 35: 27/05/2025
+Line 36: 7752LJX
+Line 37:  475
+Line 38: CTE:
+Line 39: Detalle de Mano de Obra
+Line 40: Tiempo
+Line 41: Dto %
+Line 42: Importe
+Line 43: P.vp.
+Line 44: MANO DE OBRA EN CHAPA
+Line 45:  1,40
+Line 46:  61,74
+Line 47:  44,10
+Line 48:  REPARAR COSTADO DERCH , PUERTA LATERAL DERCH
+Line 49: MANO DE OBRA EN PINTURA
+Line 50:  1,81
+Line 51:  80,00
+Line 52:  44,10
+Line 53:  PINTAR ALETA TRAS DERCH 
+Line 54: PINTAR PUERTA LATERAL DERCH
+Line 55: SubTotal de Detalles de Mano de Obra :
+Line 56:  141,74
+Line 57: Dto %
+Line 58: Cantidad
+Line 59: P.v.p.
+Line 60: Referencia
+Line 61: Descripción de detalle de pintura
+Line 62: Importe
+Line 63: SK\TOT/PINT
+Line 64:  20,00
+Line 65:  2,00
+Line 66:  40,00
+Line 67: TOTAL MATERIAL DE PINTURA
+Line 68: SubTotal Detalles de Pintura :
+Line 69:  40,00
+Line 70: Conforme Cliente
+Line 71:  219,91 €
+Line 72: €
+Line 73: %
+Line 74: %
+Line 75: €
+Line 76: €
+Line 77:  0,00
+Line 78:  0,00
+Line 79:  181,74
+Line 80:  21,00
+Line 81:  38,17
+Line 82: Importe dto
+Line 83: Base Imponible 
+Line 84: I.V.A.
+Line 85:  Importe I.V.A.
+Line 86: TOTAL FACTURA
+Line 87: Descuento
+Line 88: Vtos: 27/05/2025
+Line 89:  219,91 €
+Line 90: Forma de Pago: 
+Line 91: IBERCA.CTA.ES56 2085-9273-1403-3521-8146
+Line 92: Codigo QR
+Line 93: Bruto 
+Line 94: €
+Line 95:  181,74
+Line 96: REPARACIÓN 
+Line 97: GARANTIZADA 
+Line 98: POR 
+Line 99: 3 MESES 
+Line 100: Ó 
+Line 101: 2000KM. 
+Line 102: El 
+Line 103: que 
+Line 104: se 
+Line 105: suscribe, 
+Line 106: como 
+Line 107: consecuencia 
+Line 108: de 
+Line 109: la 
+Line 110: prueba 
+Line 111: y 
+Line 112: verificación 
+Line 113: efectuadas 
+Line 114: en 
+Line 115: el 
+Line 116: vehículo 
+Line 117: reparado en este taller, declara que la reparación es de completa conformidad y retira el vehículo en perfecto estado, habiendo sido efectuadas las 
+Line 118: reparaciones por el importe al que se refiere esta factura.
+Line 119:  En cumplimiento de lo que dispone la normativa vigente en materia de protección de datos personales, le informamos que los datos personales 
+Line 120: incorporados 
+Line 121: en 
+Line 122: este 
+Line 123: documento 
+Line 124: serán 
+Line 125: tratados 
+Line 126: por 
+Line 127: BOXES 
+Line 128: INTEGRALCAR, 
+Line 129: S.L. 
+Line 130: (Responsable 
+Line 131: del 
+Line 132: Tratamiento), 
+Line 133: con 
+Line 134: el 
+Line 135: fin 
+Line 136: de 
+Line 137: mantener 
+Line 138: una 
+Line 139: relación 
+Line 140: comercial 
+Line 141: . 
+Line 142: No 
+Line 143: se 
+Line 144: comunicarán 
+Line 145: los 
+Line 146: datos 
+Line 147: a 
+Line 148: terceros, 
+Line 149: excepto 
+Line 150: por 
+Line 151: obligación 
+Line 152: legal, 
+Line 153: ni 
+Line 154: se 
+Line 155: realizará 
+Line 156: ninguna 
+Line 157: transferencia 
+Line 158: internacional 
+Line 159: sin 
+Line 160: su 
+Line 161: consentimiento previo. Así mismo, se le informa que puede ejercer los derechos de acceso, rectificación, portabilidad y supresión de sus datos y los de 
+Line 162: limitación y oposición a su tratamiento dirigiéndose a 
+Line 163: BOXES INTEGRALCAR, S.L. con domicilio TIMANFAYA, 
+Line 164: 11, 28970, HUMANES DE MADRID, o enviando 
+Line 165: un correo electrónico a JCARLOSFMV@HOTMAIL.COM, junto con una fotocopia de su DNI indicando el tipo de derecho que quiere ejercer. Si considera 
+Line 166: que el tratamiento no se ajusta a la normativa vigente, podrá presentar una reclamación ante la autoridad de control en agpd.es.
+Line 167: Página 1 de 1
+
+➡️ Extractor encontrado en mapeo: extractors.boxes_extractor.BoxesExtractor
+✅ Extracción exitosa con extractors.boxes_extractor.BoxesExtractor.
+";0;0.21
+C:/Users/temuh/OneDrive/Documentos/GitHub/lecturaFacturas/facturaPrueba\FRA839-2025-25_boxes.pdf;FRA839-2025-25_boxes.pdf;COMPRA;27/05/2025;839/25;BOXES INTEGRALCAR, S.L;NEW SATELITE, S.L.;B-84962851;No encontrado;5812LGY;90.85714285714285;19.08;109.93714285714285;0.0;2025-10-24 10:56:53;"🔍 DEBUG MODE ACTIVATED: Showing all lines in file
+
+Line 00: Marca:
+Line 01: Modelo:
+Line 02: Matrícula:
+Line 03: Bastidor
+Line 04: KM
+Line 05: Entrada
+Line 06: Salida
+Line 07:  -
+Line 08:  Tlfno.
+Line 09: Factura / Serie 
+Line 10: Fecha
+Line 11: Precio Hora
+Line 12:  /
+Line 13: Orden / Serie
+Line 14:  /
+Line 15: NEW SATELITE S.L
+Line 16: SIERRA ARACENA N 62
+Line 17: 28691
+Line 18: VILLANUEVA DE LA CAÑADA
+Line 19: MADRID
+Line 20: B85629020
+Line 21: 695395615
+Line 22: RENAULT
+Line 23: KANGOO
+Line 24: VF1WF000965418267
+Line 25: 21/05/2025
+Line 26: 21/05/2025
+Line 27:  37.487
+Line 28: 839
+Line 29: 11181
+Line 30: P
+Line 31:  44,10
+Line 32:      PINTAR CAPOT DELT
+Line 33: 25
+Line 34: 27/05/2025
+Line 35: 5812LGY
+Line 36:  475
+Line 37: CTE:
+Line 38: Detalle de Mano de Obra
+Line 39: Tiempo
+Line 40: Dto %
+Line 41: Importe
+Line 42: P.vp.
+Line 43: MANO DE OBRA EN PINTURA
+Line 44:  1,00
+Line 45:  40,00
+Line 46:  40,00
+Line 47: MANO DE OBRA EN CHAPA
+Line 48:  0,70
+Line 49:  30,87
+Line 50:  44,10
+Line 51: SubTotal de Detalles de Mano de Obra :
+Line 52:  70,87
+Line 53: Dto %
+Line 54: Cantidad
+Line 55: P.v.p.
+Line 56: Referencia
+Line 57: Descripción de detalle de pintura
+Line 58: Importe
+Line 59: SK\TOT/PINT
+Line 60:  20,00
+Line 61:  1,00
+Line 62:  20,00
+Line 63: TOTAL MATERIAL DE PINTURA
+Line 64: SubTotal Detalles de Pintura :
+Line 65:  20,00
+Line 66: Conforme Cliente
+Line 67:  109,95 €
+Line 68: €
+Line 69: %
+Line 70: %
+Line 71: €
+Line 72: €
+Line 73:  0,00
+Line 74:  0,00
+Line 75:  90,87
+Line 76:  21,00
+Line 77:  19,08
+Line 78: Importe dto
+Line 79: Base Imponible 
+Line 80: I.V.A.
+Line 81:  Importe I.V.A.
+Line 82: TOTAL FACTURA
+Line 83: Descuento
+Line 84: Vtos: 27/05/2025
+Line 85:  109,95 €
+Line 86: Forma de Pago: 
+Line 87: IBERCA.CTA.ES56 2085-9273-1403-3521-8146
+Line 88: Codigo QR
+Line 89: Bruto 
+Line 90: €
+Line 91:  90,87
+Line 92: REPARACIÓN 
+Line 93: GARANTIZADA 
+Line 94: POR 
+Line 95: 3 MESES 
+Line 96: Ó 
+Line 97: 2000KM. 
+Line 98: El 
+Line 99: que 
+Line 100: se 
+Line 101: suscribe, 
+Line 102: como 
+Line 103: consecuencia 
+Line 104: de 
+Line 105: la 
+Line 106: prueba 
+Line 107: y 
+Line 108: verificación 
+Line 109: efectuadas 
+Line 110: en 
+Line 111: el 
+Line 112: vehículo 
+Line 113: reparado en este taller, declara que la reparación es de completa conformidad y retira el vehículo en perfecto estado, habiendo sido efectuadas las 
+Line 114: reparaciones por el importe al que se refiere esta factura.
+Line 115:  En cumplimiento de lo que dispone la normativa vigente en materia de protección de datos personales, le informamos que los datos personales 
+Line 116: incorporados 
+Line 117: en 
+Line 118: este 
+Line 119: documento 
+Line 120: serán 
+Line 121: tratados 
+Line 122: por 
+Line 123: BOXES 
+Line 124: INTEGRALCAR, 
+Line 125: S.L. 
+Line 126: (Responsable 
+Line 127: del 
+Line 128: Tratamiento), 
+Line 129: con 
+Line 130: el 
+Line 131: fin 
+Line 132: de 
+Line 133: mantener 
+Line 134: una 
+Line 135: relación 
+Line 136: comercial 
+Line 137: . 
+Line 138: No 
+Line 139: se 
+Line 140: comunicarán 
+Line 141: los 
+Line 142: datos 
+Line 143: a 
+Line 144: terceros, 
+Line 145: excepto 
+Line 146: por 
+Line 147: obligación 
+Line 148: legal, 
+Line 149: ni 
+Line 150: se 
+Line 151: realizará 
+Line 152: ninguna 
+Line 153: transferencia 
+Line 154: internacional 
+Line 155: sin 
+Line 156: su 
+Line 157: consentimiento previo. Así mismo, se le informa que puede ejercer los derechos de acceso, rectificación, portabilidad y supresión de sus datos y los de 
+Line 158: limitación y oposición a su tratamiento dirigiéndose a 
+Line 159: BOXES INTEGRALCAR, S.L. con domicilio TIMANFAYA, 
+Line 160: 11, 28970, HUMANES DE MADRID, o enviando 
+Line 161: un correo electrónico a JCARLOSFMV@HOTMAIL.COM, junto con una fotocopia de su DNI indicando el tipo de derecho que quiere ejercer. Si considera 
+Line 162: que el tratamiento no se ajusta a la normativa vigente, podrá presentar una reclamación ante la autoridad de control en agpd.es.
+Line 163: Página 1 de 1
+
+➡️ Extractor encontrado en mapeo: extractors.boxes_extractor.BoxesExtractor
+✅ Extracción exitosa con extractors.boxes_extractor.BoxesExtractor.
+";0;0.21
+C:/Users/temuh/OneDrive/Documentos/GitHub/lecturaFacturas/facturaPrueba/FT225_1024_musas.pdf;FT225_1024_musas.pdf;COMPRA;14/05/2025;FT225 1024;Motor Las Musas, S.L.;NEW SATELITE, S.L.;B81583445;KANGOO;5816LGY;18.523809523809526;3.89;22.413809523809526;0.0;2025-10-24 08:45:52;"➡️ Extractor encontrado en mapeo: extractors.musas_extractor.MusasExtractor
+✅ Extracción exitosa con extractors.musas_extractor.MusasExtractor.
+";0;0.21
+C:/Users/temuh/OneDrive/Documentos/GitHub/lecturaFacturas/facturaPrueba/FT225_1084_musas.pdf;FT225_1084_musas.pdf;COMPRA;22/05/2025;FT225 1084;Motor Las Musas, S.L.;NEW SATELITE, S.L.;B81583445;KANGOO;7625LCL;18.5;21.0;22.39;0.0;2025-10-24 09:07:07;"➡️ Extractor encontrado en mapeo: extractors.musas_extractor.MusasExtractor
+✅ Extracción exitosa con extractors.musas_extractor.MusasExtractor.
+";0;0.21
+C:/Users/temuh/OneDrive/Documentos/GitHub/lecturaFacturas/facturaPrueba/FT225_844_motor las musas.pdf;FT225_844_motor las musas.pdf;COMPRA;21/04/2025;FT225 844;Motor Las Musas, S.L.;NEW SATELITE, S.L.;B81583445;CORSA-E;9670KTW;58.35;21.0;70.6;0.0;2025-10-24 08:32:39;"🔍 DEBUG MODE ACTIVATED: Showing all lines in file
+
+Line 00: Firma Prestador Servício
+Line 01: Firma Aceptación Cliente
+Line 02: FACTURA Nº
+Line 03: REFERENCIA
+Line 04: FT225 844
+Line 05: 21/04/2025
+Line 06: 713841
+Line 07: FECHA FACTURA
+Line 08: MODELO
+Line 09: NÚMERO DE BASTIDOR
+Line 10: MATRÍCULA
+Line 11: FECHA DE VENTA
+Line 12: KMS.
+Line 13: TIPO
+Line 14: ASESOR
+Line 15: CORSA-E
+Line 16: W0V0XEP68K4106867
+Line 17: 9670KTW
+Line 18: 26/02/2019
+Line 19: RAQUEL PABLO
+Line 20: 56473
+Line 21: TMO
+Line 22: Código
+Line 23: Descripción
+Line 24: Cantidad
+Line 25: Precio unit
+Line 26: Dto.
+Line 27: Importe
+Line 28: Defer.
+Line 29: Pag: 1 / 1
+Line 30: NEW SATELITE S.L.
+Line 31: CL SIERRA DE ARACENA 62
+Line 32: 28691 VILLANUEVA DE LA CAÑADA (MADRID)
+Line 33: MADRID
+Line 34: DNI/CIF: B85629020
+Line 35: 8345
+Line 36: Forma de pago: CREDITO
+Line 37: FRA CREDITO TAL
+Line 38: Motor Las Musas, S.L.
+Line 39: SUST. FILTRO DE GAS
+Line 40: Intervención 1
+Line 41: 58,35
+Line 42: 10,50
+Line 43: 35,00
+Line 44: 0,30
+Line 45: SUST. FILTRO DE GAS
+Line 46: TOTAL M.O. MECANICA
+Line 47: 10,50
+Line 48: 47,85
+Line 49: 10,00
+Line 50: 53,17
+Line 51: 1,00
+Line 52: FILTRO DE GAS
+Line 53: 13412232
+Line 54: TOTAL PIEZAS
+Line 55: 47,85
+Line 56: Mano de Obra
+Line 57: Recambios
+Line 58: Varios
+Line 59: Base imponible
+Line 60: IVA 21 %
+Line 61: Total dtos.
+Line 62: TOTAL A PAGAR
+Line 63: 10,50
+Line 64: 47,85
+Line 65: 0,00
+Line 66: 58,35
+Line 67: 12,25
+Line 68: 5,32
+Line 69: 70,60 EUROS
+Line 70: COMENTARIOS AL CLIENTE
+Line 71: RECAMBIOS ORIGINALES
+Line 72: GARANTIA SEGUN FABRICANTE GRACIAS POR SU VISITA
+Line 73: R. M. de Madrid, Tomo 11.566, Libro 0, Folio 168, Sección 8, Hoja M-181639, Inscrip. 1ª CIF: B-81583445   
+Line 74: C/ Sofía, 32
+Line 75: MADRID
+Line 76: TEL: 913135255
+Line 77: FAX:
+Line 78: recepcion@motorlasmusas.com
+Line 79: CIF: B81583445
+Line 80: Motor Las Musas, S.L.
+
+➡️ Extractor encontrado en mapeo: extractors.musas_extractor.MusasExtractor
+✅ Extracción exitosa con extractors.musas_extractor.MusasExtractor.
+";0;0.21
+C:/Users/temuh/OneDrive/Documentos/GitHub/lecturaFacturas/facturaPrueba/FT225_860_musas.pdf;FT225_860_musas.pdf;COMPRA;23/04/2025;FT225 860;Motor Las Musas, S.L.;NEW SATELITE, S.L.;B81583445;FABIA;6150KYY;17.5;21.0;21.18;0.0;2025-10-24 08:32:24;"🔍 DEBUG MODE ACTIVATED: Showing all lines in file
+
+Line 00: Firma Prestador Servício
+Line 01: Firma Aceptación Cliente
+Line 02: FACTURA Nº
+Line 03: REFERENCIA
+Line 04: FT225 860
+Line 05: 23/04/2025
+Line 06: 713931
+Line 07: FECHA FACTURA
+Line 08: MODELO
+Line 09: NÚMERO DE BASTIDOR
+Line 10: MATRÍCULA
+Line 11: FECHA DE VENTA
+Line 12: KMS.
+Line 13: TIPO
+Line 14: ASESOR
+Line 15: FABIA
+Line 16: TMBEB6NJ5KZ132786
+Line 17: 6150KYY
+Line 18: ESTER
+Line 19: 85000
+Line 20: TMO
+Line 21: Código
+Line 22: Descripción
+Line 23: Cantidad
+Line 24: Precio unit
+Line 25: Dto.
+Line 26: Importe
+Line 27: Defer.
+Line 28: Pag: 1 / 1
+Line 29: NEW SATELITE S.L.
+Line 30: CL SIERRA DE ARACENA 62
+Line 31: 28691 VILLANUEVA DE LA CAÑADA (MADRID)
+Line 32: MADRID
+Line 33: DNI/CIF: B85629020
+Line 34: 8345
+Line 35: Forma de pago: CREDITO
+Line 36: FRA CREDITO TAL
+Line 37: Motor Las Musas, S.L.
+Line 38: SUST. ACEITE + FILTRO
+Line 39: Intervención 1
+Line 40: 17,5
+Line 41: 17,50
+Line 42: 35,00
+Line 43: 0,50
+Line 44: SUST. ACEITE + FILTRO
+Line 45: TOTAL M.O. MECANICA
+Line 46: 17,50
+Line 47: MATERIAL SUMINISTRADO POR CLIENTE.
+Line 48: Mano de Obra
+Line 49: Recambios
+Line 50: Varios
+Line 51: Base imponible
+Line 52: IVA 21 %
+Line 53: TOTAL A PAGAR
+Line 54: 17,50
+Line 55: 0,00
+Line 56: 0,00
+Line 57: 17,50
+Line 58: 3,68
+Line 59: 0,00
+Line 60: 21,18 EUROS
+Line 61: COMENTARIOS AL CLIENTE
+Line 62: RECAMBIOS ORIGINALES
+Line 63: GARANTIA SEGUN FABRICANTE GRACIAS POR SU VISITA
+Line 64: R. M. de Madrid, Tomo 11.566, Libro 0, Folio 168, Sección 8, Hoja M-181639, Inscrip. 1ª CIF: B-81583445   
+Line 65: C/ Sofía, 32
+Line 66: MADRID
+Line 67: TEL: 913135255
+Line 68: FAX:
+Line 69: recepcion@motorlasmusas.com
+Line 70: CIF: B81583445
+Line 71: Motor Las Musas, S.L.
+
+➡️ Extractor encontrado en mapeo: extractors.musas_extractor.MusasExtractor
+✅ Extracción exitosa con extractors.musas_extractor.MusasExtractor.
+";0;0.21
+C:/Users/temuh/OneDrive/Documentos/GitHub/lecturaFacturas/facturaPrueba\FT225_892_New Satelite_las musas.pdf;FT225_892_New Satelite_las musas.pdf;COMPRA;25/04/2025;FT225 892;Motor Las Musas, S.L.;NEW SATELITE, S.L.;B81583445;KANGOO;3441LPT;18.42857142857143;3.87;22.29857142857143;0.0;2025-10-24 10:56:53;"🔍 DEBUG MODE ACTIVATED: Showing all lines in file
+
+Line 00: Firma Prestador Servício
+Line 01: Firma Aceptación Cliente
+Line 02: FACTURA Nº
+Line 03: REFERENCIA
+Line 04: FT225 892
+Line 05: 25/04/2025
+Line 06: 714801
+Line 07: FECHA FACTURA
+Line 08: MODELO
+Line 09: NÚMERO DE BASTIDOR
+Line 10: MATRÍCULA
+Line 11: FECHA DE VENTA
+Line 12: KMS.
+Line 13: TIPO
+Line 14: ASESOR
+Line 15: KANGOO
+Line 16: VF1WF000X67122517
+Line 17: 3441LPT
+Line 18: RAQUEL PABLO
+Line 19: 68377
+Line 20: TMO
+Line 21: Código
+Line 22: Descripción
+Line 23: Cantidad
+Line 24: Precio unit
+Line 25: Dto.
+Line 26: Importe
+Line 27: Defer.
+Line 28: Pag: 1 / 1
+Line 29: NEW SATELITE S.L.
+Line 30: CL SIERRA DE ARACENA 62
+Line 31: 28691 VILLANUEVA DE LA CAÑADA (MADRID)
+Line 32: MADRID
+Line 33: DNI/CIF: B85629020
+Line 34: 8345
+Line 35: Forma de pago: CREDITO
+Line 36: FRA CREDITO TAL
+Line 37: Motor Las Musas, S.L.
+Line 38: CAMBIO DE ACEITE Y FILTRO
+Line 39: Intervención 1
+Line 40: 18,45
+Line 41: 17,50
+Line 42: 35,00
+Line 43: 0,50
+Line 44: CAMBIO DE ACEITE Y FILTRO
+Line 45: TOTAL M.O. MECANICA
+Line 46: 17,50
+Line 47: 0,95
+Line 48: 5,00
+Line 49: 1,00
+Line 50: 1,00
+Line 51: JUNTA TORICA
+Line 52: 90528145
+Line 53: TOTAL PIEZAS
+Line 54: 0,95
+Line 55: ACEITE Y FILTRO SUMINISTRADO POR CLIENTE
+Line 56: Mano de Obra
+Line 57: Recambios
+Line 58: Varios
+Line 59: Base imponible
+Line 60: IVA 21 %
+Line 61: Total dtos.
+Line 62: TOTAL A PAGAR
+Line 63: 17,50
+Line 64: 0,95
+Line 65: 0,00
+Line 66: 18,45
+Line 67: 3,87
+Line 68: 0,05
+Line 69: 22,32 EUROS
+Line 70: COMENTARIOS AL CLIENTE
+Line 71: RECAMBIOS ORIGINALES
+Line 72: GARANTIA SEGUN FABRICANTE GRACIAS POR SU VISITA
+Line 73: R. M. de Madrid, Tomo 11.566, Libro 0, Folio 168, Sección 8, Hoja M-181639, Inscrip. 1ª CIF: B-81583445   
+Line 74: C/ Sofía, 32
+Line 75: MADRID
+Line 76: TEL: 913135255
+Line 77: FAX:
+Line 78: recepcion@motorlasmusas.com
+Line 79: CIF: B81583445
+Line 80: Motor Las Musas, S.L.
+
+➡️ Extractor encontrado en mapeo: extractors.musas_extractor.MusasExtractor
+✅ Extracción exitosa con extractors.musas_extractor.MusasExtractor.
+";0;0.21
+C:/Users/temuh/OneDrive/Documentos/GitHub/lecturaFacturas/facturaPrueba\FT225_961_NEW SATELITE_musas.pdf;FT225_961_NEW SATELITE_musas.pdf;COMPRA;08/05/2025;FT225 961;Motor Las Musas, S.L.;NEW SATELITE, S.L.;B81583445;KANGOO;7752LJX;18.42857142857143;3.87;22.29857142857143;0.0;2025-10-24 10:56:53;"🔍 DEBUG MODE ACTIVATED: Showing all lines in file
+
+Line 00: Firma Prestador Servício
+Line 01: Firma Aceptación Cliente
+Line 02: FACTURA Nº
+Line 03: REFERENCIA
+Line 04: FT225 961
+Line 05: 08/05/2025
+Line 06: 716421
+Line 07: FECHA FACTURA
+Line 08: MODELO
+Line 09: NÚMERO DE BASTIDOR
+Line 10: MATRÍCULA
+Line 11: FECHA DE VENTA
+Line 12: KMS.
+Line 13: TIPO
+Line 14: ASESOR
+Line 15: KANGOO
+Line 16: VF1WF000665822997
+Line 17: 7752LJX
+Line 18: RAQUEL PABLO
+Line 19: 104681
+Line 20: TMO
+Line 21: Código
+Line 22: Descripción
+Line 23: Cantidad
+Line 24: Precio unit
+Line 25: Dto.
+Line 26: Importe
+Line 27: Defer.
+Line 28: Pag: 1 / 1
+Line 29: NEW SATELITE S.L.
+Line 30: CL SIERRA DE ARACENA 62
+Line 31: 28691 VILLANUEVA DE LA CAÑADA (MADRID)
+Line 32: MADRID
+Line 33: DNI/CIF: B85629020
+Line 34: 8345
+Line 35: Forma de pago: CREDITO
+Line 36: FRA CREDITO TAL
+Line 37: Motor Las Musas, S.L.
+Line 38: REVSIION ANUAL (ACEITE SUMINISTRADO POR CLIENTE)
+Line 39: Intervención 1
+Line 40: 18,45
+Line 41: 17,50
+Line 42: 35,00
+Line 43: 0,50
+Line 44: CAMBIO DE ACEITE Y FILTRO
+Line 45: TOTAL M.O. MECANICA
+Line 46: 17,50
+Line 47: 0,95
+Line 48: 5,00
+Line 49: 1,00
+Line 50: 1,00
+Line 51: JUNTA TORICA
+Line 52: 90528145
+Line 53: TOTAL PIEZAS
+Line 54: 0,95
+Line 55: Mano de Obra
+Line 56: Recambios
+Line 57: Varios
+Line 58: Base imponible
+Line 59: IVA 21 %
+Line 60: Total dtos.
+Line 61: TOTAL A PAGAR
+Line 62: 17,50
+Line 63: 0,95
+Line 64: 0,00
+Line 65: 18,45
+Line 66: 3,87
+Line 67: 0,05
+Line 68: 22,32 EUROS
+Line 69: COMENTARIOS AL CLIENTE
+Line 70: RECAMBIOS ORIGINALES
+Line 71: GARANTIA SEGUN FABRICANTE GRACIAS POR SU VISITA
+Line 72: R. M. de Madrid, Tomo 11.566, Libro 0, Folio 168, Sección 8, Hoja M-181639, Inscrip. 1ª CIF: B-81583445   
+Line 73: C/ Sofía, 32
+Line 74: MADRID
+Line 75: TEL: 913135255
+Line 76: FAX:
+Line 77: recepcion@motorlasmusas.com
+Line 78: CIF: B81583445
+Line 79: Motor Las Musas, S.L.
+
+➡️ Extractor encontrado en mapeo: extractors.musas_extractor.MusasExtractor
+✅ Extracción exitosa con extractors.musas_extractor.MusasExtractor.
+";0;0.21
+C:/Users/temuh/OneDrive/Documentos/GitHub/lecturaFacturas/facturaPrueba/FV-CR-02-2025-000226_aema.pdf;FV-CR-02-2025-000226_aema.pdf;COMPRA;31/03/2025;FV-CR-02-2025-000226;NEUMÁTICOS AEMA, S.A.;NEW SATELITE, S.L.;A28625036;RENAULT CLIO, VOLKSWAGEN GOLF Ktms.: 202.030, RENAULT KANGOO, RENAULT kangoo;0468KPN, 9255LHR, 0031KRG, 7642LCL, 9978KWK, 7645LCL;1428.98347107438;300.08652892561986;1729.07;0.0;2025-10-24 09:06:38;"➡️ Extractor encontrado en mapeo: extractors.aema_extractor.AemaExtractor
+✅ Extracción exitosa con extractors.aema_extractor.AemaExtractor.
+";0;0.21
+C:/Users/temuh/OneDrive/Documentos/GitHub/lecturaFacturas/facturaPrueba/Factura 1-001134_MALAGA.pdf;Factura 1-001134_MALAGA.pdf;COMPRA;27/05/2025;001134;EURO DESGUACES MALAGA S.L;NEW SATELITE, S.L.;B92329663;No encontrado;Factura;61.98;13.02;75.0;0.0;2025-10-23 14:20:53;"🔍 DEBUG MODE ACTIVATED: Showing all lines in file
+
+Line 00: Factura Nº
+Line 01: Pag.
+Line 02: Fecha
+Line 03: Concepto
+Line 04: Cantidad
+Line 05: Precio €
+Line 06: Total €
+Line 07: Total + IVA
+Line 08: TELEF.:
+Line 09: -
+Line 10: TELEF. MOVIL:
+Line 11: FACTURADO A:
+Line 12: EURO DESGUACES MALAGA S.L. C.I.F. B-92.329.663, INSCRITA EN EL REGISTRO MERCANTIL DE MÁLAGA, TOMO 3002, LIBRO 1915, FOLIO 74, HOJA MA-54864, Inscripción 1
+Line 13: E-MAIL: administracion@eurodesguacemalaga.com
+Line 14: IVA 21%
+Line 15: Total
+Line 16: CENTRO Y GESTOR AUTORIZADO DE TRATAMIENTOS DE VEHÍCULOS POR LA JUNTA DE ANDALUCIA Nº AN-0258 - C.A.T./AN-0258
+Line 17: La presente minuta puede ser ingresada en el siguiente nº de cta bancaria: ES02-0075-0221-17-0600075989
+Line 18:  “Según establece el Real Decreto 265/2021, de 13 de abril de 2021, Eurodesguace Málaga S.L. certifica que el material de segunda mano reflejado en esta 
+Line 19:  factura corresponde a un vehículo dado de baja definitiva ante la Dirección General de Tráfico y mantiene la función y seguridad para su uso”
+Line 20: A conformidad del comprador. La empresa no responde con los vicios ocultos de la misma previa revisión por parte del comprador.
+Line 21: EURO DESGUACE MALAGA, S.L
+Line 22: Camino Medioambiental 19   
+Line 23: 29010
+Line 24: MALAGA
+Line 25: 95239 78 59
+Line 26: 95207 07 71
+Line 27: B-92329663
+Line 28: B85629020
+Line 29: Newsatelite s l
+Line 30: Calle sofia 30 - Taller sadeco vulco
+Line 31: 28022
+Line 32: Madrid
+Line 33: Madrid
+Line 34: 1
+Line 35: 001134
+Line 36: 1
+Line 37: 27/05/2025
+Line 38: VENTA DE PIEZAS DE 2ª MANO
+Line 39: 1
+Line 40: Frente kangoo
+Line 41: 1
+Line 42: 75,000
+Line 43: 75,00
+Line 44: 61,98
+Line 45: 13,02
+Line 46: 75,00
+
+➡️ Extractor encontrado en mapeo: extractors.malaga_extractor.MalagaExtractor
+✅ Extracción exitosa con extractors.malaga_extractor.MalagaExtractor.
+";0;0.21
+C:/Users/temuh/OneDrive/Documentos/GitHub/lecturaFacturas/facturaPrueba/Factura 6-003001_candelar.pdf;Factura 6-003001_candelar.pdf;COMPRA;10/06/2025;6-003001;ACCESORIOS PARA VEHICULOS CANTELAR, S.L.;NEW SATELITE, S.L.;B75526939;No encontrado;1kbcode;58.25;12.23;70.48;0.0;2025-10-24 10:47:10;"🔍 DEBUG MODE ACTIVATED: Showing all lines in file
+
+Line 00:  www.1kbcode.com
+Line 01: 31501.F
+Line 02: DOCUMENTO
+Line 03: NÚMERO
+Line 04: PÁGINA
+Line 05: FECHA
+Line 06: N.I.F.
+Line 07: AGENTE
+Line 08: FORMA DE PAGO
+Line 09: ARTÍCULO
+Line 10: DESCRIPCIÓN
+Line 11: CANTIDAD
+Line 12: PRECIO UNIDAD
+Line 13: SUBTOTAL
+Line 14: DTO.
+Line 15: TOTAL
+Line 16: TIPO
+Line 17: IMPORTE
+Line 18: DESCUENTO
+Line 19: PRONTO PAGO
+Line 20: PORTES
+Line 21: FINANCIACIÓN
+Line 22: BASE
+Line 23: I.V.A.
+Line 24: R.E.
+Line 25: OBSERVACIONES:
+Line 26: Vencimientos
+Line 27: Importe
+Line 28: Domiciliación
+Line 29: Oficina
+Line 30: Número de cuenta
+Line 31: TOTAL:
+Line 32: Factura
+Line 33: PARA PAGOS POR TRANSFERENCIA: ES92 0182 0166 3402 0192 4519 - Banco BBVA
+Line 34: CODIGO DE CLIENTE
+Line 35: ACCESORIOS PARA VEHICULOS CANTELAR, S.L.
+Line 36: JUAN CARLOS I, 48 - POLG. IND. LA HERRADA    
+Line 37: 30510
+Line 38: YECLA
+Line 39: MURCIA
+Line 40: 968794226
+Line 41: B75526939
+Line 42: 3014
+Line 43: B85629020
+Line 44: NEW SATELITE SL
+Line 45: C/ SOFIA, 30 (TALLER SADECO)
+Line 46: 28022
+Line 47: MADRID
+Line 48: 913913296
+Line 49: 6
+Line 50: 003001
+Line 51: 1
+Line 52: 10/06/2025
+Line 53: TRANSFERENCIA
+Line 54: 5
+Line 55: TRIEM1
+Line 56: Triangulo de emergencia homologado
+Line 57: 25,00
+Line 58: 2,09
+Line 59: 52,25
+Line 60: 52,25
+Line 61: 00
+Line 62: GASTOS DE ENVIO
+Line 63: 1,00
+Line 64: 6,00
+Line 65: 6,00
+Line 66: 6,00
+Line 67: 58,25
+Line 68: 58,25
+Line 69: 21,00
+Line 70: 12,23
+Line 71: 10,00
+Line 72: 4,00
+Line 73: 70,48
+Line 74: 10/06/2025
+Line 75: 70,48
+
+➡️ Extractor encontrado en mapeo: extractors.cantelar_extractor.CantelarExtractor
+✅ Extracción exitosa con extractors.cantelar_extractor.CantelarExtractor.
+";0;0.21
+C:/Users/temuh/OneDrive/Documentos/GitHub/lecturaFacturas/facturaPrueba/Factura_25D022748-00101717- (1 de 2)_beroil.PDF;Factura_25D022748-00101717- (1 de 2)_beroil.PDF;COMPRA;31/05/2025;25D022748;BEROIL, S.L.U;NEW SATELITE, S.L.;B09417957;No encontrado;PRECIO;64.12;21.0;77.59;0.0;2025-10-23 15:01:13;"🔍 DEBUG MODE ACTIVATED: Showing all lines in file
+
+Line 00: PRECIO UNITARIO
+Line 01: 31/05/2025
+Line 02: FECHA
+Line 03: CODIGO CLIENTE000101717
+Line 04: B85629020
+Line 05: NIF
+Line 06: FACTURA NÚM:25D022748
+Line 07: CANTIDAD
+Line 08: CONCEPTO
+Line 09: DESCUENTO
+Line 10: SUBTOTAL
+Line 11: Página : 1
+Line 12: BEROIL, S.L.U
+Line 13: PLAZA MAYOR, S/N
+Line 14: 09559  Los Altos (Dobro)
+Line 15: BURGOS
+Line 16: Tlf. 947473302Fax 947473301
+Line 17: MADRID
+Line 18: 28691  VILLANUEVA DE LA CAÑADA
+Line 19: C/SIERRA DE ARACENAS  62
+Line 20: NEW SATELITE S.L.
+Line 21: CLIENTE:
+Line 22: CIF: B09417957
+Line 23: NEW SATELITE S.L.
+Line 24: C/SIERRA DE ARACENAS  62
+Line 25: 28691  VILLANUEVA DE LA CAÑADA
+Line 26: MADRID
+Line 27: 57.10
+Line 28: S/P 95 GASOLINA E5
+Line 29: 77.59 €
+Line 30: 1.3590 €
+Line 31: LITROS
+Line 32: IMPORTE
+Line 33: T.AUTONOMICO
+Line 34: T.ESTATAL
+Line 35: IVA
+Line 36: BASE IMPONIBLE
+Line 37: TOTAL FACTURA
+Line 38: SUBTOTAL
+Line 39: %
+Line 40: 64.12 €
+Line 41: 21
+Line 42: 13.47 €
+Line 43: 77.59 €
+Line 44: 77.59 €
+Line 45: FORMA DE PAGO:
+Line 46: FACTURA COBRADA
+Line 47: EFECTIVO
+Line 48: Impuestos especiales incluidos en el precio (€ x litro):
+Line 49: (General y Estatal 0.504) x 57.1 litros
+Line 50: 28.78 €
+Line 51: Nº CUENTA
+Line 52: ES78 0081 5373 1500 0105 0006
+Line 53: Reg. Merc. de Burgos, Libro 204 Folio 114 Inscripción 8 Hoja BU-70028
+Line 54: BEROIL S.L. es el Responsable del tratamiento de sus datos personales y le informa de que estos datos serán tratados de conformidad con lo dispuesto
+Line 55: en el reglamento (UE) 2016/679, de 27 de abril (GDPR), y la Ley Orgánica 3/2018, de 5 diciembre (LOPDGDD), con la finalidad de mantener una relación
+Line 56: el fin del tratamiento o mientras existan prescripciones legales que dictaminen su custodia. No se comunicarán los datos a terceros, salvo obligación 
+Line 57: comercial (en base a una relación contractual, obligación legal o interés legítimo) y conservarlos durante no más tiempo del necesario para mantener 
+Line 58: y oposición a su tratamiento dirigiéndose a BEROIL S.L en Crta. Madrid Irún KM 247, -09199 Rubena (Burgos). Email: administracionhuidobro@beroil.es y
+Line 59: legal. Asimismo, se le informa de que puede ejercer sus derechos de acceso, rectificación, portabilidad y supresión de sus datos y los de limitación 
+Line 60: el de reclamación a www.aepd.es
+
+➡️ Extractor encontrado en mapeo: extractors.beroil_extractor.BeroilExtractor
+✅ Extracción exitosa con extractors.beroil_extractor.BeroilExtractor.
+";0;0.21
+C:/Users/temuh/OneDrive/Documentos/GitHub/lecturaFacturas/facturaPrueba/Factura_CESVIrecambios_R2025033798_CESVIMAP.pdf;Factura_CESVIrecambios_R2025033798_CESVIMAP.pdf;COMPRA;25/03/2025;2025033798;CENTRO DE EXPERIMENTACIÓN Y SEGURIDAD VIAL MAPFRE;NEW SATELITE, S.L.;A28272474;No encontrado;Cliente;40.91;21.0;49.5;0.0;2025-10-23 14:52:40;"🔍 DEBUG MODE ACTIVATED: Showing all lines in file
+
+Line 00: Cod. Cliente:
+Line 01: 4302019552
+Line 02: NEWSATELITE SL .
+Line 03: Nº Factura:
+Line 04: Calle SIERRA ARACENA Nº 62
+Line 05: Fecha:
+Line 06: 25/03/2025
+Line 07: 28691
+Line 08: VILLANUEVA DE LA CAÑADA
+Line 09: N.I.F. :
+Line 10: B85629020
+Line 11: MADRID
+Line 12: TOTAL
+Line 13: DTO
+Line 14: IMP.
+Line 15: VEHÍCULO
+Line 16: Nº ALBARAN
+Line 17: CODIGO
+Line 18: ARTICULO
+Line 19: R-2025033798
+Line 20: RECICLADO DE
+Line 21: VEHÍCULOS
+Line 22: Ctra. de Valladolid, km.1  05004 Ávila (España)
+Line 23: CENTRO DE TRATAMIENTO DE VEHÍCULOS FUERA DE USO
+Line 24: CANT.
+Line 25: T +34 920 259 960 - email: cesvirecambios@cesvimap.com
+Line 26: www.cesvimap.com  |  ww.cesvirecambios.com  | www.revistacesvimap.com
+Line 27: FACTURA
+Line 28: *
+Line 29: 10053638007400
+Line 30: 2025031218
+Line 31:  55,00
+Line 32:  10,00
+Line 33:  49,50
+Line 34: Renault Kangoo'12 (KW/FW Desde 10/12) Ext
+Line 35:  1
+Line 36: Volante
+Line 37: TOTAL RECAMBIO REUTILIZADO:
+Line 38:  49,50
+Line 39: IVA 
+Line 40: SUBTOTAL
+Line 41: Gastos manipulación y envío:
+Line 42: TOTAL PIEZAS
+Line 43:  13,00
+Line 44:  13,13
+Line 45:  21 % 
+Line 46:  62,50
+Line 47:  49,50
+Line 48: TOTAL
+Line 49:  75,63
+Line 50: Tipo de pago:
+Line 51: Transferencia Bancaria
+Line 52: DHL
+Line 53: A portes pagados
+Line 54:  Análisis de vehículos
+Line 55: Formación
+Line 56: Publicaciones
+Line 57: Reciclado 
+Line 58: de vehículos
+Line 59: Venta de piezas 
+Line 60: reutilizables
+Line 61: Servicios técnicos
+Line 62: Reconstrucción de  
+Line 63: accidentes de tráfico
+Line 64: Revista Cesvimap
+Line 65: CENTRO DE EXPERIMENTACIÓN Y SEGURIDAD VIAL MAPFRE
+Line 66: R.M. DE ÁVILA, LIBRO DE SOCIEDADES, HOJA 931, FOLIO 164, TOMO 38º, LIBRO 22, SECCIÓN 3ª. NIF: A28272474. ENV/2023/000020407.
+Line 67: Hoja 1 de 1
+Line 68: CONSUMIDORES FINALES. GARANTÍA DE FUNCIONAMIENTO DE PIEZAS DE RECAMBIO REUTILIZADAS VENDIDAS SIN INSTALACIÓN
+Line 69: EL CENTRO DE  EXPERIMENTACIÓN Y SEGURIDAD VIAL MAPFRE, S.A. (en adelante CESVIMAP) con domicilio social en la localidad de Ávila, Ctra. de Valladolid 
+Line 70: km.1, 05004, garantiza durante el plazo de 1 AÑO, a contar desde la fecha de entrega, el funcionamiento correcto de la /s piezas reutilizadas que se reseñan en  este 
+Line 71: documento, con exclusión de los accesorios que les puedan acompañar.
+Line 72: Asimismo, al tratarse de recambios usados, CESVIMAP garantiza, única, exclusiva e intransferiblemente, al comprador reflejado en la factura,  la aptitud de las piezas para 
+Line 73: el funcionamiento que le es propio, siendo conocido y aceptado por el comprador el estado de desgaste o fatiga de las piezas, normal o usual para el kilometraje recorrido 
+Line 74: por el vehículo de procedencia, indicándose también dicho estado en este documento.
+Line 75: CESVIMAP no comercializa, en ningún caso, piezas o recambios que afecten a los elementos activos o conjuntos de los sistemas de frenado, suspensión o dirección del 
+Line 76: vehículo.
+Line 77: CESVIMAP SE OBLIGA durante el periodo de garantía a reponer la pieza deteriorada por otra usada equivalente, o en su defecto, a la devolución del importe facturado de 
+Line 78: la pieza/s que resulten  no aptas para su funcionamiento conforme a los requisitos legalmente establecidos.
+Line 79: Para la eficacia de esta garantía, será requisito imprescindible, la previa exhibición de la factura de compra o albarán de entrega así como la  entrega a CESVIMAP de la 
+Line 80: pieza completa con su distintivo de control,  no siendo efectiva la garantía si éste no aparece o está manipulado. La recepción por CESVIMAP y /o CESVIRECAMBIOS de la
+Line 81: reclamación junto con la documentación exigida y la /s pieza/s objeto de garantía no implica la eficacia de la garantía, haciéndose ésta efectiva cuando verificada la 
+Line 82: preceptiva documentación y la/s pieza/s, objeto de esta garantía, sea expresamente aceptada su ejecución  por CESVIMAP.
+Line 83: EXCLUSIONES DE LA GARANTÍA.
+Line 84: 1. La garantía   no comprende los defectos de la/s pieza/s que se produzcan por:
+Line 85: -Manipulación indebida, uso inapropiado, negligencia, sobrecarga o abandono de la pieza, así como por inestabilidad de corriente, subidas de tensión, instalaciones o 
+Line 86: montaje defectuosos, y demás causas externas que no sean imputables a la fabricación y calidad de la pieza.
+Line 87: -Daños ocasionados por roturas, golpes o ralladuras o cuidado negligente.
+Line 88: -Daños causados por el transporte, por impactos o acciones atmosféricas, o cualquier otra causa de fuerza mayor o que no sea imputable a la calidad de la pieza.
+Line 89: -La/s reparación/es y/o instalación de la/s pieza/s  efectuada/s por personal no cualificado.
+Line 90: -La falta de mantenimiento del vehículo al que se ha incorporado la /s pieza/s, o bien que dicho mantenimiento se haya  efectuado de forma incorrecta e inadecuada según 
+Line 91: las instrucciones de su fabricante.
+Line 92: 2. En los motores:
+Line 93: 2.1    Exclusivamente se garantiza la parte principal del motor comprendida por culata, bloque y carter y sus piezas interiores de funcionamiento . Quedan como excluidas la 
+Line 94: bomba inyectora, el turbo y las piezas exteriores que vayan montadas en el motor como por ejemplo el cuerpo inyector, 
+Line 95: inyectores, calentadores, bujías, correas, 
+Line 96: manguitos, distribuidor y bobinas de encendido, bomba de agua, embrague, colectores de admisión y de escape, diferentes radiadores, depresor, ventilador, diferentes 
+Line 97: sensores e instalaciones eléctricas o cualquier otra pieza no enumerada anteriormente.
+Line 98: 2.2
+Line 99: La correa de distribución; para la efectividad de la garantía es necesario acreditar el cambio de la correa de distribución en los motores  en caso contrario la garantía 
+Line 100: queda invalidada.
+Line 101: 2.3
+Line 102: El calentamiento o sobrecalentamiento del motor por causas ajenas a éste.
+Line 103: 2.4
+Line 104: El uso inadecuado de aceites.
+Line 105: 3. La mano de obra queda absolutamente excluida de la garantia en todos los casos. 
+Line 106: VÍA DE RECLAMACIÓN
+Line 107: Para hacer efectiva la garantía de la/s pieza/s se deberá contactar con nuestro centro CESVIRECAMBIOS, centro CESVIMAP, a través del numero de teléfono 920 259 960 
+Line 108: a los efectos de poner en conocimiento la  falta de conformidad sobre el funcionamiento de la/s pieza/s y ser informado de la vía más rápida y adecuada de hacer entrega a 
+Line 109: La instalación de recambio usado requiere el consentimiento previo y por escrito del propietario del vehículo, así como la  información de la procedencia de las piezas. El 
+Line 110: taller debe hacer constar por escrito, que las piezas usadas montadas, permiten una adaptación con garantía suficiente en el vehículo que se repara.
+Line 111: IMPORTANTE
+Line 112: El derecho de desistimiento o devolución únicamente se podrá ejercitar en el plazo de 14 días naturales desde la fecha del albarán de entrega 
+Line 113: siendo necesaria la presentación de copia de la factura o albarán de entrega.
+Line 114: Sus datos personales son utilizados por CENTRO DE EXPERIMENTACIÓN Y SEGURIDAD VIAL MAPFRE, S.A. (“CESVIMAP”) para la ejecución de la relación contractual, entre otras finalidades,
+Line 115: en los términos previamente informados y, en su caso, autorizados durante el proceso de registro y/o compra de los productos y servicios contratados.
+Line 116: Puede consultar más información sobre protección de datos en la página web http://www.mapfre.es/RGPD#/Docs/CSVCSVNGNCLIPART03903ESES02
+Line 117: CENTRO DE EXPERIMENTACIÓN Y SEGURIDAD VIAL MAPFRE
+Line 118: R.M. DE ÁVILA, LIBRO DE SOCIEDADES, HOJA 931, FOLIO 164, TOMO 38º, LIBRO 22, SECCIÓN 3ª. NIF: A28272474. ENV/2023/000020407.
+
+➡️ Extractor encontrado en mapeo: extractors.cesvimap_extractor.CesvimapExtractor
+✅ Extracción exitosa con extractors.cesvimap_extractor.CesvimapExtractor.
+";0;0.21
+C:/Users/temuh/OneDrive/Documentos/GitHub/lecturaFacturas/facturaPrueba/Fra_FCR202500000011900_hergar.pdf;Fra_FCR202500000011900_hergar.pdf;COMPRA;31/03/2025;11900;GESTIÓN DE RESIDUOS S.A.;NEW SATELITE, S.L.;A-78009172;No encontrado;SATELITE;13.51;21.0;16.35;0.0;2025-10-23 15:25:33;"🔍 DEBUG MODE ACTIVATED: Showing all lines in file
+
+Line 00: NEW SATELITE                            
+Line 01: F  A  C  T  U  R  A      
+Line 02: CALLE DE ESTOCOLMO 17                   
+Line 03: 28022 - MADRID                          
+Line 04: Nº.
+Line 05: 11900 
+Line 06: FECHA: 31/03/2025
+Line 07: MADRID                          
+Line 08: 01
+Line 09: PAG.
+Line 10: CLIENTE: 1158
+Line 11: CIF.:
+Line 12: B85629020      
+Line 13:  1
+Line 14: COD. ARTICULO 
+Line 15: D E S C R I P C I O N    
+Line 16: UNIDADES
+Line 17: PRECIO    DTO.  
+Line 18: IMPORTE       
+Line 19: **ALB.
+Line 20: 36875 FECHA, 25/03/2025*    
+Line 21:     13,51
+Line 22: 1466403160        
+Line 23: REVERSIBLE,CRISTAL+SOPORTE,CONVEX
+Line 24:    1
+Line 25:     22,51
+Line 26: 40,00
+Line 27:     13,51
+Line 28: FLX                                             
+Line 29: TOTAL BRUTO
+Line 30: DPP% -IMP. P.PPORTESIMPTOS. BASE IMPONIBLE IVA.% IMPORTE IVA
+Line 31: TOTAL FACTURA  
+Line 32:      13,51    
+Line 33:     13,51
+Line 34: 21
+Line 35:     2,84
+Line 36:      16,35 €
+Line 37: FORMA PAGO:
+Line 38: GIRO 10 DIAS             
+Line 39: 10/04/25    16,35
+Line 40: BANCO:
+Line 41: 0075 1555 28 0600082405
+Line 42: *TRAMITACION GARANTIAS: OBLIGATORIO FICHA TECNICA*      
+
+➡️ Extractor encontrado en mapeo: extractors.hergar_extractor.HergarExtractor
+✅ Extracción exitosa con extractors.hergar_extractor.HergarExtractor.
+";0;0.21
+C:/Users/temuh/OneDrive/Documentos/GitHub/lecturaFacturas/facturaPrueba/Fra_FCR202500000013507_hergar.pdf;Fra_FCR202500000013507_hergar.pdf;COMPRA;10/04/2025;13507;GESTIÓN DE RESIDUOS S.A.;NEW SATELITE, S.L.;A-78009172;No encontrado;SATELITE;7.21;21.0;8.72;0.0;2025-10-23 15:26:12;"🔍 DEBUG MODE ACTIVATED: Showing all lines in file
+
+Line 00: NEW SATELITE                            
+Line 01: F  A  C  T  U  R  A      
+Line 02: CALLE DE ESTOCOLMO 17                   
+Line 03: 28022 - MADRID                          
+Line 04: Nº.
+Line 05: 13507 
+Line 06: FECHA: 10/04/2025
+Line 07: MADRID                          
+Line 08: 01
+Line 09: PAG.
+Line 10: CLIENTE: 1158
+Line 11: CIF.:
+Line 12: B85629020      
+Line 13:  1
+Line 14: COD. ARTICULO 
+Line 15: D E S C R I P C I O N    
+Line 16: UNIDADES
+Line 17: PRECIO    DTO.  
+Line 18: IMPORTE       
+Line 19: **ALB.
+Line 20: 41069 FECHA, 03/04/2025*    
+Line 21:     20,72
+Line 22: 156ELP9521        
+Line 23: FILTRO DE AIRE                   
+Line 24:    2
+Line 25:     14,20
+Line 26: 68,00
+Line 27:      9,09
+Line 28: 156JLR7243        
+Line 29: FILTRO DE HABITACULO             
+Line 30:    2
+Line 31:     18,17
+Line 32: 68,00
+Line 33:     11,63
+Line 34: 2 Y 2                                           
+Line 35: **ALB.
+Line 36: 41278 FECHA, 03/04/2025*    
+Line 37:    -13,51
+Line 38: 1466403160        
+Line 39: REVERSIBLE,CRISTAL+SOPORTE,CONVEX
+Line 40:   -1
+Line 41:     22,51
+Line 42: 40,00
+Line 43:    -13,51
+Line 44: ABONO CORRESP. AL ALB. Nº 1000036875 FECHA 25/03
+Line 45: TOTAL BRUTO
+Line 46: DPP% -IMP. P.PPORTESIMPTOS. BASE IMPONIBLE IVA.% IMPORTE IVA
+Line 47: TOTAL FACTURA  
+Line 48:       7,21    
+Line 49:      7,21
+Line 50: 21
+Line 51:     1,51
+Line 52:       8,72 €
+Line 53: FORMA PAGO:
+Line 54: GIRO 10 DIAS             
+Line 55: 20/04/25     8,72
+Line 56: BANCO:
+Line 57: 0075 1555 28 0600082405
+Line 58: *TRAMITACION GARANTIAS: OBLIGATORIO FICHA TECNICA*      
+
+➡️ Extractor encontrado en mapeo: extractors.hergar_extractor.HergarExtractor
+✅ Extracción exitosa con extractors.hergar_extractor.HergarExtractor.
+";0;0.21
+C:/Users/temuh/OneDrive/Documentos/GitHub/lecturaFacturas/facturaPrueba/Fra_FCR202500000015810_hergar.pdf;Fra_FCR202500000015810_hergar.pdf;COMPRA;30/04/2025;15810;GESTIÓN DE RESIDUOS S.A.;NEW SATELITE, S.L.;A-78009172;No encontrado;SATELITE;25.32;21.0;30.64;0.0;2025-10-23 15:26:26;"🔍 DEBUG MODE ACTIVATED: Showing all lines in file
+
+Line 00: NEW SATELITE                            
+Line 01: F  A  C  T  U  R  A      
+Line 02: CALLE DE ESTOCOLMO 17                   
+Line 03: 28022 - MADRID                          
+Line 04: Nº.
+Line 05: 15810 
+Line 06: FECHA: 30/04/2025
+Line 07: MADRID                          
+Line 08: 01
+Line 09: PAG.
+Line 10: CLIENTE: 1158
+Line 11: CIF.:
+Line 12: B85629020      
+Line 13:  1
+Line 14: COD. ARTICULO 
+Line 15: D E S C R I P C I O N    
+Line 16: UNIDADES
+Line 17: PRECIO    DTO.  
+Line 18: IMPORTE       
+Line 19: **ALB.
+Line 20: 49582 FECHA, 24/04/2025*    
+Line 21:     25,32
+Line 22: 156ELP9064        
+Line 23: FILTRO DE AIRE                   
+Line 24:    2
+Line 25:     20,45
+Line 26: 68,00
+Line 27:     13,09
+Line 28: 156JLR7243        
+Line 29: FILTRO DE HABITACULO             
+Line 30:    2
+Line 31:     19,11
+Line 32: 68,00
+Line 33:     12,23
+Line 34: * 2 DE CADA *                                   
+Line 35: TOTAL BRUTO
+Line 36: DPP% -IMP. P.PPORTESIMPTOS. BASE IMPONIBLE IVA.% IMPORTE IVA
+Line 37: TOTAL FACTURA  
+Line 38:      25,32    
+Line 39:     25,32
+Line 40: 21
+Line 41:     5,32
+Line 42:      30,64 €
+Line 43: FORMA PAGO:
+Line 44: GIRO 10 DIAS             
+Line 45: 10/05/25    30,64
+Line 46: BANCO:
+Line 47: 0075 1555 28 0600082405
+Line 48: *TRAMITACION GARANTIAS: OBLIGATORIO FICHA TECNICA*      
+
+➡️ Extractor encontrado en mapeo: extractors.hergar_extractor.HergarExtractor
+✅ Extracción exitosa con extractors.hergar_extractor.HergarExtractor.
+";0;0.21
+C:/Users/temuh/OneDrive/Documentos/GitHub/lecturaFacturas/facturaPrueba/ILAE60D434._autodescuento.pdf;ILAE60D434._autodescuento.pdf;COMPRA;03/06/2025;4300003562;AUTODESCUENTO SL;NEW SATELITE, S.L.;B83701003;No encontrado;Cantabria;99.0;21.0;119.79;0.0;2025-10-24 09:14:17;"🔍 DEBUG MODE ACTIVATED: Showing all lines in file
+
+Line 00: AUTODESCUENTO SL                       
+Line 01: AV Cantabria Nº. S/N   
+Line 02: 28660
+Line 03: BOADILLA DEL MONTE
+Line 04: MADRID
+Line 05: ESPAÑA
+Line 06: CIF.:
+Line 07: ESB83701003
+Line 08: Cliente:
+Line 09: Teléfono:
+Line 10: 917026389      
+Line 11: NEW SATELITE S.L.
+Line 12: Fax:
+Line 13: administracion@coches.com                                          
+Line 14: eMail:
+Line 15: Satelite Cars
+Line 16: C/ Sierra de Aracena, 62
+Line 17: 28691
+Line 18: VILLANUEVA DE LA CAÑADA
+Line 19: FACTURA
+Line 20: MADRID-ESPAÑA
+Line 21: CIF/DNI:
+Line 22: Serie
+Line 23: Cliente
+Line 24: B85629020
+Line 25: Número
+Line 26: Fecha
+Line 27: 4300003562
+Line 28: 03/06/2025
+Line 29: 5021
+Line 30: Artículo
+Line 31: Unidades
+Line 32: Precio
+Line 33: Importe(EUR)
+Line 34: Descripción
+Line 35: VO
+Line 36: 99,00
+Line 37: Servicios de VO mes en curso
+Line 38: 1,00
+Line 39: 99,00
+Line 40: Correspondiente al periodo entre el 01/06/2025 y el
+Line 41: 30/06/2025
+Line 42: Base IVA
+Line 43: Cuota IVA
+Line 44: Importe neto
+Line 45: %IVA
+Line 46: 20,79
+Line 47: 21,00
+Line 48: 99,00
+Line 49: 99,00
+Line 50: 119,79
+Line 51: Forma de pago
+Line 52: Líquido(EUR):
+Line 53: Domiciliación bancaria
+Line 54: IBAN.: ES3121004583310200110046
+Line 55: Vencimientos
+Line 56: Observaciones
+Line 57: 119,79
+Line 58: 10/06/2025
+Line 59: Registro mercantil de Madrid, Tomo 19122, Folio 192, Hoja M334573, Inscripción 1ª
+
+➡️ Extractor encontrado en mapeo: extractors.autodescuento_extractor.AutodescuentoExtractor
+✅ Extracción exitosa con extractors.autodescuento_extractor.AutodescuentoExtractor.
+";0;0.21
+C:/Users/temuh/OneDrive/Documentos/GitHub/lecturaFacturas/facturaPrueba/ILAE7F7534_autodescuento.pdf;ILAE7F7534_autodescuento.pdf;COMPRA;06/05/2025;4300003562;AUTODESCUENTO SL;NEW SATELITE, S.L.;B83701003;No encontrado;Cantabria;99.0;21.0;119.79;0.0;2025-10-24 09:13:59;"🔍 DEBUG MODE ACTIVATED: Showing all lines in file
+
+Line 00: AUTODESCUENTO SL                       
+Line 01: AV Cantabria Nº. S/N   
+Line 02: 28660
+Line 03: BOADILLA DEL MONTE
+Line 04: MADRID
+Line 05: ESPAÑA
+Line 06: CIF.:
+Line 07: ESB83701003
+Line 08: Cliente:
+Line 09: Teléfono:
+Line 10: 917026389      
+Line 11: NEW SATELITE S.L.
+Line 12: Fax:
+Line 13: administracion@coches.com                                          
+Line 14: eMail:
+Line 15: Satelite Cars
+Line 16: C/ Sierra de Aracena, 62
+Line 17: 28691
+Line 18: VILLANUEVA DE LA CAÑADA
+Line 19: FACTURA
+Line 20: MADRID-ESPAÑA
+Line 21: CIF/DNI:
+Line 22: Serie
+Line 23: Cliente
+Line 24: B85629020
+Line 25: Número
+Line 26: Fecha
+Line 27: 4300003562
+Line 28: 06/05/2025
+Line 29: 4162
+Line 30: Artículo
+Line 31: Unidades
+Line 32: Precio
+Line 33: Importe(EUR)
+Line 34: Descripción
+Line 35: VO
+Line 36: 99,00
+Line 37: Servicios de VO mes en curso
+Line 38: 1,00
+Line 39: 99,00
+Line 40: Correspondiente al periodo entre el 01/05/2025 y el
+Line 41: 31/05/2025
+Line 42: Base IVA
+Line 43: Cuota IVA
+Line 44: Importe neto
+Line 45: %IVA
+Line 46: 20,79
+Line 47: 21,00
+Line 48: 99,00
+Line 49: 99,00
+Line 50: 119,79
+Line 51: Forma de pago
+Line 52: Líquido(EUR):
+Line 53: Domiciliación bancaria
+Line 54: IBAN.: ES3121004583310200110046
+Line 55: Vencimientos
+Line 56: Observaciones
+Line 57: 119,79
+Line 58: 13/05/2025
+Line 59: Registro mercantil de Madrid, Tomo 19122, Folio 192, Hoja M334573, Inscripción 1ª
+
+➡️ Extractor encontrado en mapeo: extractors.autodescuento_extractor.AutodescuentoExtractor
+✅ Extracción exitosa con extractors.autodescuento_extractor.AutodescuentoExtractor.
+";0;0.21
+C:/Users/temuh/OneDrive/Documentos/GitHub/lecturaFacturas/facturaPrueba/LGT2343-Factura final_NORTHGATE.pdf;LGT2343-Factura final_NORTHGATE.pdf;COMPRA;29/05/2025;VO-2025005930;NORTHGATE ESPAÑA RENTING FLEXIBLE S.A.;NEW SATELITE, S.L.;A28659423;RENAULT KANGOO EXPRESS 1.5 DCI 55KW PRO;2343-LGT;6173.56;21.0;7470.01;0.0;2025-10-24 09:44:16;"🔍 DEBUG MODE ACTIVATED: Showing all lines in file
+
+Line 00: IMP-CAP 41 EdN3
+Line 01: 29/05/25
+Line 02: B85629020
+Line 03: CALLE SIERRA DE ARACENA - NUM: 62
+Line 04: NEW SATELITE, S.L.
+Line 05: 28691 VILLANEVA DE LA CAÑADA
+Line 06: FACTURA Nº
+Line 07: FECHA
+Line 08: CANTIDAD
+Line 09: CONCEPTO
+Line 10: PRECIO UNITARIO
+Line 11: IMPORTE
+Line 12: VO-2025005930
+Line 13: NORTHGATE ESPAÑA RENTING FLEXIBLE S.A.
+Line 14: Avd. de Bruselas,20
+Line 15: 28108 Alcobendas
+Line 16: MADRID
+Line 17: CIF/NIF: A28659423
+Line 18: 2343-LGT
+Line 19: 6.033,06
+Line 20: RENAULT KANGOO EXPRESS 1.5 DCI 55KW PRO
+Line 21: VF1FW50J163465317
+Line 22: Matrícula:
+Line 23: Modelo:
+Line 24: Bastidor:
+Line 25: 1
+Line 26: 107.966
+Line 27: Kilómetros:
+Line 28: Cargo por transferencia 2343-LGT
+Line 29: 140,5
+Line 30: 21,00%
+Line 31: BASE IMPONIBLE
+Line 32: IVA
+Line 33: TOTAL FACTURA 
+Line 34:  7.470,01
+Line 35:  6.173,56
+Line 36:  1.296,45
+
+➡️ Extractor encontrado en mapeo: extractors.northgate_extractor.NorthgateExtractor
+✅ Extracción exitosa con extractors.northgate_extractor.NorthgateExtractor.
+";0;0.21
+C:/Users/temuh/OneDrive/Documentos/GitHub/lecturaFacturas/facturaPrueba/New Satelite, factura 25- 1628 de Berolkemi.pdf;New Satelite factura 25- 1628 de Berolkemi.pdf;COMPRA;10/06/2025;25/1628;BEROL KEMI, S.L;NEW SATELITE, S.L.;B79841052;No encontrado;No encontrado;43.0;21.0;52.03;0.0;2025-10-24 10:14:27;"🔍 DEBUG MODE ACTIVATED: Showing all lines in file
+
+Line 00: FACTURA
+Line 01: 080082
+Line 02: C/ JUAN DE LA CIERVA , Nº 45-47
+Line 03: NEW SATELITE, S.L.
+Line 04: MOSTOLES-P.I.REGORDOÑO
+Line 05: C/ SIERRA DE ARACENA, Nº 62
+Line 06: MADRID
+Line 07: C.I.F.:
+Line 08: B79841052
+Line 09: 28022
+Line 10: VILLANUEVA DE LA CAÑADA
+Line 11: Tlf: 91 646 05 42 
+Line 12: MADRID
+Line 13: Fecha Factura
+Line 14: Serie/NºFactura
+Line 15: Forma de Pago
+Line 16: C.I.F.
+Line 17: 10/06/2025
+Line 18: APLAZADO , GIRO BANCARIO
+Line 19: 13
+Line 20: B85629020
+Line 21: /
+Line 22: 25
+Line 23: 1.628
+Line 24: DESCRIPCIÓN
+Line 25: CODIGO
+Line 26: IMPORTE
+Line 27: PRECIO
+Line 28: %DTO.
+Line 29: CANTIDAD
+Line 30: KG./LT./UND.
+Line 31: KG./LT.
+Line 32: e-mail: administracion@berolkemi.es
+Line 33: WHATSAPP: 696 08 70 09
+Line 34: ''FIESTAS DE MADRID CERRADOS''
+Line 35: PUEDEN REALIZAR TRANSFERENCIAS AL:
+Line 36: SANTANDER (popular )  ES5900755942390600002884
+Line 37: Albarán: 25/1754  Fecha: 06/06/2025
+Line 38: 43,00
+Line 39: AT*QUID
+Line 40: 10,00
+Line 41: BEROL QUITA PEGAMENTOS ENVASE 10 LTS.
+Line 42: 4,300
+Line 43: E10
+Line 44: 100,00
+Line 45: 1,00
+Line 46: Aportación  Scrap , garrafa 10
+Line 47: 0,150
+Line 48: B. IMPONIBLE
+Line 49: % I.V.A.
+Line 50: % R. EQ.
+Line 51: TOTAL IVA
+Line 52: TOTAL R.E
+Line 53: 21,00
+Line 54: 9,03
+Line 55: 43,00
+Line 56: B. IMPONIBLE
+Line 57: TOTAL IVA
+Line 58: SUMA IMPORTES
+Line 59: TOTAL R.EQ.
+Line 60: TOTAL FACTURA
+Line 61: EUR
+Line 62: 43,00
+Line 63: 43,00
+Line 64: 9,03
+Line 65: 08/07/2025
+Line 66: BANCO SABADELL
+Line 67: VENCIMIENTOS :
+Line 68: IMPORTE:
+Line 69: 52,03
+Line 70:  ESTE DOCUMENTO NO SIRVE COMO JUSTIFICANTE DE PAGO, SI NO ESTÁ FIRMADO POR COBRADOR  DE BEROLKEMI O JUSTIFICANTE BANCARIO
+Line 71: % =
+Line 72: 52,03
+Line 73: Inscrita e n el Registro Mercantil de Madrid, Tomo 689 , Folio 44 nє 14151
+Line 74: PRODUCTOR DE PRODUCTO : ENV/2023/000005488
+
+➡️ Extractor encontrado en mapeo: extractors.berolkemi_extractor.BerolkemiExtractor
+✅ Extracción exitosa con extractors.berolkemi_extractor.BerolkemiExtractor.
+";0;0.21
+C:/Users/temuh/OneDrive/Documentos/GitHub/lecturaFacturas/facturaPrueba/RECICLADOS AUTO4 SL_FACTURAV_2025000711FRU_RECOAUTOS.pdf;RECICLADOS AUTO4 SL_FACTURAV_2025000711FRU_RECOAUTOS.pdf;COMPRA;17/06/2025;2025000711/FRU;RECICLADOS AUTO4 SL;NEW SATELITE, S.L.;B40243719;VOLKSWAGEN GOLF;No encontrado;74.38;21.0;90.0;0.0;2025-10-24 10:26:00;"🔍 DEBUG MODE ACTIVATED: Showing all lines in file
+
+Line 00: FACTURA DE VENTA
+Line 01: Pág. 1 / 1
+Line 02: RECICLADOS AUTO4 SL
+Line 03: CIF: B40243719
+Line 04: Gremio Segovianos, parcela 5. Pol. Ind. Hontoria
+Line 05: 40195 - Hontoria (Segovia)
+Line 06: Tel. (+34) 921424353 
+Line 07: Datos de facturación:
+Line 08: NEW SATELITE SL
+Line 09: B85629020
+Line 10: C/ SIERRA DE ARACENA 62
+Line 11: 28691 Villanueva De La Cañada (Madrid) ESPAÑA
+Line 12: Tel. 695395615
+Line 13: Email: administracion@recoautos.com
+Line 14: https://recoautos.com/
+Line 15: RUTA:  RUTA 3 MADRID - 0018
+Line 16: Datos de envío:
+Line 17: C/ SOFIA 30
+Line 18: 28022 MADRID (MADRID) 
+Line 19: Fecha
+Line 20: 2025000711/FRU
+Line 21: 17/06/2025
+Line 22: 4300054540
+Line 23: Factura Nº
+Line 24: Cliente
+Line 25: Vendedor
+Line 26: Rectifica a Nº
+Line 27: Pedido Nº
+Line 28: JAVIER DEL OSO
+Line 29: Código
+Line 30: Concepto
+Line 31: Cantidad
+Line 32: Precio
+Line 33: Importe
+Line 34: Albarán nº:  2025013342 17/06/2025  
+Line 35:  74,38 €
+Line 36:  74,38 €
+Line 37:  1,00
+Line 38: ALTERNADOR VOLKSWAGEN GOLF
+Line 39: 4578700
+Line 40: SUBTOTAL
+Line 41: % DTO
+Line 42: BASE IMPONIBLE
+Line 43: % RETENCIÓN
+Line 44: RETENCIÓN
+Line 45: IVA
+Line 46: % IVA
+Line 47:  21,00
+Line 48:  15,62
+Line 49:  0,00
+Line 50:  74,38
+Line 51:  74,38
+Line 52: TOTAL FACTURA
+Line 53:  90,00 €
+Line 54: Forma de pago:   Vto.  17/06/2025     90,00 €
+Line 55: CAIXA:ES09 2100 6127 7213 0031 3582
+Line 56: Sus 
+Line 57: datos 
+Line 58: personales 
+Line 59: serán 
+Line 60: usados 
+Line 61: para 
+Line 62: el 
+Line 63: control 
+Line 64: administrativo 
+Line 65: y 
+Line 66: facturación 
+Line 67: como 
+Line 68: parte 
+Line 69: de 
+Line 70: nuestros 
+Line 71: servicios. 
+Line 72: Puede 
+Line 73: ejercitar 
+Line 74: sus 
+Line 75: derechos 
+Line 76: de 
+Line 77: acceso, 
+Line 78: rectificación, 
+Line 79: oposición, 
+Line 80: limitación 
+Line 81: del 
+Line 82: tratamiento, 
+Line 83: portabilidad 
+Line 84: y 
+Line 85: supresión 
+Line 86: enviando 
+Line 87: un 
+Line 88: escrito 
+Line 89: al 
+Line 90: responsable 
+Line 91: del 
+Line 92: tratamiento: 
+Line 93: RECICLADOS 
+Line 94: AUTO4, 
+Line 95: S.L., 
+Line 96: Avda. 
+Line 97: Gremio 
+Line 98: Segovianos 
+Line 99: parcela 5, Pol.Ind. Hontoria, CP 40195, Segovia. Más información en nuestras oficinas y en https://recoautos.com
+Line 100: Incrita en el Registro Mercantil de Segovia 27/368 con CIF: B40243719
+
+➡️ Extractor encontrado en mapeo: extractors.recoautos_extractor.RecoautosExtractor
+✅ Extracción exitosa con extractors.recoautos_extractor.RecoautosExtractor.
+";0;0.21
+C:/Users/temuh/OneDrive/Documentos/GitHub/lecturaFacturas/facturaPrueba/RECOAUTOS DESGUACE PREMIUM, S.L._FACTURAV_2025010176FRU_RECOAUTOS.pdf;RECOAUTOS DESGUACE PREMIUM S.L._FACTURAV_2025010176FRU_RECOAUTOS.pdf;COMPRA;26/05/2025;2025010176/FRU;RECICLADOS AUTO4 SL;NEW SATELITE, S.L.;B19897925;No encontrado;No encontrado;66.12;21.0;80.01;0.0;2025-10-24 10:39:06;"🔍 DEBUG MODE ACTIVATED: Showing all lines in file
+
+Line 00: FACTURA DE VENTA
+Line 01: Pág. 1 / 1
+Line 02: RECOAUTOS DESGUACE PREMIUM, S.L.
+Line 03: CIF: B19897925
+Line 04: Gremio Segovianos, parcela 5. Pol. Ind. Hontoria
+Line 05: 40195 - Segovia (Segovia)
+Line 06: Tel. (+34) 921424353 
+Line 07: Datos de facturación:
+Line 08: NEW SATELITE SL
+Line 09: B85629020
+Line 10: C/ SIERRA DE ARACENA 62
+Line 11: 28691 Villanueva De La Cañada (Madrid) ESPAÑA
+Line 12: Tel. 695395615
+Line 13: Email: recoautos@recoautos.com
+Line 14: https://recoautos.com/
+Line 15: RUTA:  RUTA 3 MADRID - 0018
+Line 16: Datos de envío:
+Line 17: C/ SOFIA 30
+Line 18: 28022 MADRID (MADRID) 
+Line 19: Fecha
+Line 20: 2025010176/FRU
+Line 21: 26/05/2025
+Line 22: 4300054540
+Line 23: Factura Nº
+Line 24: Cliente
+Line 25: Vendedor
+Line 26: Rectifica a Nº
+Line 27: Pedido Nº
+Line 28: ORLANDO DAVID RINCON VASQUE
+Line 29: Código
+Line 30: Concepto
+Line 31: Cantidad
+Line 32: Precio
+Line 33: Importe
+Line 34: Albarán nº:  2025044186 26/05/2025  
+Line 35:  66,12 €
+Line 36:  66,12 €
+Line 37:  1,00
+Line 38: CREMALLERA DIRECCION RENAULT KANGOO
+Line 39: 5478584
+Line 40: SUBTOTAL
+Line 41: % DTO
+Line 42: BASE IMPONIBLE
+Line 43: % RETENCIÓN
+Line 44: RETENCIÓN
+Line 45: IVA
+Line 46: % IVA
+Line 47:  21,00
+Line 48:  13,89
+Line 49:  0,00
+Line 50:  66,12
+Line 51:  66,12
+Line 52: TOTAL FACTURA
+Line 53:  80,01 €
+Line 54: Forma de pago:   Vto.  26/05/2025     80,01 €
+Line 55: Inscrita en el Registro Mercantil de Segovia 2024/1237/N/12/07/2024
+
+➡️ Extractor encontrado en mapeo: extractors.recoautos_extractor.RecoautosExtractor
+✅ Extracción exitosa con extractors.recoautos_extractor.RecoautosExtractor.
+";0;0.21
+C:/Users/temuh/OneDrive/Documentos/GitHub/lecturaFacturas/facturaPrueba/RECUPERACIONES COLOMER, S.L._FACTURAV_2025005504N.pdf;RECUPERACIONES COLOMER S.L._FACTURAV_2025005504N.pdf;COMPRA;30/05/2025;N-2025005504;NEW SATELITE SL;NEW SATELITE, S.L.;B13101423;RENAULT KANGOO Express;No encontrado;88.43;21.0;107.0;0.0;2025-10-24 10:48:49;"🔍 DEBUG MODE ACTIVATED: Showing all lines in file
+
+Line 00: FACTURA DE VENTA
+Line 01: Pág. 1 / 1
+Line 02: NEW SATELITE SL
+Line 03: TALLER SADECO
+Line 04: B85629020
+Line 05: CL/ SIERRA DE ARACENA Nº 62
+Line 06: 28691 Villanueva De La Cañada
+Line 07: Madrid ESPAÑA
+Line 08: Tel. 695395615
+Line 09: nuevosatelite@gmail.com
+Line 10: FACTURA Nº
+Line 11: 4300002889
+Line 12: RECTIFICA A Nº
+Line 13: FECHA
+Line 14: COD. CLIENTE
+Line 15: C.I.F.
+Line 16: B85629020
+Line 17: N-2025005504
+Line 18: 30/05/2025
+Line 19: Le atendió: JOSE LUIS SANTIAGO AREVALO
+Line 20: RECUPERACIONES COLOMER, S.L. 
+Line 21: CIF: B13101423 
+Line 22: CARRION, KM 311,8. Camino Cabeza 
+Line 23: mesada S/N · 13005 - CIUDADREAL
+Line 24: Tel.:  
+Line 25: catcolomer.es · david.escola@colomersl.es
+Line 26: CENTRO AUTORIZADO 
+Line 27: Código
+Line 28: Concepto
+Line 29: Cantidad
+Line 30: Precio
+Line 31: Importe
+Line 32: Albarán nº:  2025009036 30/05/2025  
+Line 33:  82,64 €
+Line 34:  1,00
+Line 35: ANILLO AIRBAG RENAULT KANGOO Express (FW0/1_) 
+Line 36: FW51J1 2009 Gasóleo
+Line 37: 82,64
+Line 38: 10505007
+Line 39:  5,79 €
+Line 40:  1,00
+Line 41: GASTOS ENVIO
+Line 42: 5,79
+Line 43: SUBTOTAL
+Line 44: % DTO
+Line 45: BASE IMPONIBLE
+Line 46: IVA
+Line 47: % IVA
+Line 48:  21,00
+Line 49:  18,57
+Line 50:  88,43
+Line 51:  88,43
+Line 52: TOTAL FACTURA
+Line 53:  107,00 €
+Line 54: Forma de pago: TRANSFERENCIA SANTANDER C.C. 8307  Vto.  30/05/2025     107,00 €
+
+➡️ Extractor encontrado en mapeo: extractors.colomer_extractor.ColomerExtractor
+✅ Extracción exitosa con extractors.colomer_extractor.ColomerExtractor.
+";0;0.21
+C:/Users/temuh/OneDrive/Documentos/GitHub/lecturaFacturas/facturaPrueba/Wurth_factura_4733937515.PDF;Wurth_factura_4733937515.PDF;COMPRA;22/04/2025;4733937515;WÜRTH ESPAÑA, S.A.;NEW SATELITE, S.L.;A08472276;No encontrado;CENTRO;46.95238095238095;9.86;56.81238095238095;0.0;2025-10-24 10:56:10;"🔍 DEBUG MODE ACTIVATED: Showing all lines in file
+
+Line 00: (* Ver cláusula de protección de datos recogida en el reverso de este documento)
+Line 01: WÜRTH ESPAÑA, S.A. 
+Line 02: Würth España, S.A. 
+Line 03: CENTRO LOGISTICO REG.60 
+Line 04: Polg. Ind. Riera de Caldes, c/Joiers 21 
+Line 05: AVDA. CAMEROS PCLS. 86-88 
+Line 06: 08184 Palau-solità i Plegamans (Barcelona) 
+Line 07: 26150 SEQUERO, EL (AGONCILLO) 
+Line 08: TEL: 914989041, FAX: 938646203 
+Line 09: NIF: A08472276 
+Line 10: http://www.wurth.es 
+Line 11: R.M. Barcelona, T.3478, L.2835, S.2a, F.233, H.37088
+Line 12: Documento Expedido en Palau-solità i Plegamans - Barcelona
+Line 13: Portes EUR
+Line 14: Valor neto EUR
+Line 15: IVA
+Line 16: Impte. IVA EUR
+Line 17: Importe total EUR
+Line 18: 6,95
+Line 19: 46,95
+Line 20: 21,00 %
+Line 21: 9,86
+Line 22: 56,81
+Line 23: 3127
+Line 24: /
+Line 25: 02
+Line 26: /
+Line 27: ZRDP
+Line 28:  / 
+Line 29: Factura
+Line 30: Nº factura
+Line 31: 4733937515
+Line 32: Nº cliente
+Line 33: 327010226
+Line 34: NIF:
+Line 35: ESB85629020
+Line 36: Fecha
+Line 37: 22.04.2025
+Line 38: Página
+Line 39: 1/1
+Line 40: Su interlocutora de la red de ventas
+Line 41: MONICA BAIDES PARTAL 53801
+Line 42: /
+Line 43: T
+Line 44: E
+Line 45: 645518454
+Line 46: monica.baides@wurth.es
+Line 47: CEBE/53801/Z9/327010226
+Line 48: NEW SATELITE S.L. 
+Line 49: SIERRA DE ARACENAS 62 
+Line 50: 28691 VILLANUEVA DE LA CAÑADA-MADRID
+Line 51: NºArtículo
+Line 52: Descripción artículo
+Line 53: Nº referencia cliente
+Line 54: Pos.
+Line 55: Pos. Alb.
+Line 56: Cantidad
+Line 57: Precio en
+Line 58: EUR
+Line 59: CP
+Line 60: Dto % IVA %
+Line 61: Valor neto
+Line 62: EUR
+Line 63: Pedido 2234612442 del 22.04.2025
+Line 64: Albarán 8112577413 del 22.04.2025
+Line 65: 40,00
+Line 66: Dirección de envío 227526720 NEW SATELITE S.L. 
+Line 67: SOFIA 30 
+Line 68: 28022 MADRID-MADRID
+Line 69: 0587843300961   20
+Line 70: DISCO-ABRAS-ZEBRA-FINE-P3000-D150MM
+Line 71: Origen
+Line 72: F-CH
+Line 73: 1
+Line 74: 10
+Line 75: 20
+Line 76: 2,00
+Line 77: 1
+Line 78: PE
+Line 79: 21
+Line 80: 40,00
+Line 81: N.º Registro Nacional de Productores de Aparatos Eléctricos y Electrónicos: 28 / N.º Registro de Establecimientos Industriales de Registro de Pilas y Acumuladores: 523 / N.º 
+Line 82: Registro Productores de Producto: ENV_2023_000000893 
+Line 83: En cumplimiento del Art.18 RD 782/1998 y en base al Art.12.1 de la Ley 11/1997, el poseedor final de los envases y embalajes no adheridos a un SIG (en los que no figura el 
+Line 84: logotipo del ""Punto Verde"") es responsable de la entrega del residuo de envases/embalajes usados a un gestor autorizado para su correcta gestión ambiental. 
+Line 85: Würth España, S.A. tratará sus datos personales con el objeto de mantener nuestra relación comercial, puede ejercer sus derechos de acceso, oposición, supresión, entre otros. 
+Line 86: Para más información: https://www.wurth.es/politica-de-privacidad
+Line 87: Vencimiento:
+Line 88: 07.05.2025
+Line 89: Condición de pago: Transferencia / Reposición
+Line 90: Para efectuar pagos por Transferencia: BCO.SANTANDER CENTRAL HISPANO 
+Line 91: BIC (SWIFT): BSCHESMM, IBAN: ES96 0049 1895 1527 1002 3510
+
+➡️ Extractor encontrado en mapeo: extractors.wurth_extractor.WurthExtractor
+✅ Extracción exitosa con extractors.wurth_extractor.WurthExtractor.
+";0;0.21
+C:/Users/temuh/OneDrive/Documentos/GitHub/lecturaFacturas/facturaPrueba/desguace el poyo.pdf;desguace el poyo.pdf;COMPRA;08/04/2025;F00489/2025;PEDRO GARRIDO RODRÍGUEZ;NEW SATELITE, S.L.;75388055N;No encontrado;Centro;24.79;21.0;30.0;0.0;2025-10-23 13:53:06;"🔍 DEBUG MODE ACTIVATED: Showing all lines in file
+
+Line 00: Centro Autorizado: AN - 0227
+Line 01: Desguace ""EL POYO""
+Line 02: PEDRO GARRIDO RODRÍGUEZ -  DNI: 75.388.055-N 
+Line 03: Carretera de Pilas - Hinojos, km 1 PILAS(Sevilla)  41840
+Line 04: Teléfonos: 954 751 341 - 627 507 575 - 680 371 309
+Line 05: www.desguaceelpoyo.es
+Line 06: F00489/2025
+Line 07: 08/04/2025
+Line 08: 16:26:23
+Line 09: Fecha:
+Line 10: CANT.
+Line 11: DESCRIPCIÓN
+Line 12: PRECIO UD.
+Line 13: TOTAL
+Line 14: CALLE SOFIA 30 - MADRID(MADRID)
+Line 15: NEWSATELITE SL - B85629020
+Line 16: Factura nº:
+Line 17: Forma pago:
+Line 18: Ingreso
+Line 19:  20,00€
+Line 20: MOLDURA PUERTA CORREDERA DERECHA R. KANGOO
+Line 21:  1,00
+Line 22:  20,00€
+Line 23:  10,00€
+Line 24: ENVIO
+Line 25:  1,00
+Line 26:  10,00€
+Line 27: BASE IMPONIBLE
+Line 28: TOTAL 
+Line 29:  30,00€
+Line 30:  6,30€
+Line 31:  36,30€
+Line 32: SE COMUNICA A LOS SRES. CLIENTES, QUE EL PLAZO MÁXIMO PARA LA DEVOLUCIÓN DEL IMPORTE DE LAS PIEZAS SERÁ DE 5 DÍAS. UNA VEZ TRANSCURRIDOS ESTOS 5 DÍAS Y, HASTA UN PLAZO 
+Line 33: MÁXIMO DE 30 DÍAS, LA DEVOLUCIÓN SE EFECTUARÁ A TRAVÉS DE UN VALE CANJEABLE POR PIEZAS DURANTE EL AÑO EN CURSO. LAS PIEZAS DEBEN VENIR SIN HABER SIDO MANIPULADAS.
+Line 34: IVA (21,00%)
+Line 35:  6,30€
+Line 36: PROTECCIÓN DE DATOS:   Le informamos que sus datos personales son tratados de conformidad con lo establecido en el REGLAMENTO (UE) 2016/679 de protección de datos de carácter personal. El Responsable
+Line 37: del tratamiento de sus datos es PEDRO GARRIDO RODRIGUEZ con CIF: 75388055-N, sito en Ctra Pilas- Hinojos Km 1. 41840 - PILAS (Sevilla). La finalidad es comunicativa y/o informativa sobre nuestros 
+Line 38: productos y servicios. El tratamiento de sus datos está legitimado por el interés legítimo del responsable. Podrá ejercer los derechos de acceso, rectificación, limitación de tratamiento, supresión, portabilidad y
+Line 39: oposición al tratamiento de sus datos de carácter personal, dirigiendo su petición al correo electrónico (desguaceelpoyo@hotmail.com).
+
+➡️ Extractor encontrado en mapeo: extractors.poyo_extractor.PoyoExtractor
+✅ Extracción exitosa con extractors.poyo_extractor.PoyoExtractor.
+";0;0.21
