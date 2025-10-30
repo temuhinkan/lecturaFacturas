@@ -63,15 +63,6 @@ def _extract_amount(amount_str):
             return None
     return None
 
-# AÑADIDO: Función para calcular la base imponible
-def _calculate_base_from_total(total_amount, vat_rate):
-    """
-    Calcula la base imponible a partir del importe total y la tasa de IVA.
-    """
-    if total_amount is not None and vat_rate is not None and vat_rate > 0:
-        return total_amount / (1 + vat_rate)
-    return None
-
 # AÑADIDO: Stub para evitar error de importación
 def _extract_nif_cif(line):
     """
@@ -127,7 +118,6 @@ def calculate_total_and_vat(base_amount_str: str, vat_rate: float = DEFAULT_VAT_
         formatted_total_amount = f"{total_amount:.2f}".replace('.', ',')
         
         return formatted_total_amount, formatted_vat_amount
-    
     except ValueError:
         print(f"⚠️ Warning: Could not calculate total and VAT for base amount '{base_amount_str}'. Invalid numeric format.")
         return None, None
@@ -139,43 +129,62 @@ def _calculate_base_from_total(total_amount_str, vat_rate=VAT_RATE):
     if not total_amount_str:
         return None
     try:
-        numeric_total_str = total_amount_str.replace(',', '.')
+        # 1. Limpieza y conversión
+        numeric_total_str = total_amount_str.replace('.', '').replace(',', '.')
         total_amount = float(numeric_total_str)
+        
+        # 2. Cálculo
         base_calc = total_amount / (1 + vat_rate)
+        
+        # 3. Formateo
         return f"{base_calc:.2f}".replace('.', ',')
     except ValueError:
         print(f"⚠️ Warning: Could not calculate base for total amount '{total_amount_str}'. Invalid numeric format.")
         return None
-    
 
-def _calculate_total_from_base(base_amount_str, vat_rate=VAT_RATE):
+# NOTA: La función _calculate_total_from_base ha sido eliminada por ser 
+# idéntica a calculate_total_and_vat, para evitar duplicidad.
+
+def calculate_base_and_vat_from_total(total_amount_str: str):
     """
-    Calculates the total amount and the VAT amount from the taxable base.
+    Calcula la Base Imponible y el Importe del IVA a partir del Importe Total.
+    
+    Args:
+        total_amount_str: Cadena de texto con el importe total (ej. "1.210,00").
+
+    Returns:
+        Una tupla (base_imponible_formateada, importe_iva_formateado) o (None, None) en caso de error.
     """
-    if not base_amount_str:
+    if not total_amount_str:
         return None, None 
 
     try:
-        # 1. Preparación para la conversión numérica (CORREGIDO)
-        # 1.1. Eliminar el separador de miles (punto).
-        # 1.2. Reemplazar la coma decimal por el punto decimal.
-        numeric_base_str = base_amount_str.replace('.', '').replace(',', '.')
+        # 1. Preparación para la conversión numérica
+        # Elimina separador de miles (punto) y convierte la coma en decimal (punto)
+        numeric_total_str = total_amount_str.replace('.', '').replace(',', '.')
         
         # 2. Conversión a número flotante
-        base_amount = float(numeric_base_str)
+        total_amount = float(numeric_total_str)
         
-        # 3. Cálculo del IVA y del importe total
-        vat_amount = base_amount * vat_rate
-        total_amount = base_amount + vat_amount
+        # 3. Cálculo de la Base Imponible y el Importe del IVA
         
-        # 4. Formateo de los resultados (Volver a usar la coma decimal)
-        # Formateamos con dos decimales, usamos el punto para el formato estándar
-        # y luego lo reemplazamos por coma para la salida final.
+        # Base = Total / (1 + Tasa_IVA)
+        base_amount = total_amount / (1 + VAT_RATE)
+        
+        # Importe del IVA = Total - Base
+        vat_amount = total_amount - base_amount
+        
+        # 4. Formateo de los resultados
+        # Redondea a 2 decimales y usa coma como separador decimal
+        formatted_base_amount = f"{base_amount:.2f}".replace('.', ',')
         formatted_vat_amount = f"{vat_amount:.2f}".replace('.', ',')
-        formatted_total_amount = f"{total_amount:.2f}".replace('.', ',')
         
-        return formatted_total_amount, formatted_vat_amount
-    
+        # Se devuelve (Base, IVA)
+        return formatted_base_amount, formatted_vat_amount
+
     except ValueError:
-        print(f"⚠️ Warning: Could not calculate total and VAT for base amount '{base_amount_str}'. Invalid numeric format.")
+        # Ocurre si la cadena no se puede convertir a float
+        return None, None
+    except Exception:
+        # Maneja cualquier otro error
         return None, None

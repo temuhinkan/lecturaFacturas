@@ -1,133 +1,252 @@
+# 🚨 MAPPING SUGERIDO PARA main_extractor_gui.py
+# Copie la siguiente línea y péguela en el diccionario EXTRACTION_MAPPING en main_extractor_gui.py:
+#
+# "nueva_clave": "extractors.nombre_archivo_extractor.CoslautoExtractor", 
+#
+# Ejemplo (si el archivo generado es 'coslauto_extractor.py'):
+# "pinchete": "extractors.coslauto_extractor.CoslautoExtractor",
+
+from typing import Dict, Any, List, Optional
 import re
-from extractors.base_invoice_extractor import BaseInvoiceExtractor
-from utils import _extract_amount, _calculate_base_from_total, VAT_RATE, extract_and_format_date, _extract_from_line
 
-class CoslautoExtractor(BaseInvoiceExtractor):
-    def __init__(self, lines, pdf_path=None, debug_mode=False):
-        super().__init__(lines, pdf_path)
-        self.emisor = "COSLAUTO, SLU."
-        self.cif = "B87532248"
-        self.debug_mode = debug_mode
-        self.cliente = None # Ensure cliente is initialized
-        self.tasas=None
-    def _extract_emisor(self):
-        # Emisor is fixed as per user's request
+# ----------------------------------------------------
+# 🟢 CORRECCIÓN DE IMPORTACIÓN PARA ARCHIVOS EN CARPETA SUPERIOR
+import sys
+import os
+# Añade el directorio padre (..) a las rutas de búsqueda de módulos
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+# ----------------------------------------------------
+
+# Ahora la importación de utils debería funcionar
+# La clase BaseInvoiceExtractor será INYECTADA en tiempo de ejecución (soluciona ImportError en main_extractor_gui.py).
+
+# 🚨 EXTRACTION_MAPPING: Define la lógica de extracción.
+# 'type': 'FIXED' (Fila Fija, línea absoluta 1-based), 'VARIABLE' (Variable, relativa a un texto), o 'FIXED_VALUE' (Valor Fijo, valor constante).
+# 'segment': Posición de la palabra en la línea (1-based), o un rango (ej. "3-5").
+
+EXTRACTION_MAPPING: Dict[str, Dict[str, Any]] = {
+    'TIPO': {'type': 'FIXED_VALUE', 'value': 'COMPRA'},
+    #'FECHA':  {'type': 'VARIABLE', 'ref_text': 'FECHA:', 'offset': 0, 'segment': 2},
+    #'NUM_FACTURA':  {'type': 'VARIABLE', 'ref_text': 'Nº.', 'offset': +1, 'segment': 1},
+    'EMISOR': {'type': 'FIXED_VALUE', 'value': 'COSLAUTO, SLU.'},
+    'CIF_EMISOR': {'type': 'FIXED_VALUE', 'value': 'B87532248'},
+    'CLIENTE': {'type': 'FIXED_VALUE', 'value': 'NEWSATELITE S.L'},
+    'CIF': {'type': 'FIXED_VALUE', 'value': 'B85629020'},
+    #'MODELO': {'type': 'VARIABLE', 'ref_text': 'MODELO', 'offset': +7, 'segment': 1},
+    #'MATRICULA': {'type': 'VARIABLE', 'ref_text': 'MATRÍCULA', 'offset': +7, 'segment': 1},
+    # Lógica VARIABLE compatible para los totales:
+    # BASE: 8 líneas arriba de 'Base Imponible'
+   # 'BASE': {'type': 'VARIABLE', 'ref_text': 'TOTAL BRUTO', 'offset': +3, 'segment': 1},
+    # IVA: 9 líneas arriba de 'Base Imponible'
+    #'IVA': {'type': 'VARIABLE', 'ref_text': 'IMPORTE IVA', 'offset': +5, 'segment': 1},
+    # IMPORTE: 10 líneas arriba de 'Base Imponible'
+    'IMPORTE': {'type': 'VARIABLE', 'ref_text': '€', 'offset': 0, 'segment': 1},
+}
+
+# 🚨 CORRECCIÓN CRÍTICA: Renombrar la clase a CoslautoExtractor
+# Asumimos que hereda de BaseInvoiceExtractor
+class CoslautoExtractor:
+    
+           
+    # Usamos *args y **kwargs para máxima compatibilidad con el __init__ de BaseInvoiceExtractor.
+    def __init__(self, lines: List[str] = None, pdf_path: str = None, *args, **kwargs):
+        # En el entorno real, esto llamaría a super().__init__(lines=lines, pdf_path=pdf_path, ...)
         pass
 
-    def _extract_cif(self):
-        # CIF is fixed as per user's request
-        pass
+    def calculate_base_and_vat_from_total(self,total_amount_str: str):
+    
+        if not total_amount_str:
+            return None, None 
 
-    def _extract_numero_factura(self):
-        # The invoice number is the 'registro' before the line with "REFERENCIA"
-        # From COSLAUTO 2.pdf, it's 'CA2500227' associated with "Factora Cargo"
-        for i, line in enumerate(self.lines):
-            if "REFERENCIA" in line.upper():
-                # Look at the previous lines for "Factora Cargo" and the number
-                for j in range(i - 1, max(-1, i - 5), -1): # Check up to 5 lines back
-                    prev_line = self.lines[j]
-                    match = re.search(r"Factora Cargo\s*([A-Z0-9]+)", prev_line, re.IGNORECASE)
-                    if match:
-                        self.numero_factura = match.group(1).strip()
-                        if self.debug_mode:
-                            print(f"DEBUG: Número de factura extraído: {self.numero_factura}")
-                        return
-        if self.debug_mode and not self.numero_factura:
-            print("DEBUG: Número de factura no encontrado con la lógica específica de Coslauto.")
+        try:
+            # ...
+            numeric_total_str = total_amount_str.replace('.', '').replace(',', '.')
+            total_amount = float(numeric_total_str)
+            
+            # 🟢 CRÍTICO: Corregir 0,21 a 0.21 (sintaxis de Python)
+            base_amount = total_amount / (1 + 0.21) 
+            
+            # Importe del IVA = Total - Base
+            vat_amount = total_amount - base_amount
+            # ...
+            
+            formatted_base_amount = f"{base_amount:.2f}".replace('.', ',')
+            formatted_vat_amount = f"{vat_amount:.2f}".replace('.', ',')
+            
+            return formatted_base_amount, formatted_vat_amount
 
-    def _extract_fecha(self):
-        # Date is next to "FECHA" in DD/MM/YY format
-        date_pattern = r"FECHA\s*:\s*(\d{2}/\d{2}/\d{2})"
-        for line in self.lines:
-            match = re.search(date_pattern, line, re.IGNORECASE)
-            if match:
-                self.fecha = extract_and_format_date(match.group(1))
-                if self.debug_mode:
-                    print(f"DEBUG: Fecha extraída: {self.fecha}")
-                return
-        super()._extract_fecha() # Fallback to base class if not found
+        except ValueError:
+            return None, None
+        except Exception:
+            return None, None
 
-    def _extract_cliente(self):
-        # Client is "NEW SATELITE S.L"
-        client_pattern = r"NEW SATELITE S\.L"
-        found_client = False
-        for line in self.lines:
-            match = re.search(client_pattern, line, re.IGNORECASE)
-            if match:
-                self.cliente = match.group(0).strip()
-                found_client = True
-                if self.debug_mode:
-                    print(f"DEBUG: Cliente extraído: {self.cliente}")
-                break # Exit loop once found
+        except ValueError:
+            # Ocurre si la cadena no se puede convertir a float
+            return None, None
+        except Exception:
+            # Maneja cualquier otro error
+            return None, None
 
-        if not found_client:
-            self.cliente = "No encontrado" # Explicitly set if not found by specific logic
-            if self.debug_mode:
-                print("DEBUG: Cliente 'NEW SATELITE S.L' no encontrado.")
+    # --- NUEVA FUNCIÓN DE LIMPIEZA ---
+    def _clean_and_convert_float(self, value: Optional[str]) -> Optional[float]:
+        """Limpia cadenas para obtener un float (maneja puntos, comas y símbolos de moneda)."""
+        if value is None or str(value).strip() == '':
+            return None
+        
+        cleaned_value = str(value).strip()
+        
+        # 1. Eliminar símbolos de moneda y caracteres no numéricos irrelevantes
+        # Esto elimina el '€' de '30,00€'
+        cleaned_value = cleaned_value.replace('€', '').replace('$', '').replace('%', '').replace(':', '').replace('(', '').replace(')', '').replace('[', '').replace(']', '').replace('?', '').replace('!', '').replace(' ', '').replace('EUROS','')
+        
+        # 2. Manejar separadores de miles y decimales comunes en español
+        # Si contiene coma (,) y punto (.)
+        if ',' in cleaned_value and '.' in cleaned_value:
+            # Asumir que el punto es separador de miles y la coma es decimal (1.234,56 -> 1234.56)
+            cleaned_value = cleaned_value.replace('.', '').replace(',', '.')
+        # Si solo contiene coma
+        elif ',' in cleaned_value:
+            # Asumir que la coma es separador decimal (1234,56 -> 1234.56)
+            cleaned_value = cleaned_value.replace(',', '.')
 
-        # Removed super()._extract_cliente() to prevent the reported error.
-        # This assumes BaseInvoiceExtractor's _extract_cliente is problematic or not needed here.
+        try:
+            return float(cleaned_value)
+        except ValueError:
+            return None
+    # --- FIN FUNCIÓN DE LIMPIEZA ---
+
+    def extract_data(self, lines: List[str]) -> Dict[str, Any]:
+        
+        extracted_data = {}
+        
+        # Función auxiliar para buscar línea de referencia (primera coincidencia)
+        def find_reference_line(ref_text: str) -> Optional[int]:
+            ref_text_lower = ref_text.lower()
+            for i, line in enumerate(lines):
+                # Buscamos la etiqueta de referencia
+                if ref_text_lower in line.lower():
+                    return i
+            return None
+
+        # Función auxiliar para obtener el valor
+        def get_value(mapping: Dict[str, Any]) -> Optional[str]:
+            
+            # 1. Caso FIXED_VALUE (valor constante)
+            if mapping['type'] == 'FIXED_VALUE':
+                return mapping.get('value')
+                
+            line_index = None
+            
+            # 2. Determinar el índice de la línea final (0-based)
+            if mapping['type'] == 'FIXED':
+                abs_line_1based = mapping.get('line')
+                if abs_line_1based is not None and abs_line_1based > 0:
+                    line_index = abs_line_1based - 1 
+                
+            elif mapping['type'] == 'VARIABLE':
+                ref_text = mapping.get('ref_text', '')
+                offset = mapping.get('offset', 0)
+                
+                ref_index = find_reference_line(ref_text)
+                
+                if ref_index is not None:
+                    line_index = ref_index + offset
+            
+            if line_index is None or not (0 <= line_index < len(lines)):
+                return None
+                
+            # 3. Obtener el segmento
+            segment_input = mapping['segment']
+            
+            try:
+                # Dividir por espacios para obtener segmentos de la línea
+                line_segments = re.split(r'\s+', lines[line_index].strip())
+                line_segments = [seg for seg in line_segments if seg]
+                
+                # Manejar rangos de segmentos (ej. '1-3')
+                if isinstance(segment_input, str) and re.match(r'^\d+-\d+$', segment_input):
+                    start_s, end_s = segment_input.split('-')
+                    start_idx = int(start_s) - 1 # 0-based start
+                    end_idx = int(end_s)        # 0-based exclusive end
+                    
+                    if 0 <= start_idx < end_idx and end_idx <= len(line_segments):
+                        return ' '.join(line_segments[start_idx:end_idx]).strip()
+                
+                # Manejar segmento simple (ej. 1)
+                segment_index_0based = int(segment_input) - 1
+                
+                if segment_index_0based < len(line_segments):
+                    return line_segments[segment_index_0based].strip()
+            except Exception:
+                return None
+                
+            return None
+
+       # ------------------------------------------------------------------
+        # 🟢 CAMBIO 2: LÓGICA CONDICIONAL PARA NUM_FACTURA
+        # ------------------------------------------------------------------
+        num_factura = None
+        fecha = None
+        ref_text_fac = 'Cargo'
+        ref_text_fec = 'FECHA'
+        segment = 1
+        
+        # 1. Intentar la primera regla: offset +1
+        mapping_v1F = {'type': 'VARIABLE', 'ref_text': ref_text_fac, 'offset': +1, 'segment': segment}
+        num_factura = get_value(mapping_v1F)
+        print("num_factura",num_factura)
+        if not num_factura.startswith("CA"):
+                num_factura = None
+        
+        # 2. Si no se encuentra, intentar la segunda regla: offset +3
+        if num_factura is None:
+            mapping_v2F = {'type': 'VARIABLE', 'ref_text': ref_text_fac, 'offset': +3, 'segment': segment}
+            num_factura = get_value(mapping_v2F)
+            if not num_factura.startswith("CA"):
+                num_factura = None
+        if num_factura is None:
+            mapping_v3F = {'type': 'VARIABLE', 'ref_text': ref_text_fac, 'offset': +4, 'segment': segment}
+            num_factura = get_value(mapping_v3F)
+        
+        extracted_data['num_factura'] = num_factura
+
+        mapping_v1FE = {'type': 'VARIABLE', 'ref_text': ref_text_fec, 'offset': +2, 'segment': segment}
+        fecha = get_value(mapping_v1FE)
+        if fecha is not None:
+            # Asegúrate de que la cadena tenga al menos un carácter antes de acceder a [0]
+            if fecha and not fecha[0].isdigit():
+                fecha = None
+        # 2. Si no se encuentra, intentar la segunda regla: offset +3
+        if fecha is None:
+            mapping_v2FE = {'type': 'VARIABLE', 'ref_text': ref_text_fec, 'offset': +5, 'segment': segment}
+            fecha = get_value(mapping_v2FE)
+            
+        extracted_data['fecha'] = fecha
+        # ------------------------------------------------------------------
 
 
-    def _extract_importe_and_base(self):
-        # The amount is the line after "APAGAR"
-        found_apagar = False
-        for i, line in enumerate(self.lines):
-            if found_apagar:
-                # Assuming the line immediately after "APAGAR" contains the total amount
-                importe_match = re.search(r"([\d.,]+\s*€)", line)
-                if importe_match:
-                    self.importe = _extract_amount(importe_match.group(1))
-                    if self.importe is not None:
-                        try:
-                            numeric_importe = float(str(self.importe).replace(',', '.'))
-                            # Calculate base by removing 21% from the total amount
-                            self.base_imponible = _calculate_base_from_total(str(numeric_importe).replace('.', ','), VAT_RATE)
-                            if self.debug_mode:
-                                print(f"DEBUG: Importe extraído: {self.importe}, Base Imponible calculada: {self.base_imponible}")
-                            return
-                        except ValueError as e:
-                            self.base_imponible = 'No encontrado'
-                            if self.debug_mode:
-                                print(f"DEBUG: Error al calcular la base imponible a partir del Total: {e}")
-                    break # Exit loop once importe is found
-            if "APAGAR" in line.upper():
-                found_apagar = True
+        # 4. Aplicar el mapeo para el resto de campos (no se procesa NUM_FACTURA)
+        for key, mapping in EXTRACTION_MAPPING.items():
+            value = get_value(mapping)
+            key_lower = key.lower()
+            if key == 'IMPORTE':
+                base,iva = self.calculate_base_and_vat_from_total(value)
+                print("base",base,"iva",iva)
+                extracted_data['base'] = base
+                extracted_data['iva'] = iva
+            # --- APLICAR LIMPIEZA NUMÉRICA A LOS TOTALES Y ASIGNAR FLOAT ---
+            if key_lower in ['importe', 'tasas']:
+                # Asignamos el valor FLOAT limpio directamente
+                cleaned_value = self._clean_and_convert_float(value)
+                extracted_data[key_lower] = cleaned_value
+                
+            # --- ASIGNAR VALOR A CAMPOS NO NUMÉRICOS ---
+            elif value is not None:
+                # Solo asignamos el valor de texto original para campos no numéricos
+                extracted_data[key.lower()] = value
+            else:
+                extracted_data[key.lower()] = None
 
-        # Fallback to the base class logic if "APAGAR" or the amount after it is not found
-        if self.importe is None or self.base_imponible is None:
-            if self.debug_mode:
-                print("DEBUG: Importe o base no encontrados con la lógica específica de Coslauto. Recurriendo a la clase base.")
-            super()._extract_importe_and_base()
+        
 
-    def _extract_modelo(self):
-        # No specific logic provided for 'modelo', rely on base class or leave as None
-        pass
-
-    def _extract_matricula(self):
-        # No specific logic provided for 'matricula', rely on base class or leave as None
-        pass
-
-    def extract_all(self):
-        self._extract_emisor()
-        self._extract_cif()
-        self._extract_numero_factura()
-        self._extract_fecha()
-        self._extract_cliente()
-        self._extract_importe_and_base()
-        self._extract_modelo()
-        self._extract_matricula()
-
-        return (
-            self.tipo,
-            self.fecha,
-            self.numero_factura,
-            self.emisor,
-            self.cliente,
-            self.cif,
-            self.modelo,
-            self.matricula,
-            self.base_imponible,
-            VAT_RATE, # Assuming VAT_RATE is globally defined or passed
-            self.importe
-        )
+        return extracted_data

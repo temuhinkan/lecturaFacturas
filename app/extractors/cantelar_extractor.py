@@ -1,111 +1,169 @@
+# 🚨 MAPPING SUGERIDO PARA main_extractor_gui.py
+# Copie la siguiente línea y péguela en el diccionario EXTRACTION_MAPPING en main_extractor_gui.py:
+#
+# "nueva_clave": "extractors.nombre_archivo_extractor.CantelarExtractor", 
+#
+# Ejemplo (si el archivo generado es 'cantelar_extractor.py'):
+# "pinchete": "extractors.cantelar_extractor.CantelarExtractor",
+
+from typing import Dict, Any, List, Optional
 import re
-import os
-from extractors.base_invoice_extractor import BaseInvoiceExtractor
-from utils import _extract_amount, _extract_nif_cif, _calculate_base_from_total, VAT_RATE 
+# La clase BaseInvoiceExtractor será INYECTADA en tiempo de ejecución (soluciona ImportError en main_extractor_gui.py).
 
-class CantelarExtractor(BaseInvoiceExtractor): 
-    EMISOR_CIF = "B75526939" 
+# 🚨 EXTRACTION_MAPPING: Define la lógica de extracción.
+# 'type': 'FIXED' (Fila Fija, línea absoluta 1-based), 'VARIABLE' (Variable, relativa a un texto), o 'FIXED_VALUE' (Valor Fijo, valor constante).
+# 'segment': Posición de la palabra en la línea (1-based), o un rango (ej. "3-5").
+
+EXTRACTION_MAPPING: Dict[str, Dict[str, Any]] = {
+    'TIPO': {'type': 'FIXED_VALUE', 'value': 'COMPRA'},
+    'FECHA':  {'type': 'VARIABLE', 'ref_text': 'Factura', 'offset': +20, 'segment': 1},
+    'NUM_FACTURA':  {'type': 'VARIABLE', 'ref_text': 'Factura', 'offset': +18, 'segment': 1},
+    'EMISOR': {'type': 'FIXED_VALUE', 'value': 'ACCESORIOS PARA VEHICULOS CANTELAR, S.L.'},
+    'CIF_EMISOR': {'type': 'FIXED_VALUE', 'value': 'B75526939'},
+    'CLIENTE': {'type': 'FIXED_VALUE', 'value': 'NEWSATELITE S.L'},
+    'CIF': {'type': 'FIXED_VALUE', 'value': 'B85629020'},
+    #'MODELO': {'type': 'VARIABLE', 'ref_text': 'MODELO', 'offset': +7, 'segment': 1},
+    #'MATRICULA': {'type': 'VARIABLE', 'ref_text': 'MATRÍCULA', 'offset': +7, 'segment': 1},
+    # Lógica VARIABLE compatible para los totales:
+    # BASE: 8 líneas arriba de 'Base Imponible'
+    'BASE': {'type': 'VARIABLE', 'ref_text': 'TOTAL:', 'offset': +37, 'segment': 1},
+    # IVA: 9 líneas arriba de 'Base Imponible'
+    'IVA': {'type': 'VARIABLE', 'ref_text': 'TOTAL:', 'offset': +39, 'segment': 1},
+    # IMPORTE: 10 líneas arriba de 'Base Imponible'
+    'IMPORTE': {'type': 'VARIABLE', 'ref_text': 'TOTAL:', 'offset': +42, 'segment': 1},
+}
+
+# 🚨 CORRECCIÓN CRÍTICA: Renombrar la clase a CantelarExtractor
+# Asumimos que hereda de BaseInvoiceExtractor
+class CantelarExtractor:
     
-    def __init__(self, lines, pdf_path=None):
-        super().__init__(lines, pdf_path)
-        self.emisor = "ACCESORIOS PARA VEHICULOS CANTELAR, S.L." 
-        self.cif = self.EMISOR_CIF
-        self.vat_rate = VAT_RATE
-        # CRÍTICO: Almacena el índice de la línea de la ÚLTIMA FECHA
-        self.last_date_line_index = -1 
-
-    def _extract_emisor(self):
-        # El emisor está fijo en __init__
+    # Usamos *args y **kwargs para máxima compatibilidad con el __init__ de BaseInvoiceExtractor.
+    def __init__(self, lines: List[str] = None, pdf_path: str = None, *args, **kwargs):
+        # En el entorno real, esto llamaría a super().__init__(lines=lines, pdf_path=pdf_path, ...)
         pass
-
-    def _extract_cif(self):
-        # El CIF está fijo en __init__
-        pass
-
-    # --- Lógica de Extracción de Número de Factura (Priorizando Nombre de Archivo) ---
-    def _extract_numero_factura(self):
-        # 1. Intentar extraer del nombre del archivo (self.pdf_path)
-        # Patrón en el nombre de archivo: X-XXXXXX o X_XXXXXX
-        if self.pdf_path:
-            file_name = os.path.basename(self.pdf_path)
-            # Regex para el patrón digito-seis-digitos (o más)
-            match_filename = re.search(r'(\d+[-_]\d{6,})', file_name, re.IGNORECASE)
+    
+    # --- NUEVA FUNCIÓN DE LIMPIEZA ---
+    def _clean_and_convert_float(self, value: Optional[str]) -> Optional[float]:
+        """Limpia cadenas para obtener un float (maneja puntos, comas y símbolos de moneda)."""
+        if value is None or str(value).strip() == '':
+            return None
+        
+        cleaned_value = str(value).strip()
+        
+        # 1. Eliminar símbolos de moneda y caracteres no numéricos irrelevantes
+        cleaned_value = cleaned_value.replace('€', '').replace('$', '').replace('%', '').replace(':', '').replace('(', '').replace(')', '').replace('[', '').replace(']', '').replace('?', '').replace('!', '').replace(' ', '').replace('EUROS','')
+        
+        # 2. Manejar separadores de miles y decimales comunes en español
+        temp_value = cleaned_value
+        
+        # 🚨 CORRECCIÓN DEL BUG DE ESCALA: Nos aseguramos de que el resultado final solo use DOT como decimal.
+        # Si hay una coma, la convertimos a punto, y si hay puntos antes de eso (miles), los eliminamos.
+        
+        # CASO 1: Formato Español (1.234,56 -> 1234.56)
+        if '.' in temp_value and ',' in temp_value and temp_value.rfind('.') < temp_value.rfind(','):
+            temp_value = temp_value.replace('.', '') # Quita el punto (separador de miles)
+            temp_value = temp_value.replace(',', '.') # Cambia la coma a punto (decimal)
             
-            if match_filename:
-                # Reemplazar posibles guiones bajos por guiones
-                self.numero_factura = match_filename.group(1).replace('_', '-').strip()
-                return
-
-        # 2. Fallback: Usar la lógica de posición si no se encuentra en el nombre
-        # La factura tiene el número dividido en dos líneas: L49: '6', L50: '003001'
-        # Usamos los índices 48 y 49 (0-based)
-        if len(self.lines) >= 50:
-            part1 = self.lines[48].strip() 
-            part2 = self.lines[49].strip() 
+        # CASO 2: Solo Coma (247,93 -> 247.93)
+        elif ',' in temp_value:
+            temp_value = temp_value.replace(',', '.')
             
-            # Validar que los fragmentos coincidan con el patrón esperado
-            if re.match(r'^\d+$', part1) and re.match(r'^\d{6,}$', part2):
-                self.numero_factura = f"{part1}-{part2}"
-                return
+        # CASO 3: Solo Punto (247.93) - Ya está en formato correcto, no hacer nada.
         
-    # --- Lógica de Extracción de Fecha (CRÍTICO: Busca la Última) ---
-    def _extract_fecha(self):
-        date_regex = r'(\d{2}/\d{2}/\d{4})'
-        last_index = -1
-        last_date = None
-        
-        # Iterar para encontrar la última ocurrencia (índice más alto)
-        for i, line in enumerate(self.lines):
-            match = re.search(date_regex, line.strip())
-            if match:
-                last_index = i
-                last_date = match.group(1) # Guarda la última fecha encontrada
-        
-        self.last_date_line_index = last_index
-        self.fecha = last_date
-        
-    # --- Lógica de Extracción de Importes (RELATIVA A LA ÚLTIMA FECHA) ---
-    def _extract_importe_and_base(self):
-        
-        # 1. Asegurar que la fecha (y el índice) se hayan extraído
-        if self.last_date_line_index == -1:
-            self._extract_fecha()
+        # Limpiamos el valor final
+        cleaned_value = temp_value
 
-        if self.last_date_line_index != -1:
-            # Referencias para la factura Cantelar (L74: Última Fecha)
-            # Base Imponible (L68) = last_date_line_index - 6
-            # IVA (L70) = last_date_line_index - 4
-            # Importe Total (L73) = last_date_line_index - 1
+        try:
+            # 🚨 CORRECCIÓN DEL PRINT: Se usaba una sintaxis incorrecta, se corrige a f-string.
+            # print("cleaned_value", cleaned_value) 
+            return float(cleaned_value)
+        except ValueError:
+            return None
+    # --- FIN FUNCIÓN DE LIMPIEZA ---
+
+    def extract_data(self, lines: List[str]) -> Dict[str, Any]:
+        
+        extracted_data = {}
+        
+        # Función auxiliar para buscar línea de referencia (primera coincidencia)
+        def find_reference_line(ref_text: str) -> Optional[int]:
+            ref_text_lower = ref_text.lower()
+            for i, line in enumerate(lines):
+                # Buscamos la etiqueta de referencia
+                if ref_text_lower in line.lower():
+                    return i
+            return None
+
+        # Función auxiliar para obtener el valor
+        def get_value(mapping: Dict[str, Any]) -> Optional[str]:
             
-            # 🟢 Base Imponible (6 líneas antes de la última fecha)
-            base_line_index = self.last_date_line_index - 6
-            if base_line_index >= 0 and base_line_index < len(self.lines):
-                extracted_base = _extract_amount(self.lines[base_line_index].strip())
-                if extracted_base is not None:
-                    self.base_imponible = str(extracted_base).replace('.', ',')
-
-            # 🟢 IVA (4 líneas antes de la última fecha)
-            iva_line_index = self.last_date_line_index - 4
-            if iva_line_index >= 0 and iva_line_index < len(self.lines):
-                extracted_iva = _extract_amount(self.lines[iva_line_index].strip())
-                if extracted_iva is not None:
-                    self.iva = str(extracted_iva).replace('.', ',')
-
-            # 🟢 Importe Total (1 línea antes de la última fecha)
-            importe_line_index = self.last_date_line_index - 1
-            if importe_line_index >= 0 and importe_line_index < len(self.lines):
-                extracted_importe = _extract_amount(self.lines[importe_line_index].strip())
-                if extracted_importe is not None:
-                    self.importe = str(extracted_importe).replace('.', ',')
+            # 1. Caso FIXED_VALUE (valor constante)
+            if mapping['type'] == 'FIXED_VALUE':
+                return mapping.get('value')
+                
+            line_index = None
+            
+            # 2. Determinar el índice de la línea final (0-based)
+            if mapping['type'] == 'FIXED':
+                abs_line_1based = mapping.get('line')
+                if abs_line_1based is not None and abs_line_1based > 0:
+                    line_index = abs_line_1based - 1 
+                
+            elif mapping['type'] == 'VARIABLE':
+                ref_text = mapping.get('ref_text', '')
+                offset = mapping.get('offset', 0)
+                
+                ref_index = find_reference_line(ref_text)
+                
+                if ref_index is not None:
+                    line_index = ref_index + offset
+            
+            if line_index is None or not (0 <= line_index < len(lines)):
+                return None
+                
+            # 3. Obtener el segmento
+            segment_input = mapping['segment']
+            
+            try:
+                # Dividir por espacios para obtener segmentos de la línea
+                line_segments = re.split(r'\s+', lines[line_index].strip())
+                line_segments = [seg for seg in line_segments if seg]
+                
+                # Manejar rangos de segmentos (ej. '1-3')
+                if isinstance(segment_input, str) and re.match(r'^\d+-\d+$', segment_input):
+                    start_s, end_s = segment_input.split('-')
+                    start_idx = int(start_s) - 1 # 0-based start
+                    end_idx = int(end_s)        # 0-based exclusive end
                     
-            # Fallback de cálculo si la extracción directa falla
-            if self.importe and (self.base_imponible is None or self.iva is None):
-                try:
-                    calculated_base = _calculate_base_from_total(self.importe, self.vat_rate)
-                    if calculated_base is not None:
-                        self.base_imponible = calculated_base.replace('.', ',')
-                        base_f = float(self.base_imponible.replace(',', '.'))
-                        iva_f = base_f * self.vat_rate
-                        self.iva = f"{iva_f:.2f}".replace('.', ',')
-                except ValueError:
-                    pass
+                    if 0 <= start_idx < end_idx and end_idx <= len(line_segments):
+                        return ' '.join(line_segments[start_idx:end_idx]).strip()
+                
+                # Manejar segmento simple (ej. 1)
+                segment_index_0based = int(segment_input) - 1
+                
+                if segment_index_0based < len(line_segments):
+                    return line_segments[segment_index_0based].strip()
+            except Exception:
+                return None
+                
+            return None
+
+        # 4. Aplicar el mapeo
+        for key, mapping in EXTRACTION_MAPPING.items():
+            value = get_value(mapping)
+            key_lower = key.lower()
+            
+            # --- APLICAR LIMPIEZA NUMÉRICA A LOS TOTALES Y ASIGNAR FLOAT ---
+            if key_lower in ['base', 'iva', 'importe', 'tasas']:
+                # Asignamos el valor FLOAT limpio directamente
+                cleaned_value = self._clean_and_convert_float(value)
+                extracted_data[key_lower] = cleaned_value
+                
+            # --- ASIGNAR VALOR A CAMPOS NO NUMÉRICOS ---
+            elif value is not None:
+                # Solo asignamos el valor de texto original para campos no numéricos
+                extracted_data[key.lower()] = value
+            else:
+                extracted_data[key.lower()] = None
+
+        return extracted_data
