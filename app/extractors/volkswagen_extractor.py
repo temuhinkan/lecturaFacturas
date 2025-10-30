@@ -1,161 +1,120 @@
+# 🚨 MAPPING SUGERIDO PARA main_extractor_gui.py
+# Copie la siguiente línea y péguela en el diccionario EXTRACTION_MAPPING en main_extractor_gui.py:
+#
+# "nueva_clave": "extractors.nombre_archivo_extractor.VolkswagenExtractor", 
+#
+# Ejemplo (si el archivo generado es 'volkswagen_extractor.py'):
+# "volkswagen": "extractors.volkswagen_extractor.VolkswagenExtractor",
+
+from typing import Dict, Any, List, Optional
 import re
-from extractors.base_invoice_extractor import BaseInvoiceExtractor
-from utils import _extract_amount, _extract_nif_cif, _calculate_base_from_total, VAT_RATE, _extract_from_line, _extract_from_lines_with_keyword, extract_and_format_date
+# La clase BaseInvoiceExtractor será INYECTADA en tiempo de ejecución (soluciona ImportError en main_extractor_gui.py).
 
-class VolkswagenExtractor(BaseInvoiceExtractor):
-    def __init__(self, lines, pdf_path=None):
-        super().__init__(lines, pdf_path)
-        self.emisor = "VOLKSWAGEN RENTING, S.A."
-        self.cif = "A80185051" # CIF del emisor
-        self.iva = None
-        self.vat_rate = VAT_RATE
-        print(f"DEBUG VOLKSWAGEN: CIF Emisor inicializado: {self.cif}")
+# 🚨 EXTRACTION_MAPPING: Define la lógica de extracción.
+# 'type': 'FIXED' (Fila Fija, línea absoluta 1-based), 'VARIABLE' (Variable, relativa a un texto), o 'FIXED_VALUE' (Valor Fijo, valor constante).
+# 'segment': Posición de la palabra en la línea (1-based), o un rango (ej. "3-5").
 
-    def _extract_emisor(self):
+EXTRACTION_MAPPING: Dict[str, Dict[str, Any]] = {
+    'TIPO': {'type': 'FIXED_VALUE', 'value': 'COMPRA'},
+    'FECHA':  {'type': 'VARIABLE', 'ref_text': 'Fecha', 'offset': +1, 'segment': 2},
+    'NUM_FACTURA': {'type': 'VARIABLE', 'ref_text': 'Nº Factura', 'offset': +1, 'segment': 2},
+    'EMISOR': {'type': 'FIXED_VALUE', 'value': 'VOLKSWAGEN RENTING, S.A.'},
+    'CIF_EMISOR': {'type': 'FIXED_VALUE', 'value': 'A80185051'},
+    'CLIENTE': {'type': 'FIXED_VALUE', 'value': 'NEWSATELITE S.L'},
+    'CIF': {'type': 'FIXED_VALUE', 'value': 'B85629020'},
+    'MODELO': {'type': 'VARIABLE', 'ref_text': 'Matrícula', 'offset': +1, 'segment': 2},
+    'MATRICULA': {'type': 'VARIABLE', 'ref_text': 'Modelo', 'offset': +1, 'segment': 2},
+    # Lógica VARIABLE compatible para los totales:
+    # BASE: 8 líneas arriba de 'Base Imponible'
+    'BASE': {'type': 'VARIABLE', 'ref_text': 'TOTAL BASE IMPONIBLE', 'offset': +2, 'segment': 1},
+    # IVA: 9 líneas arriba de 'Base Imponible'
+    'IVA': {'type': 'VARIABLE', 'ref_text': 'I.V.A. (21,00 %)', 'offset': +2, 'segment': 1},
+    # IMPORTE: 10 líneas arriba de 'Base Imponible'
+    'IMPORTE': {'type': 'VARIABLE', 'ref_text': 'TOTAL FACTURA', 'offset': +2, 'segment': 1},
+}
+
+# 🚨 CORRECCIÓN CRÍTICA: Renombrar la clase a PincheteExtractor
+# Asumimos que hereda de BaseInvoiceExtractor
+class VolkswagenExtractor:
+    
+    # Usamos *args y **kwargs para máxima compatibilidad con el __init__ de BaseInvoiceExtractor.
+    def __init__(self, lines: List[str] = None, pdf_path: str = None, *args, **kwargs):
+        # En el entorno real, esto llamaría a super().__init__(lines=lines, pdf_path=pdf_path, ...)
         pass
 
-    def _extract_numero_factura(self):
-        print("DEBUG VOLKSWAGEN: Intentando extraer Número de Factura...")
-        self.numero_factura = _extract_from_lines_with_keyword(
-            self.lines, 
-            r'Nº Factura', 
-            r'(\d+)',
-            look_ahead=1
-        )
-        if self.numero_factura:
-            self.numero_factura = self.numero_factura.strip()
-            print(f"DEBUG VOLKSWAGEN: Número de Factura encontrado: {self.numero_factura}")
-            return
-        print("DEBUG VOLKSWAGEN: Número de Factura no encontrado.")
-        super()._extract_numero_factura()
-
-    def _extract_fecha(self):
-        print("DEBUG VOLKSWAGEN: Intentando extraer Fecha...")
-        fecha_raw = _extract_from_lines_with_keyword(
-            self.lines,
-            r'Fecha',
-            r'(\d{2}-\d{2}-\d{4})', 
-            look_ahead=1
-        )
-        if fecha_raw:
-            day, month, year = fecha_raw.split('-')
-            self.fecha = f"{day}/{month}/{year}"
-            print(f"DEBUG VOLKSWAGEN: Fecha encontrada: {self.fecha}")
-            return
-        print("DEBUG VOLKSWAGEN: Fecha no encontrada.")
-        super()._extract_fecha()
-
-    def _extract_cif(self):
-        # Se mantiene el CIF del emisor (A80185051)
-        print(f"DEBUG VOLKSWAGEN: Verificando CIF. Se mantiene el CIF del Emisor: {self.cif}")
-        pass
-
-    def _extract_cliente(self):
-        # Cliente: NEW SATELITE, SL.
-        print("DEBUG VOLKSWAGEN: Intentando extraer Cliente...")
-        for i, line in enumerate(self.lines):
-            if "Cliente:" in line and i + 1 < len(self.lines):
-                client_name_line = self.lines[i+1].strip()
-                match = re.match(r'([A-Z\s,.]+?)(?:CL|AV|C/|\d)', client_name_line, re.IGNORECASE)
-                if match:
-                    self.cliente = match.group(1).strip().replace('.', '')
-                    print(f"DEBUG VOLKSWAGEN: Cliente encontrado: {self.cliente}")
-                    return
-                else: 
-                     self.cliente = client_name_line
-                     print(f"DEBUG VOLKSWAGEN: Cliente encontrado (sin regex): {self.cliente}")
-                     return
-        super()._extract_cliente()
-
-
-    def _extract_modelo(self):
-        # L26: Modelo, L27: : SKODA FABIA
-        print("DEBUG VOLKSWAGEN: Intentando extraer Modelo...")
-        self.modelo = _extract_from_lines_with_keyword(
-            self.lines, 
-            r'Modelo', 
-            r'(.+)', 
-            look_ahead=1 
-        )
-        if self.modelo:
-            self.modelo = self.modelo.strip().lstrip(':').strip()
-            print(f"DEBUG VOLKSWAGEN: Modelo encontrado y asignado: {self.modelo}")
-            return
-        print("DEBUG VOLKSWAGEN: Modelo no encontrado.")
-        super()._extract_modelo()
-
-
-    def _extract_matricula(self):
-        # L22: Matrícula, L23: : 6150KYY
-        print("DEBUG VOLKSWAGEN: Intentando extraer Matrícula...")
-        self.matricula = _extract_from_lines_with_keyword(
-            self.lines, 
-            r'Matrícula', 
-            r'([A-Z0-9]+)',
-            look_ahead=1
-        )
-        if self.matricula:
-            self.matricula = self.matricula.strip()
-            print(f"DEBUG VOLKSWAGEN: Matrícula encontrada y asignada: {self.matricula}")
-            return
-        print("DEBUG VOLKSWAGEN: Matrícula no encontrada.")
-        super()._extract_matricula()
-
-
-    def _extract_importe_and_base(self):
+    def extract_data(self, lines: List[str]) -> Dict[str, Any]:
         
-        print("\nDEBUG VOLKSWAGEN: INICIO EXTRACCIÓN DE IMPORTES")
+        extracted_data = {}
         
-        # 1. Extraer Importe Total (TOTAL FACTURA)
-        importe_str_raw = _extract_from_lines_with_keyword(
-            self.lines, 
-            r'TOTAL FACTURA', 
-            r'([\d.,]+\s*€)', 
-            look_ahead=2 # L36 -> L38
-        )
-        print(f"DEBUG VOLKSWAGEN: Importe Total (RAW) encontrado por keyword: '{importe_str_raw}'")
+        # Función auxiliar para buscar línea de referencia (primera coincidencia)
+        def find_reference_line(ref_text: str) -> Optional[int]:
+            ref_text_lower = ref_text.lower()
+            for i, line in enumerate(lines):
+                # Buscamos la etiqueta de referencia
+                if ref_text_lower in line.lower():
+                    return i
+            return None
 
-        if importe_str_raw:
-            self.importe = _extract_amount(importe_str_raw)
-            print(f"DEBUG VOLKSWAGEN: _extract_amount devolvió: '{self.importe}'")
-            if self.importe is not None:
-                # 🟢 FIX CRÍTICO: Eliminar el separador de miles (punto) para el formato '8300,00'
-                self.importe = str(self.importe).replace('.', '') 
-                print(f"DEBUG VOLKSWAGEN: Importe Total ASIGNADO (Limpio): {self.importe}")
-
-        # 2. Extraer Base Imponible
-        base_str_raw = _extract_from_lines_with_keyword(
-            self.lines, 
-            r'TOTAL BASE IMPONIBLE', 
-            r'([\d.,]+\s*€)', 
-            look_ahead=2 # L30 -> L32
-        )
-        print(f"DEBUG VOLKSWAGEN: Base Imponible (RAW) encontrado por keyword: '{base_str_raw}'")
-
-        if base_str_raw:
-            self.base_imponible = _extract_amount(base_str_raw)
-            print(f"DEBUG VOLKSWAGEN: _extract_amount devolvió: '{self.base_imponible}'")
-            if self.base_imponible is not None:
-                # 🟢 FIX CRÍTICO: Eliminar el separador de miles (punto) para el formato '6859,50'
-                self.base_imponible = str(self.base_imponible).replace('.', '')
-                print(f"DEBUG VOLKSWAGEN: Base Imponible ASIGNADA (Limpia): {self.base_imponible}")
-
-
-        # 3. Calcular IVA (La lógica de cálculo ahora funciona con las cadenas limpias)
-        if self.importe and self.base_imponible:
-            print("DEBUG VOLKSWAGEN: Calculando IVA a partir de Importe y Base...")
+        # Función auxiliar para obtener el valor
+        def get_value(mapping: Dict[str, Any]) -> Optional[str]:
+            
+            # 1. Caso FIXED_VALUE (valor constante)
+            if mapping['type'] == 'FIXED_VALUE':
+                return mapping.get('value')
+                
+            line_index = None
+            
+            # 2. Determinar el índice de la línea final (0-based)
+            if mapping['type'] == 'FIXED':
+                abs_line_1based = mapping.get('line')
+                if abs_line_1based is not None and abs_line_1based > 0:
+                    line_index = abs_line_1based - 1 
+                
+            elif mapping['type'] == 'VARIABLE':
+                ref_text = mapping.get('ref_text', '')
+                offset = mapping.get('offset', 0)
+                
+                ref_index = find_reference_line(ref_text)
+                
+                if ref_index is not None:
+                    line_index = ref_index + offset
+            
+            if line_index is None or not (0 <= line_index < len(lines)):
+                return None
+                
+            # 3. Obtener el segmento
+            segment_input = mapping['segment']
+            
             try:
-                # '8300,00'.replace(',', '.') -> '8300.00' (Correcto para float())
-                importe_float = float(self.importe.replace(',', '.')) 
-                base_float = float(self.base_imponible.replace(',', '.'))
+                # Dividir por espacios para obtener segmentos de la línea
+                line_segments = re.split(r'\s+', lines[line_index].strip())
+                line_segments = [seg for seg in line_segments if seg]
                 
-                iva_float = importe_float - base_float
+                # Manejar rangos de segmentos (ej. '1-3')
+                if isinstance(segment_input, str) and re.match(r'^\d+-\d+$', segment_input):
+                    start_s, end_s = segment_input.split('-')
+                    start_idx = int(start_s) - 1 # 0-based start
+                    end_idx = int(end_s)        # 0-based exclusive end
+                    
+                    if 0 <= start_idx < end_idx and end_idx <= len(line_segments):
+                        return ' '.join(line_segments[start_idx:end_idx]).strip()
                 
-                # Asignar el IVA
-                self.iva = f"{iva_float:.2f}".replace('.', ',')
-                print(f"DEBUG VOLKSWAGEN: IVA calculado y ASIGNADO: {self.iva}")
-            except ValueError as e:
-                print(f"DEBUG VOLKSWAGEN: ERROR al calcular IVA (ValueError): {e}")
-                self.iva = None
-        
-        print("DEBUG VOLKSWAGEN: FIN EXTRACCIÓN DE IMPORTES\n")
+                # Manejar segmento simple (ej. 1)
+                segment_index_0based = int(segment_input) - 1
+                
+                if segment_index_0based < len(line_segments):
+                    return line_segments[segment_index_0based].strip()
+            except Exception:
+                return None
+                
+            return None
+
+        # 4. Aplicar el mapeo
+        for key, mapping in EXTRACTION_MAPPING.items():
+            value = get_value(mapping)
+            if value is not None:
+                extracted_data[key.lower()] = value
+            else:
+                extracted_data[key.lower()] = None
+
+        return extracted_data

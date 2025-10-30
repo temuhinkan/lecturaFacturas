@@ -185,8 +185,8 @@ def insert_invoice_data(data: Dict[str, Any], original_path: str, is_validated: 
     # QUERY ACTUALIZADA: Se añade 'is_validated'
     cursor.execute("""
         INSERT OR REPLACE INTO processed_invoices 
-        (path, file_name, tipo, fecha, numero_factura, emisor, cliente, cif, modelo, matricula, base, iva, importe, tasas, log_data, is_validated)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        (path, file_name, tipo, fecha, numero_factura, emisor,cif_emisor cliente, cif, modelo, matricula, base, iva, importe, tasas, log_data, is_validated)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, invoice_data)
     
     conn.commit()

@@ -185,7 +185,7 @@ class InvoiceApp:
         
         # Columnas
         # ESTA ES LA DEFINICIÓN DE COLUMNAS, INCLUYE "IVA"
-        columns = ("path", "file_name", "tipo", "fecha", "numero_factura", "emisor", "cliente", "cif", "modelo", "matricula", "base", "iva", "importe", "is_validated", "tasas")
+        columns = ("path", "file_name", "tipo", "fecha", "numero_factura", "emisor", "cif_emisor", "cliente", "cif", "modelo", "matricula", "base", "iva", "importe", "is_validated", "tasas")
         self.tree = ttk.Treeview(tree_frame, columns=columns, show='headings')
         
         # Encabezados
@@ -440,7 +440,7 @@ class InvoiceApp:
                 # Los valores numéricos vienen como float o None, se formatean aquí.
                 values = (
                     inv.get('path'), inv.get('file_name'), inv.get('tipo'), inv.get('fecha'),
-                    inv.get('numero_factura'), inv.get('emisor'), inv.get('cliente'), inv.get('cif'),
+                    inv.get('numero_factura'), inv.get('emisor'), inv.get('cif_emisor'), inv.get('cliente'), inv.get('cif'),
                     inv.get('modelo'), inv.get('matricula'),
                     # Formateo a 2 decimales y uso de coma decimal
                     f"{inv.get('base', 0.0):.2f}".replace('.', ','),
@@ -466,7 +466,7 @@ class InvoiceApp:
         column_id = self.tree.identify_column(event.x)
         column_index = int(column_id.replace('#', '')) - 1
 
-        TREE_COLUMNS = ("path", "file_name", "tipo", "fecha", "numero_factura", "emisor", "cliente", "cif", "modelo", "matricula", "base", "iva", "importe", "is_validated", "tasas")
+        TREE_COLUMNS = ("path", "file_name", "tipo", "fecha", "numero_factura", "emisor", "cif_emisor" "cliente", "cif", "modelo", "matricula", "base", "iva", "importe", "is_validated", "tasas")
         if column_index < 0 or column_index >= len(TREE_COLUMNS): return
         db_column_name = TREE_COLUMNS[column_index]
         item_id = self.tree.identify_row(event.y)

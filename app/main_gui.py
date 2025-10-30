@@ -234,7 +234,7 @@ class InvoiceApp:
         tree_frame = ttk.Frame(table_panel)
         tree_frame.pack(side='top', fill='both', expand=True)
 
-        columns = ("path", "file_name", "tipo", "fecha", "numero_factura", "emisor", "cliente", "cif", "modelo", "matricula", "base", "iva", "importe", "is_validated", "tasas")
+        columns = ("path", "file_name", "tipo", "fecha", "numero_factura", "emisor", "cif_emisor", "cliente", "cif", "modelo", "matricula", "base", "iva", "importe", "is_validated", "tasas")
         self.tree = ttk.Treeview(tree_frame, columns=columns, show='headings')
         self.tree.tag_configure('validated', background='light green')
         self.tree.tag_configure('unvalidated', background='light yellow')
@@ -244,6 +244,7 @@ class InvoiceApp:
         self.tree.heading("fecha", text="Fecha", anchor="center")
         self.tree.heading("numero_factura", text="Nº Factura", anchor="center")
         self.tree.heading("emisor", text="Emisor", anchor="w")
+        self.tree.heading("cif_emisor", text="CIF  Emisor", anchor="w")
         self.tree.heading("cliente", text="Cliente", anchor="w")
         self.tree.heading("cif", text="CIF", anchor="center")
         self.tree.heading("modelo", text="Modelo", anchor="center")
@@ -510,7 +511,7 @@ class InvoiceApp:
         total_processed = 0
         self.update_log_display(f"--- Iniciando procesamiento de {len(file_paths)} archivos (Debug={debug_mode}, Forzar={force_reprocess})... ---", clear=True)
 
-        KEYS = ['Tipo', 'Fecha', 'Número de Factura', 'Emisor', 'Cliente', 'CIF', 'Modelo', 'Matricula', 'Importe', 'Base', 'IVA', 'Tasas']
+        KEYS = ['Tipo', 'Fecha', 'Número de Factura', 'Emisor', 'CIF Emisor','Cliente', 'CIF', 'Modelo', 'Matricula', 'Importe', 'Base', 'IVA', 'Tasas']
 
         for i, file_path in enumerate(file_paths):
             self.update_log_display(f"[{i+1}/{len(file_paths)}] Procesando: {os.path.basename(file_path)}...")
@@ -583,6 +584,7 @@ class InvoiceApp:
                     inv.get('fecha'),
                     inv.get('numero_factura'),
                     inv.get('emisor'),
+                    inv.get('cif_emisor'),
                     inv.get('cliente'),
                     inv.get('cif'),
                     inv.get('modelo'),
@@ -625,7 +627,7 @@ class InvoiceApp:
         column_id = self.tree.identify_column(event.x)
         column_index = int(column_id.replace('#', '')) - 1
 
-        TREE_COLUMNS = ("path", "file_name", "tipo", "fecha", "numero_factura", "emisor", "cliente", "cif", "modelo", "matricula", "base", "iva", "importe", "is_validated", "tasas")
+        TREE_COLUMNS = ("path", "file_name", "tipo", "fecha", "numero_factura", "emisor", "cid_emisor", "cliente", "cif", "modelo", "matricula", "base", "iva", "importe", "is_validated", "tasas")
         if column_index < 0 or column_index >= len(TREE_COLUMNS): return
         db_column_name = TREE_COLUMNS[column_index]
         item_id = self.tree.identify_row(event.y)
@@ -788,14 +790,15 @@ class InvoiceApp:
             str(row['fecha'] or ""),       # 5
             str(row['numero_factura'] or ""), # 6
             str(row['emisor'] or ""),      # 7
-            str(row['cliente'] or ""),     # 8
-            str(row['cif'] or ""),         # 9
-            str(row['modelo'] or ""),      # 10
-            str(row['matricula'] or ""),   # 11
-            str(row['base'] if row['base'] is not None else ""), # 12
-            str(row['iva'] if row['iva'] is not None else ""),   # 13
-            str(row['importe'] if row['importe'] is not None else ""), # 14
-            str(row['tasas'] if row['tasas'] is not None else "")  # 15
+            str(row['cif_emisor'] or ""),  # 8
+            str(row['cliente'] or ""),     # 9
+            str(row['cif'] or ""),         # 10
+            str(row['modelo'] or ""),      # 11
+            str(row['matricula'] or ""),   # 12
+            str(row['base'] if row['base'] is not None else ""), # 13
+            str(row['iva'] if row['iva'] is not None else ""),   # 14
+            str(row['importe'] if row['importe'] is not None else ""), # 15
+            str(row['tasas'] if row['tasas'] is not None else "")  # 16
         ]
 
         try:

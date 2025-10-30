@@ -19,8 +19,9 @@ EXTRACTION_MAPPING: Dict[str, Dict[str, Any]] = {
     'FECHA': {'type': 'FIXED', 'segment': 1, 'line': 2},
     'NUM_FACTURA': {'type': 'FIXED', 'segment': '1-3', 'line': 1},
     'EMISOR': {'type': 'FIXED_VALUE', 'value': 'RECAMBIOS PINCHETE S.L'},
+    'CIF_EMISOR': {'type': 'FIXED_VALUE', 'value': 'B86898384'},
     'CLIENTE': {'type': 'FIXED_VALUE', 'value': 'NEWSATELITE S.L'},
-    'CIF': {'type': 'FIXED_VALUE', 'value': 'B86898384'},
+    'CIF': {'type': 'FIXED_VALUE', 'value': 'B85629020'},
     # Lógica VARIABLE compatible para los totales:
     # BASE: 8 líneas arriba de 'Base Imponible'
     'BASE': {'type': 'VARIABLE', 'ref_text': 'Base Imponible', 'offset': -8, 'segment': 1},

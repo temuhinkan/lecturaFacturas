@@ -1,10 +1,10 @@
 # 🚨 MAPPING SUGERIDO PARA main_extractor_gui.py
 # Copie la siguiente línea y péguela en el diccionario EXTRACTION_MAPPING en main_extractor_gui.py:
 #
-# "nueva_clave": "extractors.nombre_archivo_extractor.NorthgateExtractor", 
+# "nueva_clave": "extractors.nombre_archivo_extractor.MacarenaExtractor", 
 #
-# Ejemplo (si el archivo generado es 'northgate_extractor.py'):
-# "pinchete": "extractors.northgate_extractor..NorthgateExtractor",
+# Ejemplo (si el archivo generado es 'macarena_extractor.py'):
+# "pinchete": "extractors.macarena_extractor.MacarenaExtractor",
 
 from typing import Dict, Any, List, Optional
 import re
@@ -16,31 +16,58 @@ import re
 
 EXTRACTION_MAPPING: Dict[str, Dict[str, Any]] = {
     'TIPO': {'type': 'FIXED_VALUE', 'value': 'COMPRA'},
-    'FECHA':  {'type': 'VARIABLE', 'ref_text': 'FECHA', 'offset': -6, 'segment': 1},
-    'NUM_FACTURA':  {'type': 'VARIABLE', 'ref_text': 'FACTURA Nº', 'offset': +6, 'segment': 1},
-    'EMISOR': {'type': 'FIXED_VALUE', 'value': 'NORTHGATE ESPAÑA RENTING FLEXIBLE S.A.'},
-    'CIF_EMISOR': {'type': 'FIXED_VALUE', 'value': 'A28659423'},
+    'FECHA':  {'type': 'VARIABLE', 'ref_text': 'Fecha', 'offset': +35, 'segment': 1},
+    'NUM_FACTURA':  {'type': 'VARIABLE', 'ref_text': 'Factura', 'offset': +35, 'segment': "1"},
+    'EMISOR': {'type': 'FIXED_VALUE', 'value': 'Macarena Valera Sánchez'},
+    'CIF_EMISOR': {'type': 'FIXED_VALUE', 'value': '07502258A'},
     'CLIENTE': {'type': 'FIXED_VALUE', 'value': 'NEWSATELITE S.L'},
     'CIF': {'type': 'FIXED_VALUE', 'value': 'B85629020'},
-    'MODELO': {'type': 'VARIABLE', 'ref_text': 'Matrícula:', 'offset': -4, 'segment': 1},
-    'MATRICULA': {'type': 'VARIABLE', 'ref_text': 'Modelo:', 'offset': -3, 'segment': "1-7"},
+    #'MODELO': {'type': 'VARIABLE', 'ref_text': 'MODELO', 'offset': +7, 'segment': 1},
+    #'MATRICULA': {'type': 'VARIABLE', 'ref_text': 'MATRÍCULA', 'offset': +7, 'segment': 1},
     # Lógica VARIABLE compatible para los totales:
     # BASE: 8 líneas arriba de 'Base Imponible'
-    'BASE': {'type': 'VARIABLE', 'ref_text': 'BASE IMPONIBLE', 'offset': +4, 'segment': 1},
+    'BASE': {'type': 'VARIABLE', 'ref_text': 'Total + IVA', 'offset': +37, 'segment': 1},
     # IVA: 9 líneas arriba de 'Base Imponible'
-    'IVA': {'type': 'VARIABLE', 'ref_text': 'IVA', 'offset': +4, 'segment': 1},
+    'IVA': {'type': 'VARIABLE', 'ref_text': 'Total + IVA', 'offset': +38, 'segment': 1},
     # IMPORTE: 10 líneas arriba de 'Base Imponible'
-    'IMPORTE': {'type': 'VARIABLE', 'ref_text': 'TOTAL FACTURA', 'offset': +1, 'segment': 1},
+    'IMPORTE': {'type': 'VARIABLE', 'ref_text': 'Total + IVA', 'offset': +36, 'segment': 1},
 }
 
-# 🚨 CORRECCIÓN CRÍTICA: Renombrar la clase a NorthgateExtractor
+# 🚨 CORRECCIÓN CRÍTICA: Renombrar la clase a MalagaExtractor
 # Asumimos que hereda de BaseInvoiceExtractor
-class NorthgateExtractor:
+class MacarenaExtractor:
     
     # Usamos *args y **kwargs para máxima compatibilidad con el __init__ de BaseInvoiceExtractor.
     def __init__(self, lines: List[str] = None, pdf_path: str = None, *args, **kwargs):
         # En el entorno real, esto llamaría a super().__init__(lines=lines, pdf_path=pdf_path, ...)
         pass
+    # --- NUEVA FUNCIÓN DE LIMPIEZA ---
+    def _clean_and_convert_float(self, value: Optional[str]) -> Optional[float]:
+        """Limpia cadenas para obtener un float (maneja puntos, comas y símbolos de moneda)."""
+        if value is None or str(value).strip() == '':
+            return None
+        
+        cleaned_value = str(value).strip()
+        
+        # 1. Eliminar símbolos de moneda y caracteres no numéricos irrelevantes
+        # Esto elimina el '€' de '30,00€'
+        cleaned_value = cleaned_value.replace('€', '').replace('$', '').replace('%', '').replace(':', '').replace('(', '').replace(')', '').replace('[', '').replace(']', '').replace('?', '').replace('!', '').replace(' ', '').replace('EUROS','')
+        
+        # 2. Manejar separadores de miles y decimales comunes en español
+        # Si contiene coma (,) y punto (.)
+        if ',' in cleaned_value and '.' in cleaned_value:
+            # Asumir que el punto es separador de miles y la coma es decimal (1.234,56 -> 1234.56)
+            cleaned_value = cleaned_value.replace('.', '').replace(',', '.')
+        # Si solo contiene coma
+        elif ',' in cleaned_value:
+            # Asumir que la coma es separador decimal (1234,56 -> 1234.56)
+            cleaned_value = cleaned_value.replace(',', '.')
+
+        try:
+            return float(cleaned_value)
+        except ValueError:
+            return None
+    # --- FIN FUNCIÓN DE LIMPIEZA ---
 
     def extract_data(self, lines: List[str]) -> Dict[str, Any]:
         
@@ -112,6 +139,13 @@ class NorthgateExtractor:
         # 4. Aplicar el mapeo
         for key, mapping in EXTRACTION_MAPPING.items():
             value = get_value(mapping)
+            key_lower = key.lower()
+             # --- APLICAR LIMPIEZA NUMÉRICA A LOS TOTALES ---
+            if key_lower in ['base', 'iva', 'importe']:
+                cleaned_value = self._clean_and_convert_float(value)
+                extracted_data[key_lower] = cleaned_value
+            # --- FIN LIMPIEZA NUMÉRICA ---
+            
             if value is not None:
                 extracted_data[key.lower()] = value
             else:

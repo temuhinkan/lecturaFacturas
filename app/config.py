@@ -59,7 +59,8 @@ EXTRACTION_MAPPING: Dict[str, str] = {
     "amazon": "extractors.amazon_extractor.AmazonExtractor",
     "coslauto": "extractors.coslauto_extractor.CoslautoExtractor",
     "eduardo": "extractors.desguaceseduardo_extractor.DesguaceseduardoExtractor",
-    "autolux":"extractors.autolux_extractor.AutoluxExtractor"
+    "autolux":"extractors.autolux_extractor.AutoluxExtractor",
+    "emitida":"extractors.emitida_extractor.GeneratedExtractor"
 }
 
 # Datos de error estándar

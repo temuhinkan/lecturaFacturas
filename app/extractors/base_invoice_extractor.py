@@ -10,6 +10,7 @@ class BaseInvoiceExtractor:
         self.cliente = "NEW SATELITE, S.L." # The client is fixed for all invoices
         self.numero_factura = None
         self.fecha = None
+        self.cif_emisor = None
         self.cif = None
         self.modelo = None
         self.matricula = None
@@ -26,7 +27,7 @@ class BaseInvoiceExtractor:
         self._extract_modelo()
         self._extract_matricula()
         self._extract_importe_and_base()
-        return (self.tipo, self.fecha, self.numero_factura, self.emisor, # Returns issuer instead of client
+        return (self.tipo, self.fecha, self.numero_factura, self.emisor, self.cif_emisor, # Returns issuer instead of client
                 self.cliente, self.cif, self.modelo, self.matricula, self.importe, self.base_imponible)
 
     def _extract_fecha(self):

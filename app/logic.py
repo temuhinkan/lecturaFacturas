@@ -201,6 +201,7 @@ def extraer_datos(pdf_path: str, debug_mode: bool = False) -> Tuple[Any, ...]:
 
         ExtractorClass = None
         if full_class_path:
+            print("entramos en full_class_path:")
             debug_output += f"➡️ Extractor encontrado en mapeo: {full_class_path}\n"
             try:
                 ExtractorClass = _load_extractor_class_dynamic(full_class_path)
@@ -209,6 +210,7 @@ def extraer_datos(pdf_path: str, debug_mode: bool = False) -> Tuple[Any, ...]:
                 pass # Continúa al extractor genérico
 
         if ExtractorClass:
+            print("entramos en ExtractorClass:")
             try:
                 # 2. Extractor Específico
                 extractor = ExtractorClass(lines, doc_path_for_extractor)
@@ -217,7 +219,7 @@ def extraer_datos(pdf_path: str, debug_mode: bool = False) -> Tuple[Any, ...]:
                     # Mapeo de dict a tupla
                     extracted_data_raw = (
                         data_dict.get('tipo'), data_dict.get('fecha'), data_dict.get('num_factura'),
-                        data_dict.get('emisor'), data_dict.get('cliente'), data_dict.get('cif'),
+                        data_dict.get('emisor'), data_dict.get('cif_emisor'),data_dict.get('cliente'), data_dict.get('cif'),
                         data_dict.get('modelo'), data_dict.get('matricula'), data_dict.get('importe'),
                         data_dict.get('base'), data_dict.get('iva'), data_dict.get('tasas')
                     )
@@ -232,6 +234,7 @@ def extraer_datos(pdf_path: str, debug_mode: bool = False) -> Tuple[Any, ...]:
                 # Continúa al extractor genérico
 
         # 3. Extractor Genérico (Fallback)
+        print("entramos en Extractor Genérico:")
         debug_output += "➡️ No specific invoice type detected or specific extractor failed. Using generic extraction function (BaseInvoiceExtractor).\n"
         generic_extractor = BaseInvoiceExtractor(lines, doc_path_for_extractor)
         extracted_data_raw = generic_extractor.extract_all()

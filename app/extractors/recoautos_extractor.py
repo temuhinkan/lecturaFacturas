@@ -1,107 +1,120 @@
+# 🚨 MAPPING SUGERIDO PARA main_extractor_gui.py
+# Copie la siguiente línea y péguela en el diccionario EXTRACTION_MAPPING en main_extractor_gui.py:
+#
+# "nueva_clave": "extractors.nombre_archivo_extractor.RecoautosExtractor", 
+#
+# Ejemplo (si el archivo generado es 'recoautos_extractor.py'):
+# "sumauto": "extractors.recoautos_extractor.RecoautosExtractor",
+
+from typing import Dict, Any, List, Optional
 import re
-from extractors.base_invoice_extractor import BaseInvoiceExtractor
-from utils import _extract_amount, _extract_nif_cif, _calculate_base_from_total, VAT_RATE, _calculate_total_from_base
+# La clase BaseInvoiceExtractor será INYECTADA en tiempo de ejecución (soluciona ImportError en main_extractor_gui.py).
 
-class RecoautosExtractor(BaseInvoiceExtractor):
-    def __init__(self, lines, pdf_path=None):
-        super().__init__(lines, pdf_path)
-        self.vat_rate = VAT_RATE
+# 🚨 EXTRACTION_MAPPING: Define la lógica de extracción.
+# 'type': 'FIXED' (Fila Fija, línea absoluta 1-based), 'VARIABLE' (Variable, relativa a un texto), o 'FIXED_VALUE' (Valor Fijo, valor constante).
+# 'segment': Posición de la palabra en la línea (1-based), o un rango (ej. "3-5").
 
-    def _extract_emisor(self):
-        self.emisor = "RECICLADOS AUTO4 SL"
+EXTRACTION_MAPPING: Dict[str, Dict[str, Any]] = {
+    'TIPO': {'type': 'FIXED_VALUE', 'value': 'COMPRA'},
+    'FECHA':  {'type': 'VARIABLE', 'ref_text': 'Fecha', 'offset': +2, 'segment': 1},
+    'NUM_FACTURA': {'type': 'VARIABLE', 'ref_text': 'Factura Nº', 'offset': -3, 'segment': 1},
+    'EMISOR': {'type': 'FIXED_VALUE', 'value': 'RECICLADOS AUTO4 SL'},
+    'CIF_EMISOR': {'type': 'FIXED_VALUE', 'value': 'B40243719'},
+    'CLIENTE': {'type': 'FIXED_VALUE', 'value': 'NEWSATELITE S.L'},
+    'CIF': {'type': 'FIXED_VALUE', 'value': 'B85629020'},
+    #'MODELO': {'type': 'VARIABLE', 'ref_text': 'Matrícula', 'offset': +1, 'segment': 2},
+    #'MATRICULA': {'type': 'VARIABLE', 'ref_text': 'Modelo', 'offset': +1, 'segment': 2},
+    # Lógica VARIABLE compatible para los totales:
+    # BASE: 8 líneas arriba de 'Base Imponible'
+    'BASE': {'type': 'VARIABLE', 'ref_text': 'TOTAL FACTURA', 'offset': -1, 'segment': 1},
+    # IVA: 9 líneas arriba de 'Base Imponible'
+    'IVA': {'type': 'VARIABLE', 'ref_text': 'IVA' , 'offset': +3, 'segment': 1},
+    # IMPORTE: 10 líneas arriba de 'Base Imponible'
+    'IMPORTE': {'type': 'VARIABLE', 'ref_text': 'TOTAL FACTURA', 'offset': +1, 'segment': 1},
+}
 
-    def _extract_cif(self):
-        for line in self.lines:
-            match = re.search(r"CIF:\s*([A-Z0-9]+)", line, re.IGNORECASE)
-            if match:
-                extracted_cif = match.group(1).strip()
-                if extracted_cif and extracted_cif != "B85629020":
-                    self.cif = extracted_cif
-                    return
-
-    def _extract_fecha(self):
-        # Lógica: 2 líneas después de "Fecha" (Línea 19 -> Línea 21: 17/06/2025)
-        print("DEBUG: Intentando extraer Fecha...")
-        for i, line in enumerate(self.lines):
-            if re.search(r"^\s*Fecha\s*$", line.strip(), re.IGNORECASE):
-                print(f"DEBUG: 'Fecha' encontrado en línea {i}")
-                target_index = i + 2
-                if target_index < len(self.lines):
-                    date_line = self.lines[target_index].strip()
-                    date_match = re.search(r'(\d{2}[-/]\d{2}[-/]\d{4})', date_line)
-                    if date_match:
-                        self.fecha = date_match.group(1).strip()
-                        print(f"DEBUG: Fecha encontrada: {self.fecha}")
-                        return
-        self.fecha = None
-        print(f"DEBUG: Fecha final: {self.fecha}")
-
-    def _extract_numero_factura(self):
-        # Lógica: 3 líneas antes de "Factura Nº" (Línea 23 -> Línea 20: 2025000711/FRU)
-        print("DEBUG: Intentando extraer Número de Factura...")
-        for i, line in enumerate(self.lines):
-            if re.search(r"^\s*Factura Nº\s*$", line.strip(), re.IGNORECASE):
-                print(f"DEBUG: 'Factura Nº' encontrado en línea {i}")
-                target_index = i - 3
-                if target_index >= 0:
-                    num_line = self.lines[target_index].strip()
-                    num_match = re.search(r'(\d{10}/FRU)', num_line)
-                    if num_match:
-                        self.numero_factura = num_match.group(1).strip()
-                        print(f"DEBUG: Número de Factura encontrado: {self.numero_factura}")
-                        return
-        self.numero_factura = None
-        print(f"DEBUG: Número de Factura final: {self.numero_factura}")
+# 🚨 CORRECCIÓN CRÍTICA: Renombrar la clase a PincheteExtractor
+# Asumimos que hereda de BaseInvoiceExtractor
+class RecoautosExtractor:
     
-    def _extract_modelo(self):
-        # Modelo (VOLKSWAGEN GOLF) está en la línea 38
-        self.modelo = None
-        for i, line in enumerate(self.lines):
-            if i == 38 and re.search(r"VOLKSWAGEN GOLF", line, re.IGNORECASE):
-                self.modelo = "VOLKSWAGEN GOLF"
-                return
+    # Usamos *args y **kwargs para máxima compatibilidad con el __init__ de BaseInvoiceExtractor.
+    def __init__(self, lines: List[str] = None, pdf_path: str = None, *args, **kwargs):
+        # En el entorno real, esto llamaría a super().__init__(lines=lines, pdf_path=pdf_path, ...)
+        pass
+
+    def extract_data(self, lines: List[str]) -> Dict[str, Any]:
         
-    def _extract_matricula(self):
-        self.matricula = None
-
-    def _extract_importe_and_base(self):
-        print("DEBUG: Iniciando extracción de importes...")
+        extracted_data = {}
         
-        # --- ANCLA: "TOTAL FACTURA" (Línea 52) ---
-        total_anchor_index = -1
-        for i, line in enumerate(self.lines):
-            if "TOTAL FACTURA" in line.strip(): # Línea 52
-                total_anchor_index = i
-                print(f"DEBUG: 'TOTAL FACTURA' encontrado en línea {i}")
-                break
+        # Función auxiliar para buscar línea de referencia (primera coincidencia)
+        def find_reference_line(ref_text: str) -> Optional[int]:
+            ref_text_lower = ref_text.lower()
+            for i, line in enumerate(lines):
+                # Buscamos la etiqueta de referencia
+                if ref_text_lower in line.lower():
+                    return i
+            return None
 
-        if total_anchor_index != -1:
-            # 1. Importe Total (1 línea después: Línea 53)
-            total_index = total_anchor_index + 1
-            if total_index < len(self.lines):
-                line_with_total = self.lines[total_index].strip()
-                print(f"DEBUG: Línea de Importe Total ({total_index}): '{line_with_total}'")
-                total_match = re.search(r'([\d\.,]+)', line_with_total)
-                if total_match:
-                    self.importe = _extract_amount(total_match.group(1)) # Formato '90,00'
-                    print(f"DEBUG: Importe Total extraído: {self.importe}")
+        # Función auxiliar para obtener el valor
+        def get_value(mapping: Dict[str, Any]) -> Optional[str]:
+            
+            # 1. Caso FIXED_VALUE (valor constante)
+            if mapping['type'] == 'FIXED_VALUE':
+                return mapping.get('value')
+                
+            line_index = None
+            
+            # 2. Determinar el índice de la línea final (0-based)
+            if mapping['type'] == 'FIXED':
+                abs_line_1based = mapping.get('line')
+                if abs_line_1based is not None and abs_line_1based > 0:
+                    line_index = abs_line_1based - 1 
+                
+            elif mapping['type'] == 'VARIABLE':
+                ref_text = mapping.get('ref_text', '')
+                offset = mapping.get('offset', 0)
+                
+                ref_index = find_reference_line(ref_text)
+                
+                if ref_index is not None:
+                    line_index = ref_index + offset
+            
+            if line_index is None or not (0 <= line_index < len(lines)):
+                return None
+                
+            # 3. Obtener el segmento
+            segment_input = mapping['segment']
+            
+            try:
+                # Dividir por espacios para obtener segmentos de la línea
+                line_segments = re.split(r'\s+', lines[line_index].strip())
+                line_segments = [seg for seg in line_segments if seg]
+                
+                # Manejar rangos de segmentos (ej. '1-3')
+                if isinstance(segment_input, str) and re.match(r'^\d+-\d+$', segment_input):
+                    start_s, end_s = segment_input.split('-')
+                    start_idx = int(start_s) - 1 # 0-based start
+                    end_idx = int(end_s)        # 0-based exclusive end
+                    
+                    if 0 <= start_idx < end_idx and end_idx <= len(line_segments):
+                        return ' '.join(line_segments[start_idx:end_idx]).strip()
+                
+                # Manejar segmento simple (ej. 1)
+                segment_index_0based = int(segment_input) - 1
+                
+                if segment_index_0based < len(line_segments):
+                    return line_segments[segment_index_0based].strip()
+            except Exception:
+                return None
+                
+            return None
 
-            # 2. Base Imponible (1 línea antes: Línea 51)
-            base_index = total_anchor_index - 1
-            if base_index >= 0:
-                line_with_base = self.lines[base_index].strip()
-                print(f"DEBUG: Línea de Base Imponible ({base_index}): '{line_with_base}'")
-                base_match = re.search(r'([\d\.,]+)', line_with_base)
-                if base_match:
-                    self.base_imponible = _extract_amount(base_match.group(1)) # Formato '74,38'
-                    print(f"DEBUG: Base Imponible extraída: {self.base_imponible}")
-        
-        # 3. IVA (Se extrae de la línea 48, pero para ser más robustos se calcula si tenemos la base)
-        # Si Base e Importe Total están, el IVA es la diferencia o se calcula.
-        # En este caso, lo extraemos de la línea 48, donde está el valor.
-        iva_match = re.search(r'([\d\.,]+)', self.lines[48].strip())
-        if iva_match:
-            self.iva = _extract_amount(iva_match.group(1)) # Formato '15,62'
-            print(f"DEBUG: IVA extraído (L48): {self.iva}")
+        # 4. Aplicar el mapeo
+        for key, mapping in EXTRACTION_MAPPING.items():
+            value = get_value(mapping)
+            if value is not None:
+                extracted_data[key.lower()] = value
+            else:
+                extracted_data[key.lower()] = None
 
-        print(f"DEBUG: Importes finales: Total={self.importe}, Base={self.base_imponible}, IVA={self.iva}")
+        return extracted_data

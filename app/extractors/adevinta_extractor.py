@@ -8,6 +8,7 @@ class AdevintaExtractor(BaseInvoiceExtractor):
         self.emisor = "Adevinta Motor, S.L.U." # Emisor fijo según lo proporcionado
         self.debug_mode = debug_mode
         self.iva_amount = None # Inicializar self.iva_amount para evitar AttributeError
+        self.cif="B85629020"
 
     def _extract_emisor(self):
         # El emisor es fijo para esta clase, no necesita extracción de las líneas
@@ -65,7 +66,7 @@ class AdevintaExtractor(BaseInvoiceExtractor):
         for line in self.lines:
             match = re.search(cif_emisor_pattern, line, re.IGNORECASE)
             if match:
-                self.cif = match.group(1).strip()
+                self.cif_emisor = match.group(1).strip()
                 if self.debug_mode:
                     print(f"DEBUG: CIF del emisor extraído: {self.cif}")
                 return
@@ -203,5 +204,5 @@ class AdevintaExtractor(BaseInvoiceExtractor):
 
         # Devolver todos los atributos en el orden esperado por main_extractor.py
         # AdevintaExtractor no extrae 'tasas', por lo que devolvemos None para mantener la consistencia.
-        return (self.tipo, self.fecha, self.numero_factura, self.emisor, self.cliente, self.cif,
+        return (self.tipo, self.fecha, self.numero_factura, self.emisor,self.cif_emisor, self.cliente, self.cif,
                 self.modelo, self.matricula, self.importe, self.base_imponible, None) # Tasas como None

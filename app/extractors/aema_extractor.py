@@ -11,6 +11,7 @@ class AemaExtractor(BaseInvoiceExtractor):
         self.importe = None
         self.base_imponible = None
         self.iva = None
+        self.cif="B85629020"
 
     # --- CAMPOS SIMPLES ---
     def _extract_emisor(self):
@@ -18,7 +19,7 @@ class AemaExtractor(BaseInvoiceExtractor):
 
     def _extract_cif(self):
         # El CIF de NEUMÁTICOS AEMA S.A. es A-28.625.036
-        self.cif = "A28625036" # Limpio y sin puntos
+        self.cif_emisor = "A28625036" # Limpio y sin puntos
 
     def _extract_fecha(self):
         # La fecha (31/03/2025) está en la Línea 05 o adyacente a "Fecha:" (Línea 06).

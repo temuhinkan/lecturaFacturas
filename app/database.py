@@ -38,6 +38,7 @@ def setup_database():
             fecha TEXT,
             numero_factura TEXT,
             emisor TEXT,
+            cif_emisor TEXT,
             cliente TEXT,
             cif TEXT,
             modelo TEXT,
@@ -103,19 +104,19 @@ def insert_invoice_data(data: Dict[str, Any], original_path: str, is_validated: 
     # AÑADIDO: 'procesado_en' a la lista de columnas.
     sql = """
         INSERT OR REPLACE INTO processed_invoices (
-            path, file_name, tipo, fecha, numero_factura, emisor, cliente, cif, 
+            path, file_name, tipo, fecha, numero_factura, emisor,cif_emisor, cliente, cif, 
             modelo, matricula, base, iva, importe, tasas, is_validated, log_data, procesado_en
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """
     
     # AÑADIDO: 'procesado_en' a la lista de valores.
     values = (
         original_path, file_name, data.get('Tipo'), data.get('Fecha'), 
-        data.get('Número de Factura'), data.get('Emisor'), data.get('Cliente'), 
+        data.get('Número de Factura'), data.get('Emisor'), data.get('CIF Emisor'), data.get('Cliente'), 
         data.get('CIF'), data.get('Modelo'), data.get('Matricula'), 
         base, iva, importe, tasas, is_validated, data.get('DebugLines'), procesado_en
     )
-    
+    print("data:", data)
     # ⚠️ TRAZA AÑADIDA: Imprime la sentencia SQL y los valores.
     # Esto aparecerá en la consola/terminal donde se ejecuta main_gui.py
     print("\n--- TRAZA BBDD: INTENTO DE INSERT/REPLACE ---")
@@ -190,7 +191,7 @@ def update_invoice_field(file_path: str, field_name: str, new_value: Any) -> int
 
     try:
         # Seguridad: Solo permitimos que se actualicen nombres de columnas válidos
-        valid_cols = ['file_name', 'tipo', 'fecha', 'numero_factura', 'emisor', 'cliente', 'cif', 
+        valid_cols = ['file_name', 'tipo', 'fecha', 'numero_factura', 'emisor', 'cif_emisor','cliente', 'cif', 
                       'modelo', 'matricula', 'base', 'iva', 'importe', 'tasas', 'is_validated', 'log_data', 'procesado_en']
         if field_name not in valid_cols:
              raise ValueError(f"Intento de actualizar columna inválida: {field_name}")

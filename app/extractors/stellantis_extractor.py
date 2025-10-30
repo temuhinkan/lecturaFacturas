@@ -1,90 +1,120 @@
+# 🚨 MAPPING SUGERIDO PARA main_extractor_gui.py
+# Copie la siguiente línea y péguela en el diccionario EXTRACTION_MAPPING en main_extractor_gui.py:
+#
+# "nueva_clave": "extractors.nombre_archivo_extractor.StellantisExtractor", 
+#
+# Ejemplo (si el archivo generado es 'stellantis_extractor.py'):
+# "sumauto": "extractors.stellantis_extractorr.StellantisExtractor",
+
+from typing import Dict, Any, List, Optional
 import re
-from extractors.base_invoice_extractor import BaseInvoiceExtractor
-from utils import _extract_amount, _extract_nif_cif, _extract_from_lines_with_keyword, _calculate_base_from_total,_calculate_total_from_base, VAT_RATE
+# La clase BaseInvoiceExtractor será INYECTADA en tiempo de ejecución (soluciona ImportError en main_extractor_gui.py).
 
-class StellantisExtractor(BaseInvoiceExtractor):
-    def __init__(self, lines, pdf_path=None):
-        super().__init__(lines, pdf_path)
-        # 🚨 Inicialización: Aseguramos que la tasa de IVA (0.21) esté en la instancia
-        self.vat_rate = VAT_RATE
-        # 🚨 Inicialización: Aseguramos que el atributo self.iva exista
-        self.iva = None 
+# 🚨 EXTRACTION_MAPPING: Define la lógica de extracción.
+# 'type': 'FIXED' (Fila Fija, línea absoluta 1-based), 'VARIABLE' (Variable, relativa a un texto), o 'FIXED_VALUE' (Valor Fijo, valor constante).
+# 'segment': Posición de la palabra en la línea (1-based), o un rango (ej. "3-5").
 
-    def _extract_emisor(self):
-        self.emisor = "Placas de Piezas y Componentes de Recambio, S. A. U"
+EXTRACTION_MAPPING: Dict[str, Dict[str, Any]] = {
+    'TIPO': {'type': 'FIXED_VALUE', 'value': 'COMPRA'},
+    'FECHA':  {'type': 'VARIABLE', 'ref_text': 'Fecha:', 'offset': -1, 'segment': 1},
+    'NUM_FACTURA': {'type': 'VARIABLE', 'ref_text': 'N° Factura', 'offset': -1, 'segment': 1},
+    'EMISOR': {'type': 'FIXED_VALUE', 'value': 'Placas de Piezas y Componentes de Recambio, S. A. U'},
+    'CIF_EMISOR': {'type': 'FIXED_VALUE', 'value': 'A87527800'},
+    'CLIENTE': {'type': 'FIXED_VALUE', 'value': 'NEWSATELITE S.L'},
+    'CIF': {'type': 'FIXED_VALUE', 'value': 'B85629020'},
+    #'MODELO': {'type': 'VARIABLE', 'ref_text': 'Matrícula', 'offset': +1, 'segment': 2},
+    #'MATRICULA': {'type': 'VARIABLE', 'ref_text': 'Modelo', 'offset': +1, 'segment': 2},
+    # Lógica VARIABLE compatible para los totales:
+    # BASE: 8 líneas arriba de 'Base Imponible'
+    'BASE': {'type': 'VARIABLE', 'ref_text': 'Total sin IVA', 'offset': -5, 'segment': 1},
+    # IVA: 9 líneas arriba de 'Base Imponible'
+    'IVA': {'type': 'VARIABLE', 'ref_text': 'Total sin IVA', 'offset': -8, 'segment': 1},
+    # IMPORTE: 10 líneas arriba de 'Base Imponible'
+    'IMPORTE': {'type': 'VARIABLE', 'ref_text': 'Total Bruto', 'offset': +5, 'segment': 1},
+}
 
-    def _extract_numero_factura(self):
-        # Corrección: Busca el número de factura en la línea ANTERIOR a 'N° Factura'.
+# 🚨 CORRECCIÓN CRÍTICA: Renombrar la clase a PincheteExtractor
+# Asumimos que hereda de BaseInvoiceExtractor
+class StellantisExtractor:
+    
+    # Usamos *args y **kwargs para máxima compatibilidad con el __init__ de BaseInvoiceExtractor.
+    def __init__(self, lines: List[str] = None, pdf_path: str = None, *args, **kwargs):
+        # En el entorno real, esto llamaría a super().__init__(lines=lines, pdf_path=pdf_path, ...)
+        pass
+
+    def extract_data(self, lines: List[str]) -> Dict[str, Any]:
         
-        keyword = r'N° Factura'
-        for i, line in enumerate(self.lines):
-            if re.search(keyword, line, re.IGNORECASE):
-                if i - 1 >= 0:
-                    line_to_check = self.lines[i-1] 
-                    match = re.search(r'(\d{6,})', line_to_check)
-                    if match:
-                        self.numero_factura = match.group(1).strip()
-                        break
+        extracted_data = {}
         
-        # Fallback: Busca en la misma línea que la palabra clave
-        if not self.numero_factura:
-            self.numero_factura = _extract_from_lines_with_keyword(self.lines, r'N° Factura', r'(\d{6,})')
+        # Función auxiliar para buscar línea de referencia (primera coincidencia)
+        def find_reference_line(ref_text: str) -> Optional[int]:
+            ref_text_lower = ref_text.lower()
+            for i, line in enumerate(lines):
+                # Buscamos la etiqueta de referencia
+                if ref_text_lower in line.lower():
+                    return i
+            return None
 
-
-    def _extract_fecha(self):
-        self.fecha = _extract_from_lines_with_keyword(self.lines, r'(\d{2}/\d{2}/\d{4})', r'(\d{2}/\d{2}/\d{4})')
-
-    def _extract_importe_and_base(self):
-        
-        # Reiniciamos los campos
-        self.base_imponible = None
-        self.iva = None       # <--- Este es el campo que queremos forzar
-        self.importe = None
-
-        total_factura_index = -1
-        # 1. Buscar la etiqueta 'Total Factura'
-        for i, line in enumerate(self.lines):
-            if 'Total Factura' in line:
-                total_factura_index = i
-                break
-        
-        # 2. Si encontramos 'Total Factura' y hay una línea anterior válida (Base Imponible)
-        if total_factura_index != -1 and total_factura_index - 1 >= 0:
+        # Función auxiliar para obtener el valor
+        def get_value(mapping: Dict[str, Any]) -> Optional[str]:
             
-            # Extraemos el monto de la línea anterior
-            base_line = self.lines[total_factura_index - 1]
-            extracted_base = _extract_amount(base_line, is_stellantis=True)
+            # 1. Caso FIXED_VALUE (valor constante)
+            if mapping['type'] == 'FIXED_VALUE':
+                return mapping.get('value')
+                
+            line_index = None
             
-            if extracted_base:
+            # 2. Determinar el índice de la línea final (0-based)
+            if mapping['type'] == 'FIXED':
+                abs_line_1based = mapping.get('line')
+                if abs_line_1based is not None and abs_line_1based > 0:
+                    line_index = abs_line_1based - 1 
                 
-                self.base_imponible = extracted_base
+            elif mapping['type'] == 'VARIABLE':
+                ref_text = mapping.get('ref_text', '')
+                offset = mapping.get('offset', 0)
                 
-                # 🚨 PASO CLAVE: Forzamos el valor de salida del IVA al texto deseado
-                # Esto garantiza que el campo 'IVA' no se quede como 'No encontrado'
-                self.iva = "21%"  # Puedes cambiarlo a "21" si prefieres solo el número
+                ref_index = find_reference_line(ref_text)
                 
-                try:
-                    # 3. Calcular el Importe Total (Base + IVA monetario)
-                    # El importe total SÍ debe ser el cálculo (Base * 1.21)
-                    base_float = float(self.base_imponible.replace(',', '.'))
+                if ref_index is not None:
+                    line_index = ref_index + offset
+            
+            if line_index is None or not (0 <= line_index < len(lines)):
+                return None
+                
+            # 3. Obtener el segmento
+            segment_input = mapping['segment']
+            
+            try:
+                # Dividir por espacios para obtener segmentos de la línea
+                line_segments = re.split(r'\s+', lines[line_index].strip())
+                line_segments = [seg for seg in line_segments if seg]
+                
+                # Manejar rangos de segmentos (ej. '1-3')
+                if isinstance(segment_input, str) and re.match(r'^\d+-\d+$', segment_input):
+                    start_s, end_s = segment_input.split('-')
+                    start_idx = int(start_s) - 1 # 0-based start
+                    end_idx = int(end_s)        # 0-based exclusive end
                     
-                    # Usamos VAT_RATE (0.21) para el cálculo del total, no para la etiqueta
-                    total_amount = base_float * (1 + self.vat_rate) 
-                    
-                    # 4. Asignación del Importe Total (monetario)
-                    self.importe = f"{total_amount:.2f}".replace('.', ',')
-                    
-                except ValueError:
-                    # Si falla el cálculo, limpiamos los campos
-                    self.base_imponible = None
-                    # self.iva se mantiene como "21%" si se encontró la base, o se pone a None aquí si Base=None
-                    self.importe = None
+                    if 0 <= start_idx < end_idx and end_idx <= len(line_segments):
+                        return ' '.join(line_segments[start_idx:end_idx]).strip()
+                
+                # Manejar segmento simple (ej. 1)
+                segment_index_0based = int(segment_input) - 1
+                
+                if segment_index_0based < len(line_segments):
+                    return line_segments[segment_index_0based].strip()
+            except Exception:
+                return None
+                
+            return None
 
-    def _extract_cif(self):
-        for line in self.lines:
-            if re.search(r'NIF: A', line, re.IGNORECASE):
-                match =  re.search(r'NIF:\s*(A[0-9]{8}?)', line, re.IGNORECASE)
-                extracted_cif = match.group(1).strip()
-                if extracted_cif and extracted_cif != "B85629020":
-                    self.cif = extracted_cif
-                    break
+        # 4. Aplicar el mapeo
+        for key, mapping in EXTRACTION_MAPPING.items():
+            value = get_value(mapping)
+            if value is not None:
+                extracted_data[key.lower()] = value
+            else:
+                extracted_data[key.lower()] = None
+
+        return extracted_data
