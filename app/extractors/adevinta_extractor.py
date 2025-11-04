@@ -1,208 +1,171 @@
+# 🚨 MAPPING SUGERIDO PARA main_extractor_gui.py
+# Copie la siguiente línea y péguela en el diccionario EXTRACTION_MAPPING en main_extractor_gui.py:
+#
+# "nueva_clave": "extractors.nombre_archivo_extractor.AdevintaExtractor", 
+#
+# Ejemplo (si el archivo generado es 'adevinta_extractor.py'):
+# "pinchete": "extractors.adevinta_extractor.AdevintaExtractor",
+
+from typing import Dict, Any, List, Optional
 import re
-from extractors.base_invoice_extractor import BaseInvoiceExtractor
-from utils import _extract_amount, _extract_nif_cif, _calculate_base_from_total, VAT_RATE, _extract_from_line, _extract_from_lines_with_keyword, extract_and_format_date
+# La clase BaseInvoiceExtractor será INYECTADA en tiempo de ejecución (soluciona ImportError en main_extractor_gui.py).
 
-class AdevintaExtractor(BaseInvoiceExtractor):
-    def __init__(self, lines, pdf_path=None, debug_mode=False):
-        super().__init__(lines, pdf_path)
-        self.emisor = "Adevinta Motor, S.L.U." # Emisor fijo según lo proporcionado
-        self.debug_mode = debug_mode
-        self.iva_amount = None # Inicializar self.iva_amount para evitar AttributeError
-        self.cif="B85629020"
+# 🚨 EXTRACTION_MAPPING: Define la lógica de extracción.
+# 'type': 'FIXED' (Fila Fija, línea absoluta 1-based), 'VARIABLE' (Variable, relativa a un texto), o 'FIXED_VALUE' (Valor Fijo, valor constante).
+# 'segment': Posición de la palabra en la línea (1-based), o un rango (ej. "3-5").
 
-    def _extract_emisor(self):
-        # El emisor es fijo para esta clase, no necesita extracción de las líneas
+EXTRACTION_MAPPING: Dict[str, Dict[str, Any]] = {
+    'TIPO': {'type': 'FIXED_VALUE', 'value': 'COMPRA'},
+    'FECHA':  {'type': 'VARIABLE', 'ref_text': 'Fecha:', 'offset': -1, 'segment': 1},
+    'NUM_FACTURA':  {'type': 'VARIABLE', 'ref_text': 'Factura', 'offset': +1, 'segment': 1},
+    'EMISOR': {'type': 'FIXED_VALUE', 'value': 'Adevinta Motor, S.L.U.'},
+    'CIF_EMISOR': {'type': 'FIXED_VALUE', 'value': 'B-70677158'},
+    'CLIENTE': {'type': 'FIXED_VALUE', 'value': 'NEWSATELITE S.L'},
+    'CIF': {'type': 'FIXED_VALUE', 'value': 'B85629020'},
+    #'MODELO': {'type': 'VARIABLE', 'ref_text': 'MODELO', 'offset': +7, 'segment': 1},
+    #'MATRICULA': {'type': 'VARIABLE', 'ref_text': 'MATRÍCULA', 'offset': +7, 'segment': 1},
+    # Lógica VARIABLE compatible para los totales:
+    # BASE: 8 líneas arriba de 'Base Imponible'
+    'BASE': {'type': 'VARIABLE', 'ref_text': 'IVA/IGIC', 'offset': -1, 'segment': 1},
+    # IVA: 9 líneas arriba de 'Base Imponible'
+    'IVA': {'type': 'VARIABLE', 'ref_text': 'IVA/IGIC', 'offset': +2, 'segment': 1},
+    # IMPORTE: 10 líneas arriba de 'Base Imponible'
+    'IMPORTE': {'type': 'VARIABLE', 'ref_text': 'Total', 'offset': +1, 'segment': 1},
+}
+
+# 🚨 CORRECCIÓN CRÍTICA: Renombrar la clase a AdevintaExtractor
+# Asumimos que hereda de BaseInvoiceExtractor
+class AdevintaExtractor:
+    
+    # Usamos *args y **kwargs para máxima compatibilidad con el __init__ de BaseInvoiceExtractor.
+    def __init__(self, lines: List[str] = None, pdf_path: str = None, *args, **kwargs):
+        # En el entorno real, esto llamaría a super().__init__(lines=lines, pdf_path=pdf_path, ...)
         pass
-
-    def _extract_numero_factura(self):
-        # Patrón para buscar el número de factura de "Factura" y la línea siguiente
-        # o de "8ES0077715 Factura original:"
+    
+    # --- NUEVA FUNCIÓN DE LIMPIEZA ---
+    def _clean_and_convert_float(self, value: Optional[str]) -> Optional[float]:
+        """Limpia cadenas para obtener un float (maneja puntos, comas y símbolos de moneda)."""
+        if value is None or str(value).strip() == '':
+            return None
         
-        # Intento 1: Buscar "Factura" y el número en la línea siguiente
-        for i, line in enumerate(self.lines):
-            if re.search(r"Factura", line, re.IGNORECASE) and i + 1 < len(self.lines):
-                next_line = self.lines[i+1]
-                match = re.search(r"([A-Z0-9]+)", next_line)
-                if match:
-                    self.numero_factura = match.group(1).strip()
-                    if self.debug_mode:
-                        print(f"DEBUG: Número de factura extraído (Intento 1): {self.numero_factura}")
-                    return
-
-        # Intento 2: Buscar "Factura original:" en la misma línea
-        for line in self.lines:
-            match = re.search(r"([A-Z0-9]+)\s*Factura original:", line, re.IGNORECASE)
-            if match:
-                self.numero_factura = match.group(1).strip()
-                if self.debug_mode:
-                    print(f"DEBUG: Número de factura extraído (Intento 2): {self.numero_factura}")
-                return
+        cleaned_value = str(value).strip()
         
-        # Si no se encuentra, se recurre al método de la clase base
-        super()._extract_numero_factura()
-        if self.debug_mode and not self.numero_factura:
-            print("DEBUG: Número de factura no encontrado con la lógica específica de Adevinta.")
-
-
-    def _extract_fecha(self):
-        # Patrón para buscar la fecha en el formato "DD/MM/YYYY Fecha:"
-        date_pattern = r"(\d{2}/\d{2}/\d{4})\s*Fecha:"
-        for line in self.lines:
-            match = re.search(date_pattern, line)
-            if match:
-                self.fecha = match.group(1).strip()
-                if self.debug_mode:
-                    print(f"DEBUG: Fecha extraída: {self.fecha}")
-                return
-        # Si no se encuentra con el patrón específico, se recurre al método de la clase base
-        super()._extract_fecha()
-        if self.debug_mode and not self.fecha:
-            print("DEBUG: Fecha no encontrada con la lógica específica de Adevinta.")
-
-
-    def _extract_cif(self):
-        # Patrón para buscar el CIF del emisor "CIF B-70677158"
-        cif_emisor_pattern = r"CIF\s*([A-Z0-9]{1,2}-?\d{8})"
-        for line in self.lines:
-            match = re.search(cif_emisor_pattern, line, re.IGNORECASE)
-            if match:
-                self.cif_emisor = match.group(1).strip()
-                if self.debug_mode:
-                    print(f"DEBUG: CIF del emisor extraído: {self.cif}")
-                return
-        # Si no se encuentra, se recurre al método de la clase base
-        super()._extract_cif()
-        if self.debug_mode and not self.cif:
-            print("DEBUG: CIF del emisor no encontrado con la lógica específica de Adevinta.")
-
-    def _extract_cliente(self):
-        # El cliente es "NEW SATELITE, S.L." y su CIF/NIF está en "B85629020"
-        # Podemos buscar "NEW SATELITE, S.L." o el NIF del cliente para confirmarlo.
-        cliente_name_pattern = r"NEW\s*SATELITE,\s*S\.L\."
-        cliente_nif_pattern = r"CIF/NIF:\s*(B\d{8})"
-
-        for i, line in enumerate(self.lines):
-            if re.search(cliente_name_pattern, line, re.IGNORECASE):
-                self.cliente = "NEW SATELITE, S.L."
-                if self.debug_mode:
-                    print(f"DEBUG: Cliente extraído: {self.cliente}")
-                return
+        # 1. Eliminar símbolos de moneda y caracteres no numéricos irrelevantes
+        cleaned_value = cleaned_value.replace('€', '').replace('$', '').replace('%', '').replace(':', '').replace('(', '').replace(')', '').replace('[', '').replace(']', '').replace('?', '').replace('!', '').replace(' ', '').replace('EUROS','')
+        
+        # 2. Manejar separadores de miles y decimales comunes en español
+        temp_value = cleaned_value
+        
+        # 🚨 CORRECCIÓN DEL BUG DE ESCALA: Nos aseguramos de que el resultado final solo use DOT como decimal.
+        # Si hay una coma, la convertimos a punto, y si hay puntos antes de eso (miles), los eliminamos.
+        
+        # CASO 1: Formato Español (1.234,56 -> 1234.56)
+        if '.' in temp_value and ',' in temp_value and temp_value.rfind('.') < temp_value.rfind(','):
+            temp_value = temp_value.replace('.', '') # Quita el punto (separador de miles)
+            temp_value = temp_value.replace(',', '.') # Cambia la coma a punto (decimal)
             
-            match_nif = re.search(cliente_nif_pattern, line, re.IGNORECASE)
-            if match_nif:
-                # Si encontramos el NIF del cliente, asumimos el nombre del cliente.
-                # Esto es un respaldo si el nombre directo no se encuentra.
-                self.cliente = "NEW SATELITE, S.L."
-                if self.debug_mode:
-                    print(f"DEBUG: Cliente extraído por NIF: {self.cliente}")
-                return
-
-        # Si no se encuentra con la lógica específica, self.cliente permanecerá como None
-        # o será establecido por la clase base si tiene un método para ello.
-        if self.debug_mode and not self.cliente:
-            print("DEBUG: Cliente no encontrado con la lógica específica de Adevinta.")
-        # No llamamos a super()._extract_cliente() si BaseInvoiceExtractor no lo tiene.
-
-
-    def _extract_modelo(self):
-        # No se especifica un modelo en este tipo de factura,
-        # así que podemos dejar que la clase base lo maneje (probablemente resultará en 'No encontrado').
-        super()._extract_modelo()
-
-    def _extract_matricula(self):
-        # No se especifica una matrícula en este tipo de factura,
-        # así que podemos dejar que la clase base lo maneje (probablemente resultará en 'No encontrado').
-        super()._extract_matricula()
-
-    def _extract_importe_and_base(self):
-        if self.debug_mode:
-            print("DEBUG: Entering _extract_importe_and_base for AdevintaExtractor")
-
-        # Prioridad 1: Intentar extraer el "Total" (importe final)
-        total_pattern = r"Total\s*([\d.,]+\s*EUR)"
-        for line in self.lines:
-            match = re.search(total_pattern, line, re.IGNORECASE)
-            if match:
-                importe_str = match.group(1).replace('EUR', '').strip()
-                extracted_importe = _extract_amount(importe_str)
-                if extracted_importe is not None:
-                    self.importe = str(extracted_importe).replace('.', ',')
-                    if self.debug_mode:
-                        print(f"DEBUG: Importe (Total) extraído: {self.importe}")
-                    
-                    # Calcular la Base Imponible a partir del Importe Total (IVA incluido)
-                    try:
-                        numeric_importe = float(self.importe.replace(',', '.'))
-                        # Usamos VAT_RATE para calcular la base a partir del importe total (IVA incluido)
-                        calculated_base = _calculate_base_from_total(str(numeric_importe).replace('.', ','), VAT_RATE)
-                        self.base_imponible = calculated_base
-                        if self.debug_mode:
-                            print(f"DEBUG: Base Imponible calculada a partir del Total: {self.base_imponible}")
-                    except ValueError as e:
-                        self.base_imponible = 'No encontrado'
-                        if self.debug_mode:
-                            print(f"DEBUG: Error al calcular la base imponible a partir del Total: {e}")
-                    return # Salimos una vez que encontramos el total y calculamos la base
+        # CASO 2: Solo Coma (247,93 -> 247.93)
+        elif ',' in temp_value:
+            temp_value = temp_value.replace(',', '.')
+            
+        # CASO 3: Solo Punto (247.93) - Ya está en formato correcto, no hacer nada.
         
-        # Prioridad 2 (Fallback): Si no se encontró el "Total" o no se pudo calcular la base,
-        # intentar extraer la Base Imponible directamente del "Neto"
-        if self.base_imponible is None:
-            if self.debug_mode:
-                print("DEBUG: Total no encontrado o cálculo de base fallido. Intentando extraer Base Imponible desde 'Neto'.")
-            base_iva_pattern = r"Neto\s*([\d.,]+\s*EUR)" # La base imponible es el "Neto"
-            for line in self.lines:
-                match_base = re.search(base_iva_pattern, line, re.IGNORECASE)
-                if match_base:
-                    base_str = match_base.group(1).replace('EUR', '').strip()
-                    extracted_base = _extract_amount(base_str)
-                    if extracted_base is not None:
-                        self.base_imponible = str(extracted_base).replace('.', ',')
-                        if self.debug_mode:
-                            print(f"DEBUG: Base Imponible (Neto) extraída: {self.base_imponible}")
-                        # Si encontramos la base por esta vía, y el importe no se ha establecido,
-                        # podemos intentar calcular el importe inverso.
-                        if self.importe is None:
-                            try:
-                                numeric_base = float(self.base_imponible.replace(',', '.'))
-                                self.importe = str(numeric_base * (1 + VAT_RATE)).replace('.', ',')
-                                if self.debug_mode:
-                                    print(f"DEBUG: Importe calculado a partir de la Base (fallback): {self.importe}")
-                            except ValueError:
-                                self.importe = 'No encontrado'
-                        return # Salimos una vez que encontramos la base
+        # Limpiamos el valor final
+        cleaned_value = temp_value
 
-        # Extraer el importe de IVA si está disponible (esto es independiente del cálculo de base/importe)
-        iva_pattern = r"IVA/IGIC\s*[\d.,]+%\s*([\d.,]+\s*EUR)"
-        for line in self.lines:
-            if self.iva_amount is None: # Usar self.iva_amount
-                match_iva_amount = re.search(iva_pattern, line, re.IGNORECASE)
-                if match_iva_amount:
-                    iva_amount_str = match_iva_amount.group(1).replace('EUR', '').strip()
-                    extracted_iva_amount = _extract_amount(iva_amount_str)
-                    if extracted_iva_amount is not None:
-                        self.iva_amount = str(extracted_iva_amount).replace('.', ',') # Guardar el monto de IVA
-                        if self.debug_mode:
-                            print(f"DEBUG: Importe de IVA extraído: {self.iva_amount}")
-                        break # Salimos después de encontrar el IVA
+        try:
+            # 🚨 CORRECCIÓN DEL PRINT: Se usaba una sintaxis incorrecta, se corrige a f-string.
+            # print("cleaned_value", cleaned_value) 
+            return float(cleaned_value)
+        except ValueError:
+            return None
+    # --- FIN FUNCIÓN DE LIMPIEZA ---
 
-        # Si aún no tenemos importe o base, usamos el fallback de la clase base.
-        if self.importe is None or self.base_imponible is None:
-            if self.debug_mode:
-                print("DEBUG: Importe o base no encontrados con lógica específica de Adevinta. Recurriendo a la clase base.")
-            super()._extract_importe_and_base()
+    def extract_data(self, lines: List[str]) -> Dict[str, Any]:
+        
+        extracted_data = {}
+        
+        # Función auxiliar para buscar línea de referencia (primera coincidencia)
+        def find_reference_line(ref_text: str) -> Optional[int]:
+            ref_text_lower = ref_text.lower()
+            for i, line in enumerate(lines):
+                # Buscamos la etiqueta de referencia
+                if ref_text_lower in line.lower():
+                    return i
+            return None
 
-    def extract_all(self):
-        # Llamar a los métodos de extracción específicos
-        self._extract_numero_factura()
-        self._extract_fecha()
-        self._extract_cif()
-        self._extract_emisor()
-        self._extract_cliente()
-        self._extract_modelo()
-        self._extract_matricula()
-        self._extract_importe_and_base()
+        # Función auxiliar para obtener el valor
+        def get_value(mapping: Dict[str, Any]) -> Optional[str]:
+            
+            # 1. Caso FIXED_VALUE (valor constante)
+            if mapping['type'] == 'FIXED_VALUE':
+                return mapping.get('value')
+                
+            line_index = None
+            
+            # 2. Determinar el índice de la línea final (0-based)
+            if mapping['type'] == 'FIXED':
+                abs_line_1based = mapping.get('line')
+                if abs_line_1based is not None and abs_line_1based > 0:
+                    line_index = abs_line_1based - 1 
+                
+            elif mapping['type'] == 'VARIABLE':
+                ref_text = mapping.get('ref_text', '')
+                offset = mapping.get('offset', 0)
+                
+                ref_index = find_reference_line(ref_text)
+                
+                if ref_index is not None:
+                    line_index = ref_index + offset
+            
+            if line_index is None or not (0 <= line_index < len(lines)):
+                return None
+                
+            # 3. Obtener el segmento
+            segment_input = mapping['segment']
+            
+            try:
+                # Dividir por espacios para obtener segmentos de la línea
+                line_segments = re.split(r'\s+', lines[line_index].strip())
+                line_segments = [seg for seg in line_segments if seg]
+                
+                # Manejar rangos de segmentos (ej. '1-3')
+                if isinstance(segment_input, str) and re.match(r'^\d+-\d+$', segment_input):
+                    start_s, end_s = segment_input.split('-')
+                    start_idx = int(start_s) - 1 # 0-based start
+                    end_idx = int(end_s)        # 0-based exclusive end
+                    
+                    if 0 <= start_idx < end_idx and end_idx <= len(line_segments):
+                        return ' '.join(line_segments[start_idx:end_idx]).strip()
+                
+                # Manejar segmento simple (ej. 1)
+                segment_index_0based = int(segment_input) - 1
+                
+                if segment_index_0based < len(line_segments):
+                    return line_segments[segment_index_0based].strip()
+            except Exception:
+                return None
+                
+            return None
 
-        # Devolver todos los atributos en el orden esperado por main_extractor.py
-        # AdevintaExtractor no extrae 'tasas', por lo que devolvemos None para mantener la consistencia.
-        return (self.tipo, self.fecha, self.numero_factura, self.emisor,self.cif_emisor, self.cliente, self.cif,
-                self.modelo, self.matricula, self.importe, self.base_imponible, None) # Tasas como None
+        # 4. Aplicar el mapeo
+        for key, mapping in EXTRACTION_MAPPING.items():
+            value = get_value(mapping)
+            key_lower = key.lower()
+            
+            # --- APLICAR LIMPIEZA NUMÉRICA A LOS TOTALES Y ASIGNAR FLOAT ---
+            if key_lower in ['base', 'iva', 'importe', 'tasas']:
+                # Asignamos el valor FLOAT limpio directamente
+                cleaned_value = self._clean_and_convert_float(value)
+                extracted_data[key_lower] = cleaned_value
+                
+            # --- ASIGNAR VALOR A CAMPOS NO NUMÉRICOS ---
+            elif value is not None:
+                # Solo asignamos el valor de texto original para campos no numéricos
+                extracted_data[key.lower()] = value
+            else:
+                extracted_data[key.lower()] = None
+
+        return extracted_data
+
+

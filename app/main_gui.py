@@ -252,10 +252,10 @@ class InvoiceApp:
         self.tree.heading("base", text="Base", anchor="e")
         self.tree.heading("iva", text="IVA", anchor="e")
         self.tree.heading("importe", text="Importe", anchor="e")
+        self.tree.heading("tasas", text="tasas", anchor="e") 
         self.tree.heading("is_validated", text="Validada", anchor="center")
         
         self.tree.column("path", width=0, stretch=tk.NO) 
-        self.tree.column("tasas", width=0, stretch=tk.NO) 
         self.tree.column("file_name", width=150, anchor="w")
         self.tree.column("base", width=80, anchor="e")
         self.tree.column("importe", width=80, anchor="e")
@@ -521,9 +521,10 @@ class InvoiceApp:
                 continue
 
             extraction_result = extraer_datos(file_path, debug_mode=debug_mode) 
-
-            if len(extraction_result) == 13:
+            print("tamaño",len(extraction_result))
+            if len(extraction_result) == 14:
                 data_tuple, log_data = extraction_result[:-1], extraction_result[-1]
+
             else:
                 data_tuple = logic._pad_data(extraction_result) 
                 log_data = "Error de formato de resultado."
@@ -627,7 +628,7 @@ class InvoiceApp:
         column_id = self.tree.identify_column(event.x)
         column_index = int(column_id.replace('#', '')) - 1
 
-        TREE_COLUMNS = ("path", "file_name", "tipo", "fecha", "numero_factura", "emisor", "cid_emisor", "cliente", "cif", "modelo", "matricula", "base", "iva", "importe", "is_validated", "tasas")
+        TREE_COLUMNS = ("path", "file_name", "tipo", "fecha", "numero_factura", "emisor", "cif_emisor", "cliente", "cif", "modelo", "matricula", "base", "iva", "importe", "is_validated", "tasas")
         if column_index < 0 or column_index >= len(TREE_COLUMNS): return
         db_column_name = TREE_COLUMNS[column_index]
         item_id = self.tree.identify_row(event.y)

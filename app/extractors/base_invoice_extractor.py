@@ -17,6 +17,7 @@ class BaseInvoiceExtractor:
         self.importe = None
         self.base_imponible = None
         self.vat_rate = VAT_RATE
+        self.tasas=None
 
     def extract_all(self):
         """Main method to perform all extractions."""

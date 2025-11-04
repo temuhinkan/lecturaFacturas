@@ -17,7 +17,8 @@ import re
 EXTRACTION_MAPPING: Dict[str, Dict[str, Any]] = {
     'TIPO': {'type': 'FIXED_VALUE', 'value': 'COMPRA'},
     'FECHA':  {'type': 'VARIABLE', 'ref_text': 'FECHA:', 'offset': +1, 'segment': 1},
-    'NUM_FACTURA':  {'type': 'VARIABLE', 'ref_text': 'FACTURA Nº:', 'offset': +9, 'segment': 1},
+    'NUM_FACTURA':[{'type': 'VARIABLE', 'ref_text': 'FACTURA Nº:', 'offset': +9, 'segment': 1},
+                   {'type': 'VARIABLE', 'ref_text': 'FACTURA Nº:', 'offset': +22, 'segment': 1}],
     'EMISOR': {'type': 'FIXED_VALUE', 'value': 'Hermanas del Amor de Dios Casa General'},
     'CIF_EMISOR': {'type': 'FIXED_VALUE', 'value': 'R4900012H'},
     'CLIENTE': {'type': 'FIXED_VALUE', 'value': 'NEWSATELITE S.L'},
@@ -26,11 +27,14 @@ EXTRACTION_MAPPING: Dict[str, Dict[str, Any]] = {
     #'MATRICULA': {'type': 'VARIABLE', 'ref_text': 'MATRÍCULA', 'offset': +7, 'segment': 1},
     # Lógica VARIABLE compatible para los totales:
     # BASE: 8 líneas arriba de 'Base Imponible'
-    'BASE': {'type': 'VARIABLE', 'ref_text': 'IMPORTE', 'offset': -4, 'segment': 1},
+    'BASE': [{'type': 'VARIABLE', 'ref_text': 'IMPORTE', 'offset': -4, 'segment': 1},
+            {'type': 'VARIABLE', 'ref_text': 'IMPORTE', 'offset': +6, 'segment': 1}],
     # IVA: 9 líneas arriba de 'Base Imponible'
-    'IVA': {'type': 'VARIABLE', 'ref_text': 'IMPORTE', 'offset': -3, 'segment': 1},
+    'IVA': [{'type': 'VARIABLE', 'ref_text': 'IMPORTE', 'offset': -3, 'segment': 1},
+            {'type': 'VARIABLE', 'ref_text': 'IMPORTE', 'offset': +9, 'segment': 1}],
     # IMPORTE: 10 líneas arriba de 'Base Imponible'
-    'IMPORTE': {'type': 'VARIABLE', 'ref_text': 'IMPORTE', 'offset': -2, 'segment': 1},
+    'IMPORTE': [{'type': 'VARIABLE', 'ref_text': 'IMPORTE', 'offset': -2, 'segment': 1},
+                {'type': 'VARIABLE', 'ref_text': 'IMPORTE', 'offset': +10, 'segment': 1}],
 }
 
 # 🚨 CORRECCIÓN CRÍTICA: Renombrar la clase a HermanasExtractor
@@ -68,7 +72,30 @@ class HermanasExtractor:
         except ValueError:
             return None
     # --- FIN FUNCIÓN DE LIMPIEZA ---
+    def validar_es_flotante(self,valor: Optional[str]) -> bool:
+        """Valida si una cadena (con manejo de formato español) es un número flotante."""
+        if valor is None or not isinstance(valor, str):
+            return False
+            
+        limpio = valor.strip().replace('€', '').replace('$', '').replace('%', '')
 
+        # 1. Normalizar el separador decimal (cambiar coma a punto)
+        # Asumimos que la coma es el separador decimal en español, si no hay puntos como miles.
+        if ',' in limpio and '.' in limpio:
+            # Si tiene ambos, asumimos que el punto es separador de miles (1.234,56 -> 1234.56)
+            limpio = limpio.replace('.', '')
+            limpio = limpio.replace(',', '.')
+        elif ',' in limpio:
+            # Si solo tiene coma, asumimos que es decimal (123,45 -> 123.45)
+            limpio = limpio.replace(',', '.')
+
+        try:
+            # 2. Intentar la conversión
+            float(limpio)
+            return True
+        except ValueError:
+            # Si falla la conversión, no es un número válido
+            return False
     def extract_data(self, lines: List[str]) -> Dict[str, Any]:
         
         extracted_data = {}
@@ -138,8 +165,32 @@ class HermanasExtractor:
 
         # 4. Aplicar el mapeo
         for key, mapping in EXTRACTION_MAPPING.items():
-            value = get_value(mapping)
+            value = None
+            if isinstance(mapping, list):
+                # Si 'mapping' es una lista, iteramos sobre los intentos
+                for single_mapping in mapping:
+                    print("single_mapping",single_mapping)
+                    value_tmp = get_value(single_mapping)
+                    print("value_tmp",value_tmp)
+                    if key=='NUM_FACTURA':
+                        patron_numFactura = r"^[A-Z]{2}-\d{1,3}/\d{4}$"
+                        if value_tmp is not None:
+                            match_nunfac = re.match(patron_numFactura, value_tmp)
+                            if match_nunfac:
+                                value=value_tmp
+                    elif key in ['BASE','IVA','IMPORTE']:
+                            if self.validar_es_flotante(value_tmp):
+                                 value=value_tmp
+                            
+                    if value is not None:
+                        # ¡Valor encontrado! Salimos del bucle interno
+                        break 
+            else:
+                # Si 'mapping' es un diccionario simple (el comportamiento anterior)
+                value = get_value(mapping)
+                
             key_lower = key.lower()
+            print(key_lower,value)
              # --- APLICAR LIMPIEZA NUMÉRICA A LOS TOTALES ---
             if key_lower in ['base', 'iva', 'importe']:
                 cleaned_value = self._clean_and_convert_float(value)

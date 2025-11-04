@@ -60,7 +60,13 @@ EXTRACTION_MAPPING: Dict[str, str] = {
     "coslauto": "extractors.coslauto_extractor.CoslautoExtractor",
     "eduardo": "extractors.desguaceseduardo_extractor.DesguaceseduardoExtractor",
     "autolux":"extractors.autolux_extractor.AutoluxExtractor",
-    "emitida":"extractors.emitida_extractor.GeneratedExtractor"
+    "valdizarbe": "extractors.valdizarbe_extractor.ValdizarbeExtractor",
+    "minuta": "extractors.minuta_extractor.MinutaExtractor",
+    "emitida": "extractors.emitida_extractor.EmitidaExtractor",
+    "autolunas": "extractors.autolunas_extractor.AutolunasExtractor",
+    "guarnecidos": "extractors.guarnecidos_extractor.GuarnecidosExtractor",
+    "codigo": "extractors.codigo_extractor.CodigoExtractor"
+    
 }
 
 # Datos de error estándar

@@ -112,6 +112,14 @@ class RecoautosExtractor:
         # 4. Aplicar el mapeo
         for key, mapping in EXTRACTION_MAPPING.items():
             value = get_value(mapping)
+            if key =='FECHA':
+                print("FECHA",value)
+                if value == 'NEW':
+                    print("dentro cif emisor",value)
+                    mapping_v1F = {'type': 'VARIABLE', 'ref_text': 'FECHA', 'offset': -3, 'segment': 1}
+                    fecha = get_value(mapping_v1F)
+                    value=fecha
+            
             if value is not None:
                 extracted_data[key.lower()] = value
             else:

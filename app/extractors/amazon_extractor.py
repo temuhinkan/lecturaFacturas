@@ -1,208 +1,228 @@
+# 🚨 MAPPING SUGERIDO PARA main_extractor_gui.py
+# Copie la siguiente línea y péguela en el diccionario EXTRACTION_MAPPING en main_extractor_gui.py:
+#
+# "nueva_clave": "extractors.nombre_archivo_extractor.AmazonExtractor", 
+#
+# Ejemplo (si el archivo generado es 'amazon_extractor.py'):
+# "pinchete": "extractors.amazon_extractor.AmazonExtractor",
+
+from typing import Dict, Any, List, Optional
 import re
-from extractors.base_invoice_extractor import BaseInvoiceExtractor
-from utils import _extract_amount, _extract_nif_cif, _calculate_base_from_total, VAT_RATE, _extract_from_line, _extract_from_lines_with_keyword, extract_and_format_date
+# La clase BaseInvoiceExtractor será INYECTADA en tiempo de ejecución (soluciona ImportError en main_extractor_gui.py).
 
-class AmazonExtractor(BaseInvoiceExtractor):
-    def __init__(self, lines, pdf_path=None, debug_mode=False):
-        super().__init__(lines, pdf_path)
-        self.emisor = None # El emisor será dinámico
-        self.debug_mode = debug_mode
-        self.cliente = None # Inicializar cliente para asegurar que siempre esté definido
+# 🚨 EXTRACTION_MAPPING: Define la lógica de extracción.
+# 'type': 'FIXED' (Fila Fija, línea absoluta 1-based), 'VARIABLE' (Variable, relativa a un texto), o 'FIXED_VALUE' (Valor Fijo, valor constante).
+# 'segment': Posición de la palabra en la línea (1-based), o un rango (ej. "3-5").
 
+EXTRACTION_MAPPING: Dict[str, Dict[str, Any]] = {
+    'TIPO': {'type': 'FIXED_VALUE', 'value': 'COMPRA'},
+    'FECHA':  [{'type': 'VARIABLE', 'ref_text': 'Fecha del pedido', 'offset': +1, 'segment': "1-3"},
+               {'type': 'VARIABLE', 'ref_text': 'Fecha de la factura', 'offset': +2, 'segment': 1}],
+    'NUM_FACTURA': [{'type': 'VARIABLE', 'ref_text': 'Número del documento', 'offset': +1, 'segment': 1},
+                    {'type': 'VARIABLE', 'ref_text': 'Número de la factura', 'offset': +1, 'segment': 1}],
+    'EMISOR': [{'type': 'VARIABLE', 'ref_text': 'Vendido por', 'offset': 0, 'segment': "3-9"},
+               {'type': 'VARIABLE', 'ref_text': 'Vendido por', 'offset': 0, 'segment': "3-4"},
+               {'type': 'VARIABLE', 'ref_text': 'Número del pedido', 'offset': +3, 'segment': "1-3"} ],
+    'CIF_EMISOR':{'type': 'VARIABLE', 'ref_text': 'Vendido por', 'offset': +1, 'segment': 2},
+    'CLIENTE': {'type': 'FIXED_VALUE', 'value': 'NEWSATELITE S.L'},
+    'CIF': {'type': 'FIXED_VALUE', 'value': 'B85629020'},
+    #'MODELO': {'type': 'VARIABLE', 'ref_text': 'MODELO', 'offset': +7, 'segment': 1},
+    #'MATRICULA': {'type': 'VARIABLE', 'ref_text': 'MATRÍCULA', 'offset': +7, 'segment': 1},
+    # Lógica VARIABLE compatible para los totales:
+    # BASE: 8 líneas arriba de 'Base Imponible'
+    'BASE': {'type': 'VARIABLE', 'ref_text': '(IVA excluido)', 'offset': +4, 'segment': 1},
+    # IVA: 9 líneas arriba de 'Base Imponible'
+    #'IVA': {'type': 'VARIABLE', 'ref_text': 'I.V.A. 21%', 'offset': -1, 'segment': 1},
+    # IMPORTE: 10 líneas arriba de 'Base Imponible'
+    'IMPORTE': {'type': 'VARIABLE', 'ref_text': 'Precio total', 'offset': +10, 'segment': 1},
+}
 
-    def _extract_emisor(self):
-        # El emisor está después de "Vendido por"
-        emisor_pattern = r"Vendido por\s*(.+)"
-        for line in self.lines:
-            match = re.search(emisor_pattern, line, re.IGNORECASE)
-            if match:
-                # Capturamos el resto de la línea después de "Vendido por"
-                self.emisor = match.group(1).strip()
-                # Limpiar el emisor de cualquier "IVA" o "Nº de referencia de pago" que pueda estar en la misma línea
-                self.emisor = re.sub(r"IVA\s*[A-Z0-9]+", "", self.emisor, flags=re.IGNORECASE).strip()
-                self.emisor = re.sub(r"Nº de referencia de pago\s*[A-Z0-9]+", "", self.emisor, flags=re.IGNORECASE).strip()
+# 🚨 CORRECCIÓN CRÍTICA: Renombrar la clase a AmazonExtractor
+# Asumimos que hereda de BaseInvoiceExtractor
+class AmazonExtractor:
+    
+    # Usamos *args y **kwargs para máxima compatibilidad con el __init__ de BaseInvoiceExtractor.
+    def __init__(self, lines: List[str] = None, pdf_path: str = None, *args, **kwargs):
+        # En el entorno real, esto llamaría a super().__init__(lines=lines, pdf_path=pdf_path, ...)
+        pass
+    def calculate_base_and_vat_from_total(self,total_amount_str: str):
+    
+        if not total_amount_str:
+            return None, None 
 
-                self.emisor += " (AMAZON)"
-                if self.debug_mode:
-                    print(f"DEBUG: Emisor extraído: {self.emisor}")
-                return
-        # Si no se encuentra, se recurre al método de la clase base
-        super()._extract_emisor()
-        if self.debug_mode and not self.emisor:
-            print("DEBUG: Emisor no encontrado con la lógica específica de Amazon.")
-
-    def _extract_numero_factura(self):
-        # Patrón para buscar "Número del documento"
-        # Incluye el guion '-' en el conjunto de caracteres para capturar el número completo
-        invoice_number_pattern_doc = r"Número del documento\s*([A-Z0-9-]+)"
-        # Patrón para buscar "Número de la factura"
-        # Incluye el guion '-' en el conjunto de caracteres para capturar el número completo
-        invoice_number_pattern_fact = r"Número de la factura\s*([A-Z0-9-]+)"
-
-        for line in self.lines:
-            # Intento 1: Buscar "Número del documento"
-            match = re.search(invoice_number_pattern_doc, line, re.IGNORECASE)
-            if match:
-                self.numero_factura = match.group(1).strip()
-                if self.debug_mode:
-                    print(f"DEBUG: Número de factura extraído (Número del documento): {self.numero_factura}")
-                return
+        try:
+            # ...
+            numeric_total_str = total_amount_str.replace('.', '').replace(',', '.')
+            total_amount = float(numeric_total_str)
             
-            # Intento 2: Buscar "Número de la factura"
-            match = re.search(invoice_number_pattern_fact, line, re.IGNORECASE)
-            if match:
-                self.numero_factura = match.group(1).strip()
-                if self.debug_mode:
-                    print(f"DEBUG: Número de factura extraído (Número de la factura): {self.numero_factura}")
-                return
+            # 🟢 CRÍTICO: Corregir 0,21 a 0.21 (sintaxis de Python)
+            base_amount = total_amount / (1 + 0.21) 
+            
+            # Importe del IVA = Total - Base
+            vat_amount = total_amount - base_amount
+            # ...
+            
+            formatted_base_amount = f"{base_amount:.2f}".replace('.', ',')
+            formatted_vat_amount = f"{vat_amount:.2f}".replace('.', ',')
+            
+            return formatted_base_amount, formatted_vat_amount
 
-        # Si no se encuentra con ninguno de los patrones específicos, se recurre al método de la clase base
-        super()._extract_numero_factura()
-        if self.debug_mode and not self.numero_factura:
-            print("DEBUG: Número de factura no encontrado con la lógica específica de Amazon.")
+        except ValueError:
+            return None, None
+        except Exception:
+            return None, None
 
-    def _extract_fecha(self):
-        # Mapeo de meses en español a números (ya presente)
-        month_map = {
-            'enero': '01', 'febrero': '02', 'marzo': '03', 'abril': '04',
-            'mayo': '05', 'junio': '06', 'julio': '07', 'agosto': '08',
-            'septiembre': '09', 'octubre': '10', 'noviembre': '11', 'diciembre': '12'
-        }
+        except ValueError:
+            # Ocurre si la cadena no se puede convertir a float
+            return None, None
+        except Exception:
+            # Maneja cualquier otro error
+            return None, None
 
-        # **NUEVA LÓGICA: Extraer "Fecha del pedido" o "Fecha de la factura/Fecha de la entrega"**
-        # Patrón para "Fecha del pedido" (DD.MM.YYYY)
-        date_pedido_pattern = r"Fecha del pedido\s*(\d{2}\.\d{2}\.\d{4})"
-        # Patrón para "Fecha de la factura/Fecha de la entrega" (DD.MM.YYYY)
-        date_factura_entrega_pattern = r"Fecha de la factura/Fecha\s*de la entrega\s*(\d{2}\.\d{2}\.\d{4})"
+    # --- NUEVA FUNCIÓN DE LIMPIEZA ---
+    def _clean_and_convert_float(self, value: Optional[str]) -> Optional[float]:
+        """Limpia cadenas para obtener un float (maneja puntos, comas y símbolos de moneda)."""
+        if value is None or str(value).strip() == '':
+            return None
+        
+        cleaned_value = str(value).strip()
+        
+        # 1. Eliminar símbolos de moneda y caracteres no numéricos irrelevantes
+        cleaned_value = cleaned_value.replace('€', '').replace('$', '').replace('%', '').replace(':', '').replace('(', '').replace(')', '').replace('[', '').replace(']', '').replace('?', '').replace('!', '').replace(' ', '').replace('EUROS','')
+        
+        # 2. Manejar separadores de miles y decimales comunes en español
+        temp_value = cleaned_value
+        
+        # 🚨 CORRECCIÓN DEL BUG DE ESCALA: Nos aseguramos de que el resultado final solo use DOT como decimal.
+        # Si hay una coma, la convertimos a punto, y si hay puntos antes de eso (miles), los eliminamos.
+        
+        # CASO 1: Formato Español (1.234,56 -> 1234.56)
+        if '.' in temp_value and ',' in temp_value and temp_value.rfind('.') < temp_value.rfind(','):
+            temp_value = temp_value.replace('.', '') # Quita el punto (separador de miles)
+            temp_value = temp_value.replace(',', '.') # Cambia la coma a punto (decimal)
+            
+        # CASO 2: Solo Coma (247,93 -> 247.93)
+        elif ',' in temp_value:
+            temp_value = temp_value.replace(',', '.')
+            
+        # CASO 3: Solo Punto (247.93) - Ya está en formato correcto, no hacer nada.
+        
+        # Limpiamos el valor final
+        cleaned_value = temp_value
 
-        for line in self.lines:
-            # Intento 1: Buscar "Fecha del pedido"
-            match = re.search(date_pedido_pattern, line, re.IGNORECASE)
-            if match:
-                date_str = match.group(1).replace('.', '/') # Cambiar a formato DD/MM/YYYY
-                self.fecha = date_str
-                if self.debug_mode:
-                    print(f"DEBUG: Fecha extraída (Fecha del pedido): {self.fecha}")
-                return
+        try:
+            # 🚨 CORRECCIÓN DEL PRINT: Se usaba una sintaxis incorrecta, se corrige a f-string.
+            # print("cleaned_value", cleaned_value) 
+            return float(cleaned_value)
+        except ValueError:
+            return None
+    # --- FIN FUNCIÓN DE LIMPIEZA ---
 
-            # Intento 2: Buscar "Fecha de la factura/Fecha de la entrega"
-            match = re.search(date_factura_entrega_pattern, line, re.IGNORECASE)
-            if match:
-                date_str = match.group(1).replace('.', '/') # Cambiar a formato DD/MM/YYYY
-                self.fecha = date_str
-                if self.debug_mode:
-                    print(f"DEBUG: Fecha extraída (Fecha de la factura/Fecha de la entrega): {self.fecha}")
-                return
+    def extract_data(self, lines: List[str]) -> Dict[str, Any]:
+        
+        extracted_data = {}
+        
+        # Función auxiliar para buscar línea de referencia (primera coincidencia)
+        def find_reference_line(ref_text: str) -> Optional[int]:
+            ref_text_lower = ref_text.lower()
+            for i, line in enumerate(lines):
+                # Buscamos la etiqueta de referencia
+                if ref_text_lower in line.lower():
+                    return i
+            return None
 
-        # Lógica original para meses con nombre (si las anteriores no encuentran)
-        date_pattern_named_month = r"Fecha del pedido\s*(.+)" # Este patrón coge cualquier cosa después de "Fecha del pedido"
-        for line in self.lines:
-            match = re.search(date_pattern_named_month, line, re.IGNORECASE)
-            if match:
-                date_str = match.group(1).strip()
-                parts = date_str.split()
-                if len(parts) == 3:
-                    day = parts[0]
-                    month_name = parts[1].lower()
-                    year = parts[2]
-                    if month_name in month_map:
-                        numeric_month = month_map[month_name]
-                        formatted_date_str = f"{day}/{numeric_month}/{year}"
-                        self.fecha = formatted_date_str
-                        if self.debug_mode:
-                            print(f"DEBUG: Fecha formateada (Fecha del pedido - nombre de mes): {self.fecha}")
-                        return
-
-        # Fallback a la lógica de la clase base si no se encuentra con ninguno de los patrones específicos
-        super()._extract_fecha()
-        if self.debug_mode and not self.fecha:
-            print("DEBUG: Fecha no encontrada con la lógica específica de Amazon.")
-
-
-    def _extract_cif(self):
-        # El CIF está después de "IVA" y en la línea después de "Vendido por"
-        # Primero, encontramos la línea "Vendido por"
-        for i, line in enumerate(self.lines):
-            if re.search(r"Vendido por", line, re.IGNORECASE):
-                # Buscamos en las siguientes 3 líneas para encontrar el CIF después de "IVA"
-                for j in range(i + 1, min(i + 4, len(self.lines))):
-                    cif_pattern = r"IVA\s*([A-Z]{2}[A-Z0-9]{9})" # Ej. ESW0184081H, ESN0681779E
-                    match = re.search(cif_pattern, self.lines[j], re.IGNORECASE)
-                    if match:
-                        self.cif = match.group(1).strip()
-                        if self.debug_mode:
-                            print(f"DEBUG: CIF extraído: {self.cif}")
-                        return
-        # Si no se encuentra, se recurre al método de la clase base
-        super()._extract_cif()
-        if self.debug_mode and not self.cif:
-            print("DEBUG: CIF no encontrado con la lógica específica de Amazon.")
-
-    def _extract_cliente(self):
-        # El cliente para las facturas de Amazon siempre será "NEWSATELITE SL"
-        self.cliente = "NEWSATELITE SL"
-        if self.debug_mode:
-            print(f"DEBUG: Cliente fijado a: {self.cliente}")
-
-
-    def _extract_modelo(self):
-        # No se especifica un modelo en este tipo de factura.
-        super()._extract_modelo()
-
-    def _extract_matricula(self):
-        # No se especifica una matrícula en este tipo de factura.
-        super()._extract_matricula()
-
-    def _extract_importe_and_base(self):
-        # Los importes se extraen correctamente con la clase genérica.
-        # Sin embargo, podemos añadir una lógica específica para "Total pendiente" si es necesario.
-        # Basado en la salida de debug, "Total pendiente" parece ser el importe total.
-        if self.debug_mode:
-            print("DEBUG: Entering _extract_importe_and_base for AmazonExtractor")
-
-        # Intentar extraer el "Total pendiente" como importe
-        total_pendiente_pattern = r"Total pendiente\s*([\d.,]+\s*€)"
-        for line in self.lines:
-            match = re.search(total_pendiente_pattern, line, re.IGNORECASE)
-            if match:
-                importe_str = match.group(1).replace('€', '').strip()
-                extracted_importe = _extract_amount(importe_str)
-                if extracted_importe is not None:
-                    self.importe = str(extracted_importe).replace('.', ',')
-                    if self.debug_mode:
-                        print(f"DEBUG: Importe (Total pendiente) extraído: {self.importe}")
+        # Función auxiliar para obtener el valor
+        def get_value(mapping: Dict[str, Any]) -> Optional[str]:
+            
+            # 1. Caso FIXED_VALUE (valor constante)
+            if mapping['type'] == 'FIXED_VALUE':
+                return mapping.get('value')
+                
+            line_index = None
+            
+            # 2. Determinar el índice de la línea final (0-based)
+            if mapping['type'] == 'FIXED':
+                abs_line_1based = mapping.get('line')
+                if abs_line_1based is not None and abs_line_1based > 0:
+                    line_index = abs_line_1based - 1 
+                
+            elif mapping['type'] == 'VARIABLE':
+                ref_text = mapping.get('ref_text', '')
+                offset = mapping.get('offset', 0)
+                
+                ref_index = find_reference_line(ref_text)
+                
+                if ref_index is not None:
+                    line_index = ref_index + offset
+            
+            if line_index is None or not (0 <= line_index < len(lines)):
+                return None
+                
+            # 3. Obtener el segmento
+            segment_input = mapping['segment']
+            
+            try:
+                # Dividir por espacios para obtener segmentos de la línea
+                line_segments = re.split(r'\s+', lines[line_index].strip())
+                line_segments = [seg for seg in line_segments if seg]
+                
+                # Manejar rangos de segmentos (ej. '1-3')
+                if isinstance(segment_input, str) and re.match(r'^\d+-\d+$', segment_input):
+                    start_s, end_s = segment_input.split('-')
+                    start_idx = int(start_s) - 1 # 0-based start
+                    end_idx = int(end_s)        # 0-based exclusive end
                     
-                    # Calcular la Base Imponible a partir del Importe Total (IVA incluido)
-                    try:
-                        numeric_importe = float(self.importe.replace(',', '.'))
-                        calculated_base = _calculate_base_from_total(str(numeric_importe).replace('.', ','), VAT_RATE)
-                        self.base_imponible = calculated_base
-                        if self.debug_mode:
-                            print(f"DEBUG: Base Imponible calculada a partir del Total: {self.base_imponible}")
-                    except ValueError as e:
-                        self.base_imponible = 'No encontrado'
-                        if self.debug_mode:
-                            print(f"DEBUG: Error al calcular la base imponible a partir del Total: {e}")
-                    return # Salimos una vez que encontramos el total y calculamos la base
+                    if 0 <= start_idx < end_idx and end_idx <= len(line_segments):
+                        return ' '.join(line_segments[start_idx:end_idx]).strip()
+                
+                # Manejar segmento simple (ej. 1)
+                segment_index_0based = int(segment_input) - 1
+                
+                if segment_index_0based < len(line_segments):
+                    return line_segments[segment_index_0based].strip()
+            except Exception:
+                return None
+                
+            return None
 
-        # Fallback a la lógica de la clase base si no se encuentra "Total pendiente"
-        if self.importe is None or self.base_imponible is None:
-            if self.debug_mode:
-                print("DEBUG: Importe o base no encontrados con lógica específica de Amazon. Recurriendo a la clase base.")
-            super()._extract_importe_and_base()
+        # 4. Aplicar el mapeo
+        for key, mapping in EXTRACTION_MAPPING.items():
+            value = None
+            if isinstance(mapping, list):
+                # Si 'mapping' es una lista, iteramos sobre los intentos
+                for single_mapping in mapping:
+                    value = get_value(single_mapping)
+                    if value is not None:
+                        # ¡Valor encontrado! Salimos del bucle interno
+                        break 
+            else:
+                # Si 'mapping' es un diccionario simple (el comportamiento anterior)
+                value = get_value(mapping)
+            
+            key_lower = key.lower()
+            if key =='CIF_EMISOR':
+                print("cif emisor",value)
+                if value == 'de':
+                    print("dentro cif emisor",value)
+                    mapping_v1F = {'type': 'VARIABLE', 'ref_text': 'Número del pedido', 'offset': +5, 'segment': 1}
+                    cif_emisor = get_value(mapping_v1F)
+                    value=cif_emisor
+            if key == 'IMPORTE':
+                base,iva = self.calculate_base_and_vat_from_total(value)
+               
+                extracted_data['base'] = base
+                extracted_data['iva'] = iva
+            # --- APLICAR LIMPIEZA NUMÉRICA A LOS TOTALES Y ASIGNAR FLOAT ---
+            if key_lower in ['base', 'iva', 'importe', 'tasas']:
+                # Asignamos el valor FLOAT limpio directamente
+                cleaned_value = self._clean_and_convert_float(value)
+                extracted_data[key_lower] = cleaned_value
+                
+            # --- ASIGNAR VALOR A CAMPOS NO NUMÉRICOS ---
+            elif value is not None:
+                # Solo asignamos el valor de texto original para campos no numéricos
+                extracted_data[key.lower()] = value
+            else:
+                extracted_data[key.lower()] = None
 
-    def extract_all(self):
-        # Llamar a los métodos de extracción específicos
-        self._extract_emisor()
-        self._extract_numero_factura()
-        self._extract_fecha()
-        self._extract_cif()
-        self._extract_cliente()
-        self._extract_modelo() # No aplica
-        self._extract_matricula() # No aplica
-        self._extract_importe_and_base() # Se extrae bien con la genérica o la específica de Total pendiente
-
-        # Devolver todos los atributos en el orden esperado por main_extractor.py
-        # AmazonExtractor no extrae 'tasas', por lo que devolvemos None para mantener la consistencia.
-        return (self.tipo, self.fecha, self.numero_factura, self.emisor, self.cliente, self.cif,
-                self.modelo, self.matricula, self.importe, self.base_imponible, None) # Tasas como None
+        return extracted_data

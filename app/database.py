@@ -90,13 +90,16 @@ def insert_invoice_data(data: Dict[str, Any], original_path: str, is_validated: 
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
     
+    # ⚠️ MODIFICACIÓN: NORMALIZAR LA RUTA
+    # Reemplazamos todas las barras invertidas de Windows por barras normales (/)
+    # Esto asegura que la clave primaria 'path' sea siempre consistente.
+    normalized_path = original_path.replace('\\', '/')
     # 1. Limpieza de datos
-    file_name = data.get('Archivo', os.path.basename(original_path))
+    file_name = data.get('Archivo', os.path.basename(normalized_path))
     base = _clean_numeric_value(data.get('Base'))
     iva = _clean_numeric_value(data.get('IVA'))
     importe = _clean_numeric_value(data.get('Importe'))
     tasas = _clean_numeric_value(data.get('Tasas'))
-    
     # VALOR AÑADIDO: Timestamp de la inserción
     procesado_en = datetime.now().isoformat()
     
@@ -111,18 +114,11 @@ def insert_invoice_data(data: Dict[str, Any], original_path: str, is_validated: 
     
     # AÑADIDO: 'procesado_en' a la lista de valores.
     values = (
-        original_path, file_name, data.get('Tipo'), data.get('Fecha'), 
+        normalized_path, file_name, data.get('Tipo'), data.get('Fecha'), 
         data.get('Número de Factura'), data.get('Emisor'), data.get('CIF Emisor'), data.get('Cliente'), 
         data.get('CIF'), data.get('Modelo'), data.get('Matricula'), 
         base, iva, importe, tasas, is_validated, data.get('DebugLines'), procesado_en
     )
-    print("data:", data)
-    # ⚠️ TRAZA AÑADIDA: Imprime la sentencia SQL y los valores.
-    # Esto aparecerá en la consola/terminal donde se ejecuta main_gui.py
-    print("\n--- TRAZA BBDD: INTENTO DE INSERT/REPLACE ---")
-    print("SQL:", sql.strip())
-    print("VALORES:", values)
-    print("------------------------------------------\n")
     
     try:
         cursor.execute(sql, values)

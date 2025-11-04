@@ -22,8 +22,8 @@ EXTRACTION_MAPPING: Dict[str, Dict[str, Any]] = {
     'CIF_EMISOR': {'type': 'FIXED_VALUE', 'value': 'A80185051'},
     'CLIENTE': {'type': 'FIXED_VALUE', 'value': 'NEWSATELITE S.L'},
     'CIF': {'type': 'FIXED_VALUE', 'value': 'B85629020'},
-    'MODELO': {'type': 'VARIABLE', 'ref_text': 'Matrícula', 'offset': +1, 'segment': 2},
-    'MATRICULA': {'type': 'VARIABLE', 'ref_text': 'Modelo', 'offset': +1, 'segment': 2},
+    'MODELO': {'type': 'VARIABLE', 'ref_text': 'Modelo', 'offset': +1, 'segment': 2},
+    'MATRICULA': {'type': 'VARIABLE', 'ref_text': 'Matrícula', 'offset': +1, 'segment': 2},
     # Lógica VARIABLE compatible para los totales:
     # BASE: 8 líneas arriba de 'Base Imponible'
     'BASE': {'type': 'VARIABLE', 'ref_text': 'TOTAL BASE IMPONIBLE', 'offset': +2, 'segment': 1},

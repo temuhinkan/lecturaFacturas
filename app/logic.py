@@ -11,9 +11,13 @@ import fitz # PyMuPDF
 try:
     from PIL import Image
     import pytesseract
+    # ¡NUEVA IMPORTACIÓN DE OPENCV Y NUMPY!
+    import cv2
+    import numpy as np
 except ImportError:
     Image = None
     pytesseract = None
+    Image.MAX_IMAGE_PIXELS = 2147483647                
 
 # Importar configuración y dependencias
 from config import EXTRACTION_MAPPING, TESSERACT_CMD_PATH, ERROR_DATA, DEFAULT_VAT_RATE_STR
@@ -55,9 +59,10 @@ def _get_pdf_lines(pdf_path: str) -> List[str]:
     """
     lines: List[str] = []
     file_extension = os.path.splitext(pdf_path)[1].lower()
-
+    print("por aqui")
     # --- 1. Leer texto directo (PDF con capa de texto) ---
     if file_extension == ".pdf":
+        print("por aqui pdf ")
         try:
             doc = fitz.open(pdf_path)
             texto = ''
@@ -68,10 +73,12 @@ def _get_pdf_lines(pdf_path: str) -> List[str]:
             if lines:
                 return lines
         except Exception:
+            print("por aqui excepcion  ")
             pass # Continúa al OCR
 
     # --- 2. OCR (Rasterización de PDF o Lectura de Imagen) ---
     if Image and pytesseract:
+        print("por aqui imagen  ")
         try:
             temp_img_to_delete: Optional[str] = None
             if file_extension in ['.jpg', '.jpeg', '.png', '.tiff', '.tif']:
@@ -81,22 +88,34 @@ def _get_pdf_lines(pdf_path: str) -> List[str]:
                 return lines
 
             elif file_extension == ".pdf":
+                print("por aqui imagen  ")
                 # OCR sobre la primera página rasterizada del PDF
                 doc = fitz.open(pdf_path)
                 if len(doc) > 0:
                     page = doc.load_page(0)
                     zoom = 300 / 72
                     mat = fitz.Matrix(zoom, zoom)
+                    # 🚨 TRAZA 1: Confirmar configuración de rasterización
+                    print(f"DEBUG OCR: Abierto PDF. Zoom: {zoom:.2f}x (300 DPI)")
                     pix = page.get_pixmap(matrix=mat, alpha=False)
                     doc.close()
 
                     temp_img_name = f"ocr_temp_{os.path.splitext(os.path.basename(pdf_path))[0]}.png"
                     temp_img_to_delete = os.path.join(tempfile.gettempdir(), temp_img_name)
                     pix.save(temp_img_to_delete)
-
-                    ocr_text = pytesseract.image_to_string(Image.open(temp_img_to_delete), lang='spa')
+                    img_size = os.path.getsize(temp_img_to_delete) / (1024 * 1024) # en MB
+                    print(f"DEBUG OCR: Imagen temporal guardada en: {temp_img_to_delete}")
+                    print(f"DEBUG OCR: Tamaño de la imagen: {img_size:.2f} MB")
+                    try:
+                        ocr_text = pytesseract.image_to_string(Image.open(temp_img_to_delete), lang='spa')
+                    except Exception as e:
+                        # 🚨 TRAZA 3: Capturar error si Tesseract o PIL fallan
+                        print(f"❌ ERROR CRÍTICO OCR: Falló pytesseract.image_to_string. Error: {e}")
+                        ocr_text = "" # Asegurar que ocr_text es una cadena vacía    
                     lines = [line for line in ocr_text.splitlines() if line.strip()]
-
+                    print("DEBUG OCR: --- Texto OCR Crudo ---")
+                    print(ocr_text[:300] + ('...' if len(ocr_text) > 300 else '')) # Muestra los primeros 300 caracteres
+                    print(f"DEBUG OCR: Líneas de texto detectadas: {len(lines)}")
                     if temp_img_to_delete and os.path.exists(temp_img_to_delete):
                         os.remove(temp_img_to_delete)
 
@@ -169,7 +188,7 @@ def find_extractor_for_file(file_path: str) -> Optional[str]:
 
 def _pad_data(data: Tuple) -> Tuple:
     """Asegura que la tupla de datos tenga el número correcto de campos (12)."""
-    REQUIRED_FIELDS = 12
+    REQUIRED_FIELDS = 13
     if len(data) >= REQUIRED_FIELDS:
         return data[:REQUIRED_FIELDS]
     return data + (None,) * (REQUIRED_FIELDS - len(data))
@@ -177,7 +196,7 @@ def _pad_data(data: Tuple) -> Tuple:
 
 def extraer_datos(pdf_path: str, debug_mode: bool = False) -> Tuple[Any, ...]:
     """
-    Función principal de extracción de datos. Retorna una tupla de 12 campos + log (13 elementos).
+    Función principal de extracción de datos. Retorna una tupla de 13 campos + log (14 elementos).
     """
     debug_output: str = ""
     extracted_data_raw: Tuple = tuple()
