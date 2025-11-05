@@ -11,9 +11,6 @@ import fitz # PyMuPDF
 try:
     from PIL import Image
     import pytesseract
-    # ¡NUEVA IMPORTACIÓN DE OPENCV Y NUMPY!
-    import cv2
-    import numpy as np
 except ImportError:
     Image = None
     pytesseract = None

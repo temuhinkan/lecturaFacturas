@@ -119,7 +119,6 @@ def insert_invoice_data(data: Dict[str, Any], original_path: str, is_validated: 
         data.get('CIF'), data.get('Modelo'), data.get('Matricula'), 
         base, iva, importe, tasas, is_validated, data.get('DebugLines'), procesado_en
     )
-    
     try:
         cursor.execute(sql, values)
         conn.commit()

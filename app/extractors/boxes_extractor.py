@@ -22,8 +22,11 @@ EXTRACTION_MAPPING: Dict[str, Dict[str, Any]] = {
     'CIF_EMISOR': {'type': 'FIXED_VALUE', 'value': 'B-84962851'},
     'CLIENTE': {'type': 'FIXED_VALUE', 'value': 'NEWSATELITE S.L'},
     'CIF': {'type': 'FIXED_VALUE', 'value': 'B85629020'},
-    #'MODELO': {'type': 'VARIABLE', 'ref_text': 'MODELO', 'offset': +7, 'segment': 1},
-    #'MATRICULA': {'type': 'VARIABLE', 'ref_text': 'MATRÍCULA', 'offset': +7, 'segment': 1},
+    'MODELO': {'type': 'VARIABLE', 'ref_text': 'MODELO', 'offset': +22, 'segment': 1},
+    'MATRICULA': [{'type': 'VARIABLE', 'ref_text': 'Matrícula:', 'offset': +33, 'segment': 1},
+                  {'type': 'VARIABLE', 'ref_text': 'Matrícula:', 'offset': +38, 'segment': 1},
+                  {'type': 'VARIABLE', 'ref_text': 'Matrícula:', 'offset': +37, 'segment': 1},
+                  {'type': 'VARIABLE', 'ref_text': 'Matrícula:', 'offset': +34, 'segment': 1}],
     # Lógica VARIABLE compatible para los totales:
     # BASE: 8 líneas arriba de 'Base Imponible'
     'BASE': {'type': 'VARIABLE', 'ref_text': 'Base Imponible', 'offset': -4, 'segment': 1},
@@ -80,7 +83,25 @@ class BoxesExtractor:
         except ValueError:
             return None
     # --- FIN FUNCIÓN DE LIMPIEZA ---
+    
+    def validar_matricula(self,matricula: str) -> bool:
+        """
+        Valida una matrícula con el formato: 4 números, 3 consonantes (puede tener guion).
 
+        Formato esperado: NNNN-CCC o NNNNCCC
+        N = Dígito (0-9)
+        C = Consonante (B, C, D, F, G, H, J, K, L, M, N, Ñ, P, Q, R, S, T, V, W, X, Y, Z)
+        """
+        # Expresión regular:
+        # ^[0-9]{4} -> Inicia con 4 dígitos
+        # -?        -> Cero o un guion medio
+        # [BCDFGHJKLMNÑPQRSTVWXYZ]{3}$ -> Finaliza con 3 letras que sean solo consonantes (mayúsculas)
+
+        # Nota: Se incluyen las consonantes más comunes en español. Se asume mayúsculas.
+        patron = r"^[0-9]{4}-?[BCDFGHJKLMNÑPQRSTVWXYZ]{3}$"
+        
+        return re.match(patron, matricula.upper()) is not None
+    
     def extract_data(self, lines: List[str]) -> Dict[str, Any]:
         
         extracted_data = {}
@@ -150,9 +171,37 @@ class BoxesExtractor:
 
         # 4. Aplicar el mapeo
         for key, mapping in EXTRACTION_MAPPING.items():
-            value = get_value(mapping)
-            key_lower = key.lower()
+            value = None
+            if isinstance(mapping, list):
+                # Si 'mapping' es una lista, iteramos sobre los intentos
+                for single_mapping in mapping:
+                    print(f"Intentando extraer {key} con: {single_mapping}")
             
+                    # Obtener el valor
+                    temp_value = get_value(single_mapping)
+                    print("temp_value",temp_value)
+                    # 2. Verificar la validación del campo si el valor no es None
+                    is_valid = True
+                    if key in VALIDATORS:
+                        if temp_value is not None:
+                            # Validar el valor obtenido
+                            if not VALIDATORS[key](temp_value):
+                                is_valid = False
+                                print(f"Valor '{temp_value}' para {key} falló la validación.") 
+                        
+                        print("is_valid",is_valid)
+                    # 3. Si es válido (o si la clave no requiere validación), lo guardamos y salimos del bucle.
+                    if is_valid and temp_value is not None:
+                       value = temp_value
+                       print(f"Éxito en {key} con el valor: {value}")
+                       break # ¡Valor encontrado! Salimos del bucle interno
+            else:
+                # Si 'mapping' es un diccionario simple (el comportamiento anterior)
+                value = get_value(mapping)
+            key_lower = key.lower()
+            VALIDATORS = {
+            "MATRICULA": self.validar_matricula, 
+            }
             # --- APLICAR LIMPIEZA NUMÉRICA A LOS TOTALES Y ASIGNAR FLOAT ---
             if key_lower in ['base', 'iva', 'importe', 'tasas']:
                 # Asignamos el valor FLOAT limpio directamente

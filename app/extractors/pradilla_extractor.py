@@ -31,6 +31,7 @@ EXTRACTION_MAPPING: Dict[str, Dict[str, Any]] = {
                     {'type': 'VARIABLE', 'ref_text': 'N*FACTURA', 'offset': 0,'segment': 2},
                     {'type': 'VARIABLE', 'ref_text': 'N FACTURA', 'offset': 0,'segment': 3},
                     {'type': 'VARIABLE', 'ref_text': 'N%FACTURA', 'offset': 0,'segment': 2}
+                    {'type': 'VARIABLE', 'ref_text': 'NOFACTURA', 'offset': 0,'segment': 2}
                     
                     ],
     'EMISOR': {'type': 'FIXED_VALUE', 'value': 'GESTORIA PRADILLA, S.L.'},
