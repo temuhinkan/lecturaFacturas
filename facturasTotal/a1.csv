@@ -1,0 +1,4 @@
+path;file_name;tipo;fecha;numero_factura;emisor;cif_emisor;cliente;cif;modelo;matricula;base;iva;importe;tasas;is_validated;procesado_en
+C:/Users/temuh/OneDrive/Documentos/GitHub/lecturaFacturas/facturasTotal/3519.0825_desguaces eduardo.pdf;3519.0825_desguaces eduardo.pdf;COMPRA;25/08/2025;3519.0825;DesguacesEduardo S.L.;B-09420274;NEWSATELITE S.L;B85629020;;;24.79;5.21;30.0;;1;2025-11-04T16:33:02.876275
+C:/Users/temuh/OneDrive/Documentos/GitHub/lecturaFacturas/facturasTotal/6150KYY(Factu) volkswagen renting.pdf;6150KYY(Factu) volkswagen renting.pdf;COMPRA;02-09-2024;2415352;VOLKSWAGEN RENTING, S.A.;A80185051;NEWSATELITE S.L;B85629020;SKODA;6150KYY;6859.5;1440.5;8300.0;;1;2025-11-04T16:33:02.889030
+C:/Users/temuh/OneDrive/Documentos/GitHub/lecturaFacturas/facturasTotal/805323_pinchete.pdf;805323_pinchete.pdf;COMPRA;31/03/2025;FC I25 0100000370;RECAMBIOS PINCHETE S.L;B86898384;NEWSATELITE S.L;B85629020;;;262.71;55.17;317.88;;1;2025-11-04T16:33:02.901579

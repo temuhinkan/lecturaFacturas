@@ -155,7 +155,7 @@ def fetch_all_invoices_OK() -> List[Dict[str, Any]]:
     cursor = conn.cursor()
     
     try:
-        cursor.execute("SELECT * FROM processed_invoices Where is_validated=1 ORDER BY file_name ASC")
+        cursor.execute("SELECT  path, file_name, tipo, fecha, numero_factura, emisor,cif_emisor, cliente, cif, modelo, matricula, base, iva, importe, tasas, is_validated, procesado_en FROM processed_invoices Where is_validated=1 ORDER BY file_name ASC")
         rows = cursor.fetchall()
         # Convertir Rows a lista de diccionarios
         invoices = [dict(row) for row in rows]
@@ -169,41 +169,56 @@ def fetch_all_invoices_OK() -> List[Dict[str, Any]]:
 def update_invoice_field(file_path: str, field_name: str, new_value: Any) -> int:
     """
     Actualiza un campo específico de una factura en la BBDD.
-    
     Returns:
       int: El número de filas afectadas (0 o 1).
     """
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
-    
-    # 1. Preparar el valor (usando la función de limpieza local)
+
+    # 1. Preparar el valor (Usando la utilidad de limpieza _clean_numeric_value)
     if field_name in ['base', 'iva', 'importe', 'tasas']:
-        final_value = _clean_numeric_value(new_value)
+        # Se asume que _clean_numeric_value está disponible y limpia el valor
+        final_value = _clean_numeric_value(new_value) 
     elif str(new_value).strip() == '':
         final_value = None
     else:
         final_value = new_value
 
     try:
-        # Seguridad: Solo permitimos que se actualicen nombres de columnas válidos
-        valid_cols = ['file_name', 'tipo', 'fecha', 'numero_factura', 'emisor', 'cif_emisor','cliente', 'cif', 
-                      'modelo', 'matricula', 'base', 'iva', 'importe', 'tasas', 'is_validated', 'log_data', 'procesado_en']
+        # Se mantiene la lista de validación de columnas (es buena práctica)
+        valid_cols = ['file_name', 'tipo', 'fecha', 'numero_factura', 'emisor', 'cif_emisor', 
+                      'cliente', 'cif', 'modelo', 'matricula', 'base', 'iva', 
+                      'importe', 'tasas', 'is_validated', 'log_data', 'procesado_en']
+        
         if field_name not in valid_cols:
-             raise ValueError(f"Intento de actualizar columna inválida: {field_name}")
+            print(f"ADVERTENCIA DE SEGURIDAD (BBDD): Intento de actualizar columna no válida: {field_name}")
+            return 0
 
+        # CRÍTICO: Normalizar la ruta del archivo (clave primaria)
+        normalized_path = file_path.replace('\\', '/')
+        
+        # Ejecutar el UPDATE
         sql = f"UPDATE processed_invoices SET {field_name} = ? WHERE path = ?"
         
-        cursor.execute(sql, (final_value, file_path))
-        conn.commit()
+        # --- TRAZA AÑADIDA PARA VER EL PROBLEMA (BBDD) ---
+        print(f"--- TRAZA UPDATE (BBDD) ---")
+        print(f"  SQL: {sql}")
+        print(f"  Valores: {field_name} = '{final_value}', Path = '{normalized_path}'")
         
-        return cursor.rowcount
+        cursor.execute(sql, (final_value, normalized_path))
         
+        rows_affected = cursor.rowcount
+        print(f"  Filas afectadas: {rows_affected}")
+        # -------------------------------------------------
+
+        # CRÍTICO: ¡GUARDAR LOS CAMBIOS!
+        conn.commit() 
+        
+        return rows_affected
+
     except sqlite3.Error as e:
-        print(f"Error al actualizar la BBDD ({field_name}): {e}")
+        print(f"❌ ERROR DE BBDD en update_invoice_field: {e}")
         conn.rollback()
-        return 0
-    except ValueError as e:
-        print(f"Error de actualización: {e}")
         return 0
     finally:
         conn.close()
@@ -252,6 +267,18 @@ def is_invoice_processed(file_path: str) -> bool:
     cursor = conn.cursor()
     try:
         cursor.execute("SELECT 1 FROM processed_invoices WHERE path = ?", (file_path,))
+        return cursor.fetchone() is not None
+    except sqlite3.Error as e:
+        print(f"Error de BBDD al verificar factura: {e}")
+        return False
+    finally:
+        conn.close()
+def is_invoice_validate(file_path: str) -> bool:
+    """Verifica si un archivo ya ha sido procesado."""
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+    try:
+        cursor.execute("SELECT 1 FROM processed_invoices WHERE path = ? and is_validated=1", (file_path,))
         return cursor.fetchone() is not None
     except sqlite3.Error as e:
         print(f"Error de BBDD al verificar factura: {e}")

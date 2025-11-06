@@ -25,10 +25,10 @@ except ImportError:
 # Asegúrese de que estos módulos existen en su entorno
 import database 
 import logic
-from config import TESSERACT_CMD_PATH, DEFAULT_VAT_RATE_STR, DEFAULT_VAT_RATE
+from config import DEFAULT_VAT_RATE_STR, DEFAULT_VAT_RATE
 from logic import extraer_datos
 # update_invoice_field ahora funciona correctamente
-from database import fetch_all_invoices, delete_invoice_data, insert_invoice_data, update_invoice_field, delete_entire_database_schema, is_invoice_processed
+from database import fetch_all_invoices, delete_invoice_data, insert_invoice_data, update_invoice_field, delete_entire_database_schema, fetch_all_invoices_OK, is_invoice_processed
 # Se asume que 'utils' existe y contiene 'calculate_total_and_vat'
 from utils import calculate_total_and_vat 
 
@@ -515,7 +515,9 @@ class InvoiceApp:
 
         for i, file_path in enumerate(file_paths):
             self.update_log_display(f"[{i+1}/{len(file_paths)}] Procesando: {os.path.basename(file_path)}...")
-
+            if is_invoice_validate(file_path):
+                self.update_log_display("  -> Ya procesado. y valiado si quieres podesar desmarca Validado.")
+                continue
             if not force_reprocess and is_invoice_processed(file_path): 
                 self.update_log_display("  -> Ya procesado. Saltando.")
                 continue

@@ -1,0 +1,227 @@
+path;file_name;tipo;fecha;numero_factura;emisor;cif_emisor;cliente;cif;modelo;matricula;base;iva;importe;tasas;is_validated;log_data;procesado_en
+C:/Users/temuh/OneDrive/Documentos/GitHub/lecturaFacturas/facturasTotal/3519.0825_desguaces eduardo.pdf;3519.0825_desguaces eduardo.pdf;COMPRA;25/08/2025;3519.0825;DesguacesEduardo S.L.;B-09420274;NEWSATELITE S.L;B85629020;;;24.79;5.21;30.0;;1;"🔍 DEBUG MODE ACTIVATED: Document read successfully.
+
+Line 00: 3519.0825
+Line 01: 25/08/2025
+Line 02: NEWSATELITE S.L.
+Line 03: B85629020
+Line 04: C/ SOFIA 30
+Line 05: 28022
+Line 06: MADRID
+Line 07: MADRID
+Line 08: 25/08/2025
+Line 09: 24,79€
+Line 10: 1 KIT CAMBIO RUEDA, GATO RENAULT KANGOO II
+Line 11: 24,79€
+Line 12: 5,21€
+Line 13: 30,00€
+Line 14: Forma de pago: transferencia bancaria a la cuenta ES44 3060 0063 19 2027784525
+
+➡️ Extractor encontrado en mapeo: extractors.desguaceseduardo_extractor.DesguaceseduardoExtractor
+✅ Extracción exitosa con extractors.desguaceseduardo_extractor.DesguaceseduardoExtractor.
+";2025-11-04T16:33:02.876275
+C:/Users/temuh/OneDrive/Documentos/GitHub/lecturaFacturas/facturasTotal/6150KYY(Factu) volkswagen renting.pdf;6150KYY(Factu) volkswagen renting.pdf;COMPRA;02-09-2024;2415352;VOLKSWAGEN RENTING, S.A.;A80185051;NEWSATELITE S.L;B85629020;SKODA;6150KYY;6859.5;1440.5;8300.0;;1;"🔍 DEBUG MODE ACTIVATED: Document read successfully.
+
+Line 00: Volkswagen RENTING, S.A.
+Line 01: A80185051
+Line 02: Av. Bruselas, 34
+Line 03: 28108 Alcobendas (Madrid)
+Line 04: Cliente:
+Line 05: NEW SATELITE, SL.
+Line 06: CL SIERRA DE ARACENA 62
+Line 07: 28691/VILLANUEVA DE LA CAÑADA
+Line 08: MADRID
+Line 09: Fecha
+Line 10: : 02-09-2024
+Line 11: NIF
+Line 12: : B85629020
+Line 13: Nº Factura
+Line 14: : 2415352
+Line 15: Serie
+Line 16: : FA
+Line 17: Concepto
+Line 18: Importe
+Line 19: Factura en concepto de venta de vehículos pertenecientes a nuestro inmovilzado 
+Line 20: material
+Line 21: 6.859,50 €
+Line 22: Matrícula
+Line 23: : 6150KYY
+Line 24: Bastidor
+Line 25: : TMBEB6NJ5KZ132786
+Line 26: Modelo
+Line 27: : SKODA FABIA
+Line 28: Kilometraje actual
+Line 29: : 84.359 km
+Line 30: TOTAL BASE IMPONIBLE
+Line 31: :
+Line 32: 6.859,50 €
+Line 33: I.V.A. (21,00 %)
+Line 34: :
+Line 35: 1.440,50 €
+Line 36: TOTAL FACTURA
+Line 37: :
+Line 38: 8.300,00 €
+Line 39: El pago de la presente factura se acredita mediante el correspondiente adeudo bancario o ingreso en cuenta 
+Line 40: Por VOLKSWAGEN RENTING S.A.
+Line 41: VOLKSWAGEN RENTING, S.A. Avda. Bruselas 34 – 28108 Alcobendas (Madrid) Datos mercantiles: Registro Mercantil de la provincia de 
+Line 42: Madrid. Tomo 2.138. Folio 63. Hoja nº M-37860. Inscripción 1ª – CIF. A-80185051.
+Line 43: VOLKSWAGEN RENTING, S.A. 
+
+➡️ Extractor encontrado en mapeo: extractors.volkswagen_extractor.VolkswagenExtractor
+✅ Extracción exitosa con extractors.volkswagen_extractor.VolkswagenExtractor.
+";2025-11-04T16:33:02.889030
+C:/Users/temuh/OneDrive/Documentos/GitHub/lecturaFacturas/facturasTotal/805323_pinchete.pdf;805323_pinchete.pdf;COMPRA;31/03/2025;FC I25 0100000370;RECAMBIOS PINCHETE S.L;B86898384;NEWSATELITE S.L;B85629020;;;262.71;55.17;317.88;;1;"🔍 DEBUG MODE ACTIVATED: Document read successfully.
+
+Line 00: FC I25 0100000370
+Line 01: 31/03/2025
+Line 02: 02055
+Line 03: NEWSATELITE S.L
+Line 04: CL SIERRA DE ARACENA 62
+Line 05: 28691 VILLANUEVA DE LA CAÑADA, MADRID
+Line 06: Familia
+Line 07: Referencia
+Line 08: Denominación
+Line 09: Precio
+Line 10: % Descuentos
+Line 11: Cantidad
+Line 12: Imp. Línea
+Line 13: Fecha
+Line 14: Tipo/Serie/Nº Factura
+Line 15: RECAMBIOS PINCHETE  S.L
+Line 16: CL SOFIA 34 NAVE D
+Line 17: 28022 MADRID, MADRID
+Line 18: Tlf.: 917754480 Fax.: 917758606
+Line 19: Cif. : B86898384
+Line 20: B85629020
+Line 21: C.I.F. / D.N.I.
+Line 22: Albarán AC/B25/0100005074 de fecha lunes, 17 marzo 2025
+Line 23: 96,10
+Line 24: TUDOR
+Line 25: TL700
+Line 26: 1,00
+Line 27: 192,20
+Line 28: 50,00
+Line 29: 96,10
+Line 30: BATERIA 12 V 70AH 760A +ETN 0 278X1
+Line 31: Albarán AC/B25/0100005141 de fecha lunes, 17 marzo 2025
+Line 32: 44,75
+Line 33: FORD
+Line 34: 1883846
+Line 35: 1,00
+Line 36: 16,50
+Line 37: 16,50
+Line 38: CUBIERTA
+Line 39: RECOF
+Line 40: SRS720100
+Line 41: 1,00
+Line 42: 33,00
+Line 43: 25,00
+Line 44: 24,75
+Line 45: REC OF RESISTENCIA
+Line 46: LUCAS
+Line 47: LLB501
+Line 48: 10,00
+Line 49: 0,70
+Line 50: 50,00
+Line 51: 3,50
+Line 52: LAMPARA
+Line 53: Albarán AC/B25/0100005206 de fecha martes, 18 marzo 2025
+Line 54: 24,17
+Line 55: PURFL
+Line 56: AHC244
+Line 57: 1,00
+Line 58: 48,64
+Line 59: 67,00
+Line 60: 16,05
+Line 61: FILTRO HABITACULO AHC244 PFX BAG
+Line 62: PURFL
+Line 63: A1238
+Line 64: 1,00
+Line 65: 24,61
+Line 66: 67,00
+Line 67: 8,12
+Line 68: FILTRO AIRE A1238 PFX BOX
+Line 69: Albarán AC/B25/0100005512 de fecha viernes, 21 marzo 2025
+Line 70: 8,50
+Line 71: SPM
+Line 72: NR1 520 PC E
+Line 73: 1,00
+Line 74: 8,50
+Line 75: 8,50
+Line 76: PLACA NR1 COMPLETA ORDINARIA LARGA BLAN
+Line 77: 9670 KTW
+Line 78: W0V0XEP68K4106867
+Line 79: Albarán AC/B25/0100005614 de fecha lunes, 24 marzo 2025
+Line 80: 21,60
+Line 81: JBM
+Line 82: 50966
+Line 83: 10,00
+Line 84: 2,70
+Line 85: 20,00
+Line 86: 21,60
+Line 87: CHALECO AMARILLO REFLECTANTE AMARILLO H
+Line 88: Albarán AC/B25/0100005768 de fecha miércoles, 26 marzo 2025
+Line 89: 46,24
+Line 90: ALKAR
+Line 91: 2202168
+Line 92: 1,00
+Line 93: 68,00
+Line 94: 32,00
+Line 95: 46,24
+Line 96: DERECHO,PILOTO TRASERO,SIN PORTALAMPAR
+Line 97: Albarán AC/B25/0100005828 de fecha jueves, 27 marzo 2025
+Line 98: 18,20
+Line 99: ALKAR
+Line 100: 6481698
+Line 101: 1,00
+Line 102: 28,00
+Line 103: 35,00
+Line 104: 18,20
+Line 105: IZQUIERDO,CRISTAL+SOPORTE,ASFERICO,
+Line 106: Albarán AC/B25/0100005919 de fecha viernes, 28 marzo 2025
+Line 107: 3,15
+Line 108: VALEO
+Line 109: 574668
+Line 110: -1,00
+Line 111: 45,43
+Line 112: 52,00
+Line 113: -21,81
+Line 114: VF468 650-400MM X2 SILENCIO PLANA
+Line 115: ABONO PARC.DCMTO. B25/0100004986 DE FECH
+Line 116: VALEO
+Line 117: 574361
+Line 118: 1,00
+Line 119: 51,99
+Line 120: 52,00
+Line 121: 24,96
+Line 122: VF423 650-600MM X2 SILENCIO PLANA
+Line 123: 317,88
+Line 124: 55,17
+Line 125: 262,71
+Line 126: 262,71
+Line 127: Pág.: 1 de 1
+Line 128: 21,00
+Line 129: TRANSFERENCIA BANCARIA A 15 DIAS F.F.
+Line 130: Vto.: 15/04/2025 Imp.: 317,88 
+Line 131: * Datos bancarios ocultos por su seguridad
+Line 132: Importe Neto
+Line 133: Base Imponible
+Line 134: Imp. I.V.A.
+Line 135: %
+Line 136: Importe Total
+Line 137: Observaciones
+Line 138: Forma de Pago / Vencimientos
+Line 139: ( LAS CADENAS DE NIEVE Y MATERIAL ELECTRICO NO TIENEN NI CAMBIO NI DEVOLUCION )
+Line 140: NO SE ADMITEN DEVOLUCIONES TRANSCURRIDOS 8 DIAS - PARA ABONO O CAMBIO PRESENTAR FACTURA
+Line 141: 0,00
+Line 142: Portes
+Line 143: 0,00
+Line 144: 0
+Line 145: %PP.
+Line 146: 0,00
+Line 147: 0
+Line 148: %Gst
+
+➡️ Extractor encontrado en mapeo: extractors.pinchete_extractor.PincheteExtractor
+✅ Extracción exitosa con extractors.pinchete_extractor.PincheteExtractor.
+";2025-11-04T16:33:02.901579
