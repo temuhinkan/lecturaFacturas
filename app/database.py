@@ -285,3 +285,34 @@ def is_invoice_validate(file_path: str) -> bool:
         return False
     finally:
         conn.close()
+
+def get_invoice_data(file_path: str) -> Optional[Dict[str, Any]]:
+    """Recupera todos los datos de una factura específica por su path."""
+    conn = sqlite3.connect(DB_NAME)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    # Normalizar la ruta, crítica para la clave primaria
+    normalized_path = file_path.replace('\\', '/')
+    
+    try:
+        cursor.execute("SELECT * FROM processed_invoices WHERE path = ?", (normalized_path,))
+        row = cursor.fetchone()
+        if row:
+            data = dict(row)
+            # Asegurar que la GUI tiene los campos esperados
+            data['file_path'] = data['path'] 
+            # El nombre del extractor debe deducirse o guardarse, aquí lo deducimos de file_name.
+            data['extractor_name'] = os.path.splitext(os.path.basename(data.get('file_name', 'NuevoExtractor')))[0] 
+            data['log_data'] = data.get('log_data', "Log no disponible.")
+            
+            # Convertir campos numéricos de None a "" (para el formulario)
+            for key in ['base', 'iva', 'importe', 'tasas']:
+                 data[key] = data[key] if data[key] is not None else ""
+                 
+            return data
+        return None
+    except sqlite3.Error as e:
+        print(f"Error de BBDD al recuperar datos por path: {e}")
+        return None
+    finally:
+        conn.close()
