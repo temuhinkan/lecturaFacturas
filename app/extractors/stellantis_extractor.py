@@ -13,8 +13,28 @@ import re
 # 🚨 EXTRACTION_MAPPING: Define la lógica de extracción.
 # 'type': 'FIXED' (Fila Fija, línea absoluta 1-based), 'VARIABLE' (Variable, relativa a un texto), o 'FIXED_VALUE' (Valor Fijo, valor constante).
 # 'segment': Posición de la palabra en la línea (1-based), o un rango (ej. "3-5").
+import database
+EXTRACTOR_KEY = "stellantis"
 
-EXTRACTION_MAPPING: Dict[str, Dict[str, Any]] = {
+EXTRACTION_MAPPING: Dict[str, Dict[str, Any]] = database.get_extractor_configuration(EXTRACTOR_KEY)
+print("EXTRACTION_MAPPING",EXTRACTION_MAPPING)
+
+EXTRACTION_MAPPING_PROCESSED = {}
+for key, value in EXTRACTION_MAPPING.items():
+    if isinstance(value, list) and len(value) > 0:
+        # Tomar el primer diccionario de la lista
+        EXTRACTION_MAPPING_PROCESSED[key] = value[0]
+    elif isinstance(value, dict):
+        # Si ya es un diccionario, usarlo directamente
+        EXTRACTION_MAPPING_PROCESSED[key] = value
+    else:
+        # Manejar otros casos o ignorar
+        EXTRACTION_MAPPING_PROCESSED[key] = None
+
+# Reemplaza el mapeo original con el procesado
+EXTRACTION_MAPPING = EXTRACTION_MAPPING_PROCESSED
+
+EXTRACTION_MAPPING1: Dict[str, Dict[str, Any]] = {
     'TIPO': {'type': 'FIXED_VALUE', 'value': 'COMPRA'},
     'FECHA':  {'type': 'VARIABLE', 'ref_text': 'Fecha:', 'offset': -1, 'segment': 1},
     'NUM_FACTURA': {'type': 'VARIABLE', 'ref_text': 'N° Factura', 'offset': -1, 'segment': 1},

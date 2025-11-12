@@ -830,7 +830,6 @@ class {class_name}(BaseInvoiceExtractor):
         text_ref_frame.grid(row=0, column=0, columnspan=2, sticky=tk.EW, pady=(0, 5))
         ttk.Label(text_ref_frame, text="Texto seleccionado:").pack(side=tk.LEFT)
         ttk.Label(text_ref_frame, textvariable=self.word_var, foreground='blue').pack(side=tk.LEFT, padx=5)
-        
         ttk.Label(text_ref_frame, text="Referencia línea:").pack(side=tk.LEFT, padx=(10, 0))
         ttk.Label(text_ref_frame, textvariable=self.line_ref_var, foreground='green').pack(side=tk.LEFT, padx=5)
         

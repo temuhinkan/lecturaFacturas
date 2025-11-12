@@ -451,3 +451,66 @@ def get_invoice_data(file_path: str) -> Optional[Dict[str, Any]]:
         return None
     finally:
         conn.close()
+
+# --- Funciones de la Base de Datos para Extractores ---
+
+def _create_extractors_table():
+    """Crea la tabla 'extractors' si no existe."""
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+    try:
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS extractors (
+                key TEXT PRIMARY KEY,
+                module_path TEXT NOT NULL
+            )
+        """)
+        conn.commit()
+    except Exception as e:
+        print(f"Error al crear la tabla 'extractors': {e}")
+    finally:
+        conn.close()
+
+def initialize_extractors_data():
+    """Inserta el mapeo inicial de extractores si la tabla está vacía."""
+    _create_extractors_table() # Asegura que la tabla existe
+
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+    try:
+        # Verificar si ya hay datos
+        cursor.execute("SELECT COUNT(*) FROM extractors")
+        if cursor.fetchone()[0] == 0:
+            print("Inicializando tabla 'extractors' con datos de configuración...")
+            data_to_insert = [(key, path) for key, path in INITIAL_EXTRACTION_MAPPING.items()]
+            cursor.executemany("INSERT INTO extractors (key, module_path) VALUES (?, ?)", data_to_insert)
+            conn.commit()
+            print("Inicialización de extractores completada.")
+    except Exception as e:
+        print(f"Error al inicializar la tabla 'extractors': {e}")
+    finally:
+        conn.close()
+
+def get_extraction_mapping() -> Dict[str, str]:
+    """Recupera el mapeo completo de extractores de la base de datos."""
+    _create_extractors_table() # Asegura la existencia en caso de llamada temprana
+    conn = sqlite3.connect(DB_NAME)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    mapping = {}
+    
+    try:
+        cursor.execute("SELECT name, class_path FROM extractors WHERE is_enabled=1")
+        rows = cursor.fetchall()
+        for row in rows:
+            mapping[row['name']] = row['class_path']
+        return mapping
+    except Exception as e:
+        print(f"Error de BBDD al obtener el mapeo de extractores: {e}")
+        return {}
+    finally:
+        conn.close()
+
+# OPCIONAL: Puede llamar a initialize_extractors_data() al final de database.py
+# para que la inicialización ocurra en el primer import del módulo.
+# initialize_extractors_data()

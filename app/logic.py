@@ -18,7 +18,10 @@ except ImportError:
     Image.MAX_IMAGE_PIXELS = 2147483647                
 
 # Importar configuración y dependencias
-from config import EXTRACTION_MAPPING, TESSERACT_CMD_PATH, ERROR_DATA, DEFAULT_VAT_RATE_STR
+# from config import EXTRACTION_MAPPING, TESSERACT_CMD_PATH, ERROR_DATA, DEFAULT_VAT_RATE_STR
+from config import TESSERACT_CMD_PATH, DEFAULT_VAT_RATE_STR # La constante EXTRACTION_MAPPING ya no se importa
+# Asegurarse de que 'import database' está presente (si no lo está, agréguelo)
+import database
 from split_pdf import split_pdf_into_single_page_files # Función de utilidad
 
 # --- Configuración de OCR (Tesseract) ---
@@ -33,6 +36,13 @@ if sys.platform == "win32" and pytesseract and TESSERACT_CMD_PATH:
 from extractors.base_invoice_extractor import BaseInvoiceExtractor
 # -------------------------------------------------------------
 
+# ----------------------------------------------------------------------
+# OBTENER MAPEO DE EXTRACTORES DE LA BBDD (Módulo Global)
+# ----------------------------------------------------------------------
+# 🚨 ESTA ES LA CLAVE: Define la variable a nivel de módulo llamando a la BBDD.
+EXTRACTION_MAPPING: Dict[str, str] = database.get_extraction_mapping()
+print(f"DEBUG FLOW: Mapeo de extractores cargado de BBDD al módulo LOGIC. {len(EXTRACTION_MAPPING)} entradas.")
+# ----------------------------------------------------------------------
 
 # ----------------------------------------------------------------------
 # FUNCIONES DE EXTRACCIÓN Y LECTURA DE DOCUMENTOS
@@ -143,7 +153,6 @@ def _load_extractor_class_dynamic(extractor_path_str: str):
 def find_extractor_for_file(file_path: str) -> Optional[str]:
     """Identifica el extractor adecuado por nombre de archivo o por CIF extraído."""
     nombre_archivo = os.path.basename(file_path).lower()
-
     # 1. Búsqueda por palabra clave en el nombre del archivo
     print("DEBUG FLOW: find_extractor_for_file: Iniciando búsqueda por palabra clave en nombre.")
     for keyword, class_path in EXTRACTION_MAPPING.items():
