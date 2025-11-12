@@ -20,6 +20,41 @@ def _clean_numeric_value(value: Any) -> Optional[float]:
 
 # --- Funciones de la Base de Datos ---
 
+def insert_default_fields():
+    """Inserta los campos obligatorios y opcionales por defecto con su tipo de dato."""
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+    
+    # [FIELD_NAME, IS_REQUIRED (1/0), DATA_TYPE, DESCRIPTION]
+    fields_data: List[Tuple[str, int, str, str]] = [
+        ('TIPO', 1, 'TEXT', 'Tipo de operación (COMPRA, VENTA)'),
+        ('FECHA', 1, 'DATE', 'Fecha de la factura'),
+        ('NUM_FACTURA', 1, 'TEXT', 'Número de factura'),
+        ('EMISOR', 1, 'TEXT', 'Nombre del emisor'),
+        ('CIF_EMISOR', 1, 'NIF/CIF', 'CIF/NIF del emisor'),
+        ('CLIENTE', 1, 'TEXT', 'Nombre del cliente (nuestra empresa)'),
+        ('CIF', 1, 'NIF/CIF', 'CIF/NIF del cliente (nuestro)'),
+        ('IMPORTE', 1, 'FLOAT', 'Importe total'),
+        ('BASE', 1, 'FLOAT', 'Base imponible'),
+        ('IVA', 1, 'FLOAT', 'Impuesto de valor añadido'),
+        ('TASAS', 1, 'FLOAT', 'Otros cargos o tasas'),
+        ('MODELO', 0, 'TEXT', 'Modelo de vehículo/producto'), # Opcional
+        ('MATRICULA', 0, 'TEXT', 'Matrícula de vehículo'),   # Opcional
+    ]
+
+    try:
+        for name, req, dtype, desc in fields_data:
+            cursor.execute("""
+                INSERT OR IGNORE INTO extraction_fields (field_name, is_required, data_type, description)
+                VALUES (?, ?, ?, ?)
+            """, (name, req, dtype, desc))
+        conn.commit()
+    except Exception as e:
+        print(f"Error al insertar campos por defecto: {e}")
+    finally:
+        conn.close()
+
+
 def setup_database():
     """
     Configura la tabla de facturas si no existe y realiza la migración de esquema 
@@ -49,19 +84,64 @@ def setup_database():
             tasas REAL,
             is_validated INTEGER,
             log_data TEXT,
-            procesado_en TEXT -- NUEVA COLUMNA
+            procesado_en TEXT -- NUEVA COLUMNA,
+            concepto TEXT
         )
     """)
     conn.commit()
     
-    # 2. Lógica de Migración (Añadir columnas faltantes si la tabla ya existía)
+    # 2. Crear la tabla de extractores
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS extractors (
+            extractor_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT UNIQUE NOT NULL,       
+            class_path TEXT NOT NULL,        
+            is_enabled INTEGER DEFAULT 1     
+        );
+    """)
+
+    # 3. Crear la tabla de definición de campos
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS extraction_fields (
+            field_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            field_name TEXT UNIQUE NOT NULL, 
+            description TEXT,                
+            data_type TEXT NOT NULL,         
+            is_required INTEGER NOT NULL DEFAULT 1 
+        );
+    """)
+    
+    # 4. Crear la tabla de configuraciones de extracción
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS extractor_configurations (
+            config_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            extractor_id INTEGER NOT NULL,    
+            field_id INTEGER NOT NULL,        
+            attempt_order INTEGER NOT NULL,
+            type TEXT NOT NULL,          
+            ref_text TEXT,               
+            offset INTEGER,              
+            segment TEXT,                
+            value TEXT,                  
+            line INTEGER,                
+            UNIQUE (extractor_id, field_id, attempt_order),
+            FOREIGN KEY (extractor_id) REFERENCES extractors(extractor_id),
+            FOREIGN KEY (field_id) REFERENCES extraction_fields(field_id)
+        );
+    """)
+
+    # 5. Insertar los campos maestros (DEBE EJECUTARSE DESPUÉS DE CREAR LA TABLA)
+    insert_default_fields()
+
+    # 6. Lógica de Migración (Añadir columnas faltantes si la tabla ya existía)
     
     # Columnas que sabemos que pudieron haber sido añadidas más tarde.
     # AÑADIDO: 'procesado_en' a la lista de columnas a revisar.
     REQUIRED_COLUMNS_TO_CHECK = {
         "tasas": "REAL",
         "log_data": "TEXT",
-        "procesado_en": "TEXT" 
+        "procesado_en": "TEXT",
+        "concepto":"TEXT" 
     }
 
     try:
@@ -84,6 +164,61 @@ def setup_database():
         
     finally:
         conn.close()
+
+def get_extractor_configuration(extractor_name: str) -> Dict[str, Any] | None:
+    """
+    Recupera la configuración de un extractor habilitado y la reconstruye en el formato de diccionario original.
+    """
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+    
+    query = """
+        SELECT 
+            ef.field_name, 
+            ec.type, ec.ref_text, ec.offset, ec.segment, ec.value, ec.line 
+        FROM extractor_configurations ec
+        JOIN extractors e ON ec.extractor_id = e.extractor_id
+        JOIN extraction_fields ef ON ec.field_id = ef.field_id
+        WHERE 
+            e.name = ? AND e.is_enabled = 1
+        ORDER BY 
+            ef.field_name, ec.attempt_order
+    """
+    
+    try:
+        cursor.execute(query, (extractor_name,))
+        rows = cursor.fetchall()
+        
+        if not rows:
+            return None 
+
+        extraction_mapping: Dict[str, List[Dict[str, Any]]] = {}
+        
+        for row in rows:
+            field_name, config_type, ref_text, offset, segment, value, line = row
+            
+            config_attempt = {'type': config_type}
+            
+            # Reconstruir el diccionario (añadiendo solo campos relevantes con valor)
+            if ref_text is not None: config_attempt['ref_text'] = ref_text
+            if offset is not None: config_attempt['offset'] = offset
+            if segment is not None: config_attempt['segment'] = segment
+            if value is not None: config_attempt['value'] = value
+            if line is not None: config_attempt['line'] = line
+            
+            if field_name not in extraction_mapping:
+                extraction_mapping[field_name] = []
+                
+            extraction_mapping[field_name].append(config_attempt)
+            
+        return extraction_mapping
+        
+    except Exception as e:
+        print(f"Error al recuperar la configuración de '{extractor_name}': {e}")
+        return None
+    finally:
+        conn.close()
+
 
 def insert_invoice_data(data: Dict[str, Any], original_path: str, is_validated: int):
     """Inserta o actualiza los datos de una factura procesada."""
@@ -108,15 +243,15 @@ def insert_invoice_data(data: Dict[str, Any], original_path: str, is_validated: 
     sql = """
         INSERT OR REPLACE INTO processed_invoices (
             path, file_name, tipo, fecha, numero_factura, emisor,cif_emisor, cliente, cif, 
-            modelo, matricula, base, iva, importe, tasas, is_validated, log_data, procesado_en
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            modelo, matricula, concepto, base, iva, importe, tasas, is_validated, log_data, procesado_en
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """
     
     # AÑADIDO: 'procesado_en' a la lista de valores.
     values = (
         normalized_path, file_name, data.get('Tipo'), data.get('Fecha'), 
         data.get('Número de Factura'), data.get('Emisor'), data.get('CIF Emisor'), data.get('Cliente'), 
-        data.get('CIF'), data.get('Modelo'), data.get('Matricula'), 
+        data.get('CIF'), data.get('Modelo'), data.get('Matricula'),  data.get('Concepto'),
         base, iva, importe, tasas, is_validated, data.get('DebugLines'), procesado_en
     )
     try:
@@ -155,7 +290,7 @@ def fetch_all_invoices_OK() -> List[Dict[str, Any]]:
     cursor = conn.cursor()
     
     try:
-        cursor.execute("SELECT  path, file_name, tipo, fecha, numero_factura, emisor,cif_emisor, cliente, cif, modelo, matricula, base, iva, importe, tasas, is_validated, procesado_en FROM processed_invoices Where is_validated=1 ORDER BY file_name ASC")
+        cursor.execute("SELECT  path, file_name, tipo, fecha, numero_factura, emisor,cif_emisor, cliente, cif, modelo, matricula, concepto, base, iva, importe, tasas, is_validated, procesado_en FROM processed_invoices Where is_validated=1 ORDER BY file_name ASC")
         rows = cursor.fetchall()
         # Convertir Rows a lista de diccionarios
         invoices = [dict(row) for row in rows]
@@ -187,7 +322,7 @@ def update_invoice_field(file_path: str, field_name: str, new_value: Any) -> int
     try:
         # Se mantiene la lista de validación de columnas (es buena práctica)
         valid_cols = ['file_name', 'tipo', 'fecha', 'numero_factura', 'emisor', 'cif_emisor', 
-                      'cliente', 'cif', 'modelo', 'matricula', 'base', 'iva', 
+                      'cliente', 'cif', 'modelo', 'matricula', 'concepto', 'base', 'iva', 
                       'importe', 'tasas', 'is_validated', 'log_data', 'procesado_en']
         
         if field_name not in valid_cols:

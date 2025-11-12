@@ -1,3 +1,4 @@
+
 import os
 import csv
 import sys
@@ -25,10 +26,10 @@ except ImportError:
 # Asegúrese de que estos módulos existen en su entorno
 import database 
 import logic
-from config import DEFAULT_VAT_RATE_STR, DEFAULT_VAT_RATE
+from config import TESSERACT_CMD_PATH, DEFAULT_VAT_RATE_STR, DEFAULT_VAT_RATE
 from logic import extraer_datos
 # update_invoice_field ahora funciona correctamente
-from database import fetch_all_invoices, delete_invoice_data, insert_invoice_data, update_invoice_field, delete_entire_database_schema, fetch_all_invoices_OK, is_invoice_processed
+from database import fetch_all_invoices, delete_invoice_data, insert_invoice_data, update_invoice_field, delete_entire_database_schema, is_invoice_processed
 # Se asume que 'utils' existe y contiene 'calculate_total_and_vat'
 from utils import calculate_total_and_vat 
 
@@ -72,7 +73,7 @@ class InvoiceApp:
 
         self.setup_gui()
         self.load_data_to_tree()
-        self.processFile: List[str] = []
+        
         self.master.after(50, self._initial_sash_position)
 
     # ------------------------------------------------------------------
@@ -194,7 +195,7 @@ class InvoiceApp:
         # Marco de Botones
         button_frame = ttk.Frame(table_panel)
         button_frame.pack(side='top', fill='x', pady=5)
-        # -------------------------------------------------------------
+        
         # 1. Botones de Selección
         select_frame = ttk.LabelFrame(button_frame, text="1. Seleccionar Ficheros/Carpeta", padding="5")
         select_frame.pack(side='left', padx=(0, 5))
@@ -204,38 +205,32 @@ class InvoiceApp:
         # 2. Botón y Opciones de Procesamiento
         process_options_frame = ttk.LabelFrame(button_frame, text="2. Opciones de Procesamiento", padding="5")
         process_options_frame.pack(side='left', padx=10)
-
+        
         # Checkboxes
         check_frame = ttk.Frame(process_options_frame)
         check_frame.pack(side='top', fill='x')
         ttk.Checkbutton(check_frame, text="Forzar Re-proceso", variable=self.reprocess_var).pack(side='left', padx=5)
         ttk.Checkbutton(check_frame, text="Modo Debug", variable=self.debug_var).pack(side='left', padx=5)
-
+        
         # Botón de Procesar
         self.process_button = ttk.Button(process_options_frame, text="Procesar (0 archivos)", command=self.process_selected_files)
         self.process_button.pack(side='top', fill='x', pady=5)
+        
+        # 3. Botones de Operación y Validar (a la derecha)
+        op_frame = ttk.LabelFrame(button_frame, text="3. Operaciones", padding="5")
+        op_frame.pack(side='right', padx=(5, 0))
 
-        # --- Contenedor para apilar 3 y 4 a la derecha ---
-        # Este nuevo frame irá a la derecha de todo lo anterior.
-        right_stack_frame = ttk.Frame(button_frame)
-        right_stack_frame.pack(side='left', padx=(5, 0))
-
-        # 3. Botones de Acciones (arriba a la derecha)
-        op_frame1 = ttk.LabelFrame(right_stack_frame, text="3. Acciones", padding="5")
-        op_frame1.pack(side='top', fill='x', pady=(0, 5)) # Empaquetado arriba en el nuevo contenedor
-        ttk.Button(op_frame1, text="Exportar a CSV", command=self.export_to_csv).pack(side='left', padx=5, pady=5)
-        ttk.Button(op_frame1, text="Generador Extractor", command=self.launch_extractor_generator).pack(side='left', padx=5, pady=5)
-
-        # 4. Botones de Operación y Validar (debajo del 3)
-        op_frame = ttk.LabelFrame(right_stack_frame, text="4. Operaciones", padding="5")
-        op_frame.pack(side='top', fill='x') # Empaquetado debajo del 3 en el nuevo contenedor
-
-        # --- CONTENIDO DEL FRAME 4 ---
+        # --- NUEVO BOTÓN DE RECARGA ---
         ttk.Button(op_frame, text="🔄 Recargar BBDD", command=self.reload_database).pack(side='left', padx=5, pady=5) 
-        ttk.Button(op_frame, text="Limpiar BBDD", command=self.confirm_clear_database).pack(side='left', padx=5, pady=5)
-        ttk.Button(op_frame, text="Eliminar", command=self.delete_selected_invoices).pack(side='left', padx=5, pady=5)
+        # -----------------------------
+        
         ttk.Button(op_frame, text="Validar", command=self.validate_invoice).pack(side='left', padx=5, pady=5)
-        # -------------------------------------------------------------
+        ttk.Button(op_frame, text="Exportar a CSV", command=self.export_to_csv).pack(side='left', padx=5, pady=5)
+        ttk.Button(op_frame, text="Eliminar", command=self.delete_selected_invoices).pack(side='left', padx=5, pady=5)
+        ttk.Button(op_frame, text="Limpiar BBDD", command=self.confirm_clear_database).pack(side='left', padx=5, pady=5)
+        ttk.Button(op_frame, text="Generador Extractor", command=self.launch_extractor_generator).pack(side='left', padx=5, pady=5)
+        
+
         # Marco de la Tabla (Treeview)
         tree_frame = ttk.Frame(table_panel)
         tree_frame.pack(side='top', fill='both', expand=True)
@@ -262,6 +257,7 @@ class InvoiceApp:
         self.tree.heading("is_validated", text="Validada", anchor="center")
         
         self.tree.column("path", width=0, stretch=tk.NO) 
+        self.tree.column("tasas", width=0, stretch=tk.NO) 
         self.tree.column("file_name", width=150, anchor="w")
         self.tree.column("base", width=80, anchor="e")
         self.tree.column("importe", width=80, anchor="e")
@@ -521,12 +517,15 @@ class InvoiceApp:
 
         for i, file_path in enumerate(file_paths):
             self.update_log_display(f"[{i+1}/{len(file_paths)}] Procesando: {os.path.basename(file_path)}...")
+
             if not force_reprocess and is_invoice_processed(file_path): 
                 self.update_log_display("  -> Ya procesado. Saltando.")
                 continue
 
             extraction_result = extraer_datos(file_path, debug_mode=debug_mode) 
-            print("tamaño",len(extraction_result))
+
+            if len(extraction_result) == 13:
+                print("tamaño",len(extraction_result))
             if len(extraction_result) == 14:
                 data_tuple, log_data = extraction_result[:-1], extraction_result[-1]
 
@@ -541,15 +540,13 @@ class InvoiceApp:
             try:
                 insert_invoice_data(data_dict, original_path=file_path, is_validated=0) 
                 self.update_log_display(f"  -> Datos de factura guardados/actualizados: {data_dict.get('Número de Factura', 'N/A')}")
-                print("add path",self.processFile)
-                self.processFile.append(file_path)
                 total_processed += 1
             except Exception as e:
                 self.update_log_display(f"  -> ERROR al guardar en BBDD: {e}")
 
         self.update_log_display(f"--- Procesamiento finalizado. {total_processed} archivos procesados/re-procesados. ---")
         self.load_data_to_tree()
-        self.launch_extractor_generatorProcesed()
+        
         self.files_to_process = []
         self._update_process_buttons_text()
 
@@ -635,6 +632,7 @@ class InvoiceApp:
         column_id = self.tree.identify_column(event.x)
         column_index = int(column_id.replace('#', '')) - 1
 
+        TREE_COLUMNS = ("path", "file_name", "tipo", "fecha", "numero_factura", "emisor", "cid_emisor", "cliente", "cif", "modelo", "matricula", "base", "iva", "importe", "is_validated", "tasas")
         TREE_COLUMNS = ("path", "file_name", "tipo", "fecha", "numero_factura", "emisor", "cif_emisor", "cliente", "cif", "modelo", "matricula", "base", "iva", "importe", "is_validated", "tasas")
         if column_index < 0 or column_index >= len(TREE_COLUMNS): return
         db_column_name = TREE_COLUMNS[column_index]
@@ -812,46 +810,6 @@ class InvoiceApp:
         try:
             subprocess.Popen(comando)
             messagebox.showinfo("Llamada Exitosa", "Se ha lanzado el programa 'extractor_generator_gui.py'.")
-        except Exception as e:
-            messagebox.showerror("Error de Ejecución", f"No se pudo ejecutar 'extractor_generator_gui.py'.\nError: {e}")
-
-    def launch_extractor_generatorProcesed(self):
-        import sqlite3 # Necesario para sqlite3.connect y Row
-        conn = sqlite3.connect(database.DB_NAME)
-        conn.row_factory = sqlite3.Row
-        cursor = conn.cursor()
-        print("self.processFile:",self.processFile)
-        cursor.execute("SELECT * FROM processed_invoices WHERE path = ?", (self.processFile[0],))
-        row = cursor.fetchone()
-        conn.close()
-        if not row:
-            messagebox.showerror("Error", "No se encontraron datos completos para la fila seleccionada.")
-            return
-
-        nombre_base_archivo = os.path.splitext(row['file_name'])[0]
-        comando = [
-            sys.executable,
-            'extractor_generator_gui.py',
-            str(row['path']),              # 1
-            str(nombre_base_archivo),      # 2 (Extractor Name Suggestion)
-            str(row['log_data'] or ""),    # 3 (Debug Lines)
-            str(row['tipo'] or ""),        # 4
-            str(row['fecha'] or ""),       # 5
-            str(row['numero_factura'] or ""), # 6
-            str(row['emisor'] or ""),      # 7
-            str(row['cif_emisor'] or ""),  # 8
-            str(row['cliente'] or ""),     # 9
-            str(row['cif'] or ""),         # 10
-            str(row['modelo'] or ""),      # 11
-            str(row['matricula'] or ""),   # 12
-            str(row['base'] if row['base'] is not None else ""), # 13
-            str(row['iva'] if row['iva'] is not None else ""),   # 14
-            str(row['importe'] if row['importe'] is not None else ""), # 15
-            str(row['tasas'] if row['tasas'] is not None else "")  # 16
-        ]
-
-        try:
-            subprocess.Popen(comando)
         except Exception as e:
             messagebox.showerror("Error de Ejecución", f"No se pudo ejecutar 'extractor_generator_gui.py'.\nError: {e}")
 

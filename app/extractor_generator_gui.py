@@ -159,10 +159,11 @@ class InvoiceApp:
         ("CIF Cliente", "cif", 10),
         ("Modelo", "modelo", 11),
         ("Matrícula", "matricula", 12),
-        ("Base Imponible", "base", 13),
-        ("IVA", "iva", 14),
-        ("Importe Total", "importe", 15),
-        ("Tasas", "tasas", 16)
+        ("Concepto", "concepto", 13),
+        ("Base Imponible", "base", 14),
+        ("IVA", "iva", 15),
+        ("Importe Total", "importe", 16),
+        ("Tasas", "tasas", 17)
     ]
     
     def __init__(self, master):
