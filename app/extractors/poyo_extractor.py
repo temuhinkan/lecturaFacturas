@@ -6,24 +6,26 @@ import re
 # 'type': 'FIXED' (Fila Fija, línea absoluta 1-based), 'VARIABLE' (Variable, relativa a un texto), o 'FIXED_VALUE' (Valor Fijo, valor constante).
 # 'segment': Posición de la palabra en la línea (1-based), o un rango (ej. "3-5").
 
-EXTRACTION_MAPPING: Dict[str, Dict[str, Any]] = {
-    'TIPO': {'type': 'FIXED_VALUE', 'value': 'COMPRA'},
-    # CORREGIDO: Line 9 (Fecha:) -> Line 7 (08/04/2025). Offset -2
-    'FECHA':  {'type': 'VARIABLE', 'ref_text': 'Fecha:', 'offset': -2, 'segment': 1},
-    # CORRECTO: Line 16 (Factura nº:) -> Line 6 (F00489/2025). Offset -10
-    'NUM_FACTURA': {'type': 'VARIABLE', 'ref_text': 'Factura nº:', 'offset': -10, 'segment': 1},
-    'EMISOR': {'type': 'FIXED_VALUE', 'value': 'PEDRO GARRIDO RODRÍGUEZ'},
-    'CIF_EMISOR': {'type': 'FIXED_VALUE', 'value': '75.388.055-N'},
-    'CLIENTE': {'type': 'FIXED_VALUE', 'value': 'NEWSATELITE SL'},
-    'CIF': {'type': 'FIXED_VALUE', 'value': 'B85629020'},
-    # Lógica VARIABLE para los totales (AJUSTADA AL LOG):
-    # BASE: Line 27 (BASE IMPONIBLE) -> Line 29 (30,00€). Offset +2
-    'BASE': {'type': 'VARIABLE', 'ref_text': 'BASE IMPONIBLE', 'offset': +2, 'segment': 1},
-    # IVA: Line 34 (IVA (21,00%)) -> Line 35 (6,30€). Usamos 'IVA (' para evitar coincidir con otra línea de 'IVA'. Offset +1
-    'IVA': {'type': 'VARIABLE', 'ref_text': 'IVA (', 'offset': +1, 'segment': 1},
-    # IMPORTE: Line 28 (TOTAL) -> Line 31 (36,30€). Offset +3
-    'IMPORTE': {'type': 'VARIABLE', 'ref_text': 'BASE IMPONIBLE', 'offset': +4, 'segment': 1},
-}
+import database
+EXTRACTOR_KEY = "poyo"
+
+EXTRACTION_MAPPING: Dict[str, Dict[str, Any]] = database.get_extractor_configuration(EXTRACTOR_KEY)
+print("EXTRACTION_MAPPING",EXTRACTION_MAPPING)
+
+EXTRACTION_MAPPING_PROCESSED = {}
+for key, value in EXTRACTION_MAPPING.items():
+    if isinstance(value, list) and len(value) > 0:
+        # Tomar el primer diccionario de la lista
+        EXTRACTION_MAPPING_PROCESSED[key] = value[0]
+    elif isinstance(value, dict):
+        # Si ya es un diccionario, usarlo directamente
+        EXTRACTION_MAPPING_PROCESSED[key] = value
+    else:
+        # Manejar otros casos o ignorar
+        EXTRACTION_MAPPING_PROCESSED[key] = None
+
+# Reemplaza el mapeo original con el procesado
+EXTRACTION_MAPPING = EXTRACTION_MAPPING_PROCESSED
 
 class PoyoExtractor:
     

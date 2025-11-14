@@ -186,10 +186,6 @@ class InvoiceApp:
         self.photo_image: Optional[ImageTk.PhotoImage] = None # type: ignore
         self.image_display: Optional[int] = None
         
-        # 🟢 CORRECCIÓN CLAVE: Inicializar el zoom y la rotación.
-        self.zoom_level = 1.0             # Nivel de zoom inicial (1.0 = 100%)
-        self.rotation = 0                 # Ángulo de rotación inicial (0°)
-
         # ESTADOS PARA SELECCIÓN DE TEXTO DE ÁREA (Original)
         self.selected_word: Optional[str] = None 
         self.selected_line_content: Optional[str] = None 
@@ -961,108 +957,39 @@ class {class_name}(BaseInvoiceExtractor):
 
 
 
-    # El código que sigue es la implementación de _display_page
     def _display_page(self):
-        """Renderiza y muestra la página del documento actual en el canvas."""
+        # ... (código existente) ...
         
-        # Asegurarse de que el documento esté cargado y el visor esté disponible
-        if not self.doc or not VIEWER_AVAILABLE:
-            return 
-
-        # --- 1. Limpiar el canvas y resetear el estado ---
-        self.canvas.delete(tk.ALL)
-        
-        # 🟢 CORRECCIÓN 1: Resetea la referencia de la imagen. 
-        # Esto previene el TclError al intentar actualizar un objeto borrado, 
-        # solucionando el problema del giro y el bloqueo de navegación.
-        self.image_display = None 
-        
+        # 2. Obtener la página y el pixmap
         try:
-            # --- 2. Preparación de la página y transformación ---
             page = self.doc[self.page_num]
+        except IndexError:
+            # ... (código existente) ...
+            return
+
+        # Renderizar la página como un pixmap (imagen de píxeles)
+        pix = page.get_pixmap(matrix=mat)
+        
+        # 🚨 MODIFICACIÓN CLAVE: Aplicar la rotación a la imagen
+        try:
+            img_bytes = pix.tobytes("ppm")
+            image = Image.open(io.BytesIO(img_bytes))
             
-            # 🟢 CORRECCIÓN 2 ASUMIDA: self.zoom_level y self.rotation 
-            # deben estar inicializadas en self.__init__ (ej: 1.0 y 0).
-            zoom_matrix = fitz.Matrix(self.zoom_level, self.zoom_level)
-            
-            # Creamos una matriz base y aplicamos la rotación (post-multiplicando el giro).
-            rotation_matrix = fitz.Matrix(1, 1).prerotate(self.rotation)
-            
-            # 🟢 CORRECCIÓN 3: Usar .premultiply() en lugar del operador @.
-            # Esto soluciona el error 'unsupported operand type(s) for @'.
-            matrix = zoom_matrix.premultiply(rotation_matrix)
-            
-            # Obtener el Pixmap (bitmap) con la transformación aplicada
-            pix = page.get_pixmap(matrix=matrix, alpha=False)
-            
-            # --- 3. Conversión a imagen Tkinter ---
-            # Convertir PyMuPDF Pixmap a PIL Image (formato 'ppm' es eficiente y directo)
-            img_data = pix.tobytes("ppm")
-            image = Image.open(io.BytesIO(img_data))
-            
-            # Convertir PIL Image a Tkinter PhotoImage. 
-            # Se debe guardar la referencia en una variable de instancia (self.tk_photo) 
-            # para evitar que Python la borre (garbage collection).
-            self.tk_photo = ImageTk.PhotoImage(image)
-            
-            # --- 4. Mostrar en el Canvas ---
-            # Obtener dimensiones del canvas para centrar la imagen
-            canvas_width = self.canvas.winfo_width()
-            canvas_height = self.canvas.winfo_height()
-            
-            x = canvas_width // 2
-            y = canvas_height // 2
-            
-            # Dibujar la imagen
-            self.image_display = self.canvas.create_image(
-                x, y, 
-                image=self.tk_photo, 
-                anchor=tk.CENTER
-            )
-            
-            # Ajustar la región de desplazamiento del canvas (scrollregion)
-            # Esto permite que las barras de desplazamiento se ajusten al tamaño de la imagen.
+            # Aplicar la rotación basada en self.rotation_angle
+            if self.rotation_angle != 0:
+                # El método rotate(angle) de PIL gira en sentido contrario a las agujas del reloj
+                # Por lo tanto, si self.rotation_angle es 90 (rotación CW), giramos -90
+                # O simplemente usamos el ángulo para el giro.
+                image = image.rotate(-self.rotation_angle, expand=True) # expand=True asegura que la imagen rotada no se corte
+
+            self.tk_image = ImageTk.PhotoImage(image=image)
+            self.canvas.create_image(0, 0, image=self.tk_image, anchor=tk.NW)
             self.canvas.config(scrollregion=self.canvas.bbox(tk.ALL))
-            
+
         except Exception as e:
-            # Manejo de errores de última instancia
-            print(f"Error al renderizar la página {self.page_num}: {e}")
-            self.canvas.create_text(
-                self.canvas.winfo_width() // 2, 
-                self.canvas.winfo_height() // 2, 
-                text=f"Error al mostrar la página: {e}", 
-                fill="red"
-            )
+            # ... (código existente) ...
+            return
             
-        # Asumiendo que esta función existe para mantener actualizada la UI
-        self._update_page_label()
-
-    def _update_page_label(self):
-        """Actualiza la etiqueta de la página actual y el total de páginas, y la posición de la factura."""
-        
-        # Lógica para la paginación del documento PDF
-        if hasattr(self, 'doc') and self.doc:
-            num_pages = len(self.doc)
-            # fitz/PyMuPDF usa índice base 0, la visualización debe ser base 1.
-            current_page_display = self.page_num + 1 
-        else:
-            num_pages = 0
-            current_page_display = 0
-
-        # Actualizar la etiqueta de página si existe (asumiendo que se llama self.page_label)
-        if hasattr(self, 'page_label'):
-            self.page_label.config(text=f"Página {current_page_display} de {num_pages}")
-        
-        # Lógica para la navegación de facturas (opcional, pero incluido para completar la funcionalidad)
-        if hasattr(self, 'invoices_list') and hasattr(self, 'current_invoice_index'):
-            total_invoices = len(self.invoices_list)
-            # La lista de facturas es base 0, la visualización debe ser base 1.
-            current_invoice_display = self.current_invoice_index + 1 if total_invoices > 0 else 0
-            
-            # Actualizar la etiqueta de posición de la factura si existe
-            if hasattr(self, 'invoice_position_label'):
-                self.invoice_position_label.config(text=f"Factura {current_invoice_display} de {total_invoices}")
-
     def _open_document(self, path: str):
         # [Cuerpo de _open_document - Mantenido]
         if not path or not VIEWER_AVAILABLE: return

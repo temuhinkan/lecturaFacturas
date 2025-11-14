@@ -15,18 +15,27 @@ import re
 # 'type': 'FIXED' (Fila Fija, línea absoluta 1-based), 'VARIABLE' (Variable, relativa a un texto), o 'FIXED_VALUE' (Valor Fijo, valor constante).
 # 'segment': Posición de la palabra en la línea (1-based), o un rango (ej. "3-5").
 
-EXTRACTION_MAPPING: Dict[str, Dict[str, Any]] = {
-    'TIPO': {'type': 'FIXED_VALUE', 'value': 'Venta'},
-    'FECHA': {'type': 'FIXED', 'segment': 1, 'line': 8},
-    'EMISOR': {'type': 'FIXED_VALUE', 'value': 'New Satélite, S.L.'},
-    'CLIENTE': {'type': 'FIXED', 'segment': 1, 'line': 11},
-    'CIF': {'type': 'FIXED_VALUE', 'value': 'B85629020'},
-    'MODELO': {'type': 'FIXED', 'segment': 1, 'line': 22},
-    'MATRICULA': {'type': 'FIXED', 'segment': 1, 'line': 25},
-    'BASE': {'type': 'FIXED', 'segment': 2, 'line': 28},
-    'IMPORTE': {'type': 'FIXED', 'segment': 3, 'line': 30},
+from app.extractors.base_invoice_extractor import BaseInvoiceExtractor
+import database
+EXTRACTOR_KEY = "newsatelite"
 
-}
+EXTRACTION_MAPPING: Dict[str, Dict[str, Any]] = database.get_extractor_configuration(EXTRACTOR_KEY)
+print("EXTRACTION_MAPPING",EXTRACTION_MAPPING)
+
+EXTRACTION_MAPPING_PROCESSED = {}
+for key, value in EXTRACTION_MAPPING.items():
+    if isinstance(value, list) and len(value) > 0:
+        # Tomar el primer diccionario de la lista
+        EXTRACTION_MAPPING_PROCESSED[key] = value[0]
+    elif isinstance(value, dict):
+        # Si ya es un diccionario, usarlo directamente
+        EXTRACTION_MAPPING_PROCESSED[key] = value
+    else:
+        # Manejar otros casos o ignorar
+        EXTRACTION_MAPPING_PROCESSED[key] = None
+
+# Reemplaza el mapeo original con el procesado
+EXTRACTION_MAPPING = EXTRACTION_MAPPING_PROCESSED
 
 class GeneratedExtractor(BaseInvoiceExtractor):
     

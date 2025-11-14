@@ -1468,13 +1468,13 @@ INSERT INTO extractor_configurations VALUES (NULL, 20, 3, 7, 'VARIABLE', 'N%FACT
 INSERT INTO extractor_configurations VALUES (NULL, 20, 3, 8, 'VARIABLE', 'NOFACTURA', 0, '2', NULL, NULL);
 
 -- ------------------------------
--- 8. CAMPO: MATRICULA (ID: 12) - VARIABLE (5 intentos)
+-- 8. CAMPO: MATRICULA (ID: 13) - VARIABLE (5 intentos)
 -- ------------------------------
-INSERT INTO extractor_configurations VALUES (NULL, 20, 12, 1, 'VARIABLE', 'Matrícula', 6, '1', NULL, NULL);
-INSERT INTO extractor_configurations VALUES (NULL, 20, 12, 2, 'VARIABLE', 'Matrícula', -3, '1', NULL, NULL);
-INSERT INTO extractor_configurations VALUES (NULL, 20, 12, 3, 'VARIABLE', 'Matrícula', 9, '1', NULL, NULL);
-INSERT INTO extractor_configurations VALUES (NULL, 20, 12, 4, 'VARIABLE', 'Matrícula', 0, '2', NULL, NULL);
-INSERT INTO extractor_configurations VALUES (NULL, 20, 12, 5, 'VARIABLE', 'Matrícula', 0, '2-3', NULL, NULL);
+INSERT INTO extractor_configurations VALUES (NULL, 20, 13, 1, 'VARIABLE', 'Matrícula', 6, '1', NULL, NULL);
+INSERT INTO extractor_configurations VALUES (NULL, 20, 13, 2, 'VARIABLE', 'Matrícula', -3, '1', NULL, NULL);
+INSERT INTO extractor_configurations VALUES (NULL, 20, 13, 3, 'VARIABLE', 'Matrícula', 9, '1', NULL, NULL);
+INSERT INTO extractor_configurations VALUES (NULL, 20, 13, 4, 'VARIABLE', 'Matrícula', 0, '2', NULL, NULL);
+INSERT INTO extractor_configurations VALUES (NULL, 20, 13, 5, 'VARIABLE', 'Matrícula', 0, '2-3', NULL, NULL);
 
 -- ------------------------------
 -- 9. CAMPO: BASE (ID: 9) - VARIABLE (13 intentos)
@@ -1567,18 +1567,18 @@ INSERT INTO extractor_configurations VALUES (NULL, 21, 2, 1, 'VARIABLE', 'Fecha'
 INSERT INTO extractor_configurations VALUES (NULL, 21, 3, 1, 'VARIABLE', 'Factura / Serie', 19, '1', NULL, NULL);
 
 -- ------------------------------
--- 8. CAMPO: MODELO (ID: 11) - VARIABLE
+-- 8. CAMPO: MODELO (ID: 12) - VARIABLE
 -- Config: {'type': 'VARIABLE', 'ref_text': 'MODELO', 'offset': +22, 'segment': 1}
 -- ------------------------------
-INSERT INTO extractor_configurations VALUES (NULL, 21, 11, 1, 'VARIABLE', 'MODELO', 22, '1', NULL, NULL);
+INSERT INTO extractor_configurations VALUES (NULL, 21, 12, 1, 'VARIABLE', 'MODELO', 22, '1', NULL, NULL);
 
 -- ------------------------------
--- 9. CAMPO: MATRICULA (ID: 12) - VARIABLE (4 intentos)
+-- 9. CAMPO: MATRICULA (ID: 13) - VARIABLE (4 intentos)
 -- ------------------------------
-INSERT INTO extractor_configurations VALUES (NULL, 21, 12, 1, 'VARIABLE', 'Matrícula:', 33, '1', NULL, NULL);
-INSERT INTO extractor_configurations VALUES (NULL, 21, 12, 2, 'VARIABLE', 'Matrícula:', 38, '1', NULL, NULL);
-INSERT INTO extractor_configurations VALUES (NULL, 21, 12, 3, 'VARIABLE', 'Matrícula:', 37, '1', NULL, NULL);
-INSERT INTO extractor_configurations VALUES (NULL, 21, 12, 4, 'VARIABLE', 'Matrícula:', 34, '1', NULL, NULL);
+INSERT INTO extractor_configurations VALUES (NULL, 21, 13, 1, 'VARIABLE', 'Matrícula:', 33, '1', NULL, NULL);
+INSERT INTO extractor_configurations VALUES (NULL, 21, 13, 2, 'VARIABLE', 'Matrícula:', 38, '1', NULL, NULL);
+INSERT INTO extractor_configurations VALUES (NULL, 21, 13, 3, 'VARIABLE', 'Matrícula:', 37, '1', NULL, NULL);
+INSERT INTO extractor_configurations VALUES (NULL, 21, 13, 4, 'VARIABLE', 'Matrícula:', 34, '1', NULL, NULL);
 
 -- ------------------------------
 -- 10. CAMPO: BASE (ID: 9) - VARIABLE
@@ -1704,16 +1704,16 @@ INSERT INTO extractor_configurations VALUES (NULL, 23, 2, 1, 'VARIABLE', 'FECHA 
 INSERT INTO extractor_configurations VALUES (NULL, 23, 3, 1, 'VARIABLE', 'FACTURA Nº', 2, '1-2', NULL, NULL);
 
 -- ------------------------------
--- 8. CAMPO: MODELO (ID: 11) - VARIABLE
+-- 8. CAMPO: MODELO (ID: 12) - VARIABLE
 -- Config: {'type': 'VARIABLE', 'ref_text': 'MODELO', 'offset': +7, 'segment': 1}
 -- ------------------------------
-INSERT INTO extractor_configurations VALUES (NULL, 23, 11, 1, 'VARIABLE', 'MODELO', 7, '1', NULL, NULL);
+INSERT INTO extractor_configurations VALUES (NULL, 23, 12, 1, 'VARIABLE', 'MODELO', 7, '1', NULL, NULL);
 
 -- ------------------------------
--- 9. CAMPO: MATRICULA (ID: 12) - VARIABLE
+-- 9. CAMPO: MATRICULA (ID: 13) - VARIABLE
 -- Config: {'type': 'VARIABLE', 'ref_text': 'MATRÍCULA', 'offset': +7, 'segment': 1}
 -- ------------------------------
-INSERT INTO extractor_configurations VALUES (NULL, 23, 12, 1, 'VARIABLE', 'MATRÍCULA', 7, '1', NULL, NULL);
+INSERT INTO extractor_configurations VALUES (NULL, 23, 13, 1, 'VARIABLE', 'MATRÍCULA', 7, '1', NULL, NULL);
 
 -- ------------------------------
 -- 10. CAMPO: BASE (ID: 9) - VARIABLE
@@ -1777,16 +1777,16 @@ INSERT INTO extractor_configurations VALUES (NULL, 24, 2, 1, 'VARIABLE', 'FECHA 
 INSERT INTO extractor_configurations VALUES (NULL, 24, 3, 1, 'VARIABLE', 'FACTURA Nº', 2, '1-2', NULL, NULL);
 
 -- ------------------------------
--- 8. CAMPO: MODELO (ID: 11) - VARIABLE
+-- 8. CAMPO: MODELO (ID: 12) - VARIABLE
 -- Config: {'type': 'VARIABLE', 'ref_text': 'MODELO', 'offset': +7, 'segment': 1}
 -- ------------------------------
-INSERT INTO extractor_configurations VALUES (NULL, 24, 11, 1, 'VARIABLE', 'MODELO', 7, '1', NULL, NULL);
+INSERT INTO extractor_configurations VALUES (NULL, 24, 12, 1, 'VARIABLE', 'MODELO', 7, '1', NULL, NULL);
 
 -- ------------------------------
--- 9. CAMPO: MATRICULA (ID: 12) - VARIABLE
+-- 9. CAMPO: MATRICULA (ID: 13) - VARIABLE
 -- Config: {'type': 'VARIABLE', 'ref_text': 'MATRÍCULA', 'offset': +7, 'segment': 1}
 -- ------------------------------
-INSERT INTO extractor_configurations VALUES (NULL, 24, 12, 1, 'VARIABLE', 'MATRÍCULA', 7, '1', NULL, NULL);
+INSERT INTO extractor_configurations VALUES (NULL, 24, 13, 1, 'VARIABLE', 'MATRÍCULA', 7, '1', NULL, NULL);
 
 -- ------------------------------
 -- 10. CAMPO: BASE (ID: 9) - VARIABLE
@@ -1850,16 +1850,16 @@ INSERT INTO extractor_configurations VALUES (NULL, 25, 2, 2, 'VARIABLE', 'Fecha:
 INSERT INTO extractor_configurations VALUES (NULL, 25, 3, 1, 'VARIABLE', 'Número', 1, '1', NULL, NULL);
 
 -- ------------------------------
--- 8. CAMPO: MODELO (ID: 11) - VARIABLE (2 intentos, usando VARIABLE para VARIABLE_ALL)
+-- 8. CAMPO: MODELO (ID: 12) - VARIABLE (2 intentos, usando VARIABLE para VARIABLE_ALL)
 -- ------------------------------
-INSERT INTO extractor_configurations VALUES (NULL, 25, 11, 1, 'VARIABLE', 'Marca/Modelo', 0, '2-99', NULL, NULL);
-INSERT INTO extractor_configurations VALUES (NULL, 25, 11, 2, 'VARIABLE', 'Modelo', 1, '1', NULL, NULL);
+INSERT INTO extractor_configurations VALUES (NULL, 25, 12, 1, 'VARIABLE', 'Marca/Modelo', 0, '2-99', NULL, NULL);
+INSERT INTO extractor_configurations VALUES (NULL, 25, 12, 2, 'VARIABLE', 'Modelo', 1, '1', NULL, NULL);
 
 -- ------------------------------
--- 9. CAMPO: MATRICULA (ID: 12) - VARIABLE (2 intentos, usando VARIABLE para VARIABLE_ALL)
+-- 9. CAMPO: MATRICULA (ID: 13) - VARIABLE (2 intentos, usando VARIABLE para VARIABLE_ALL)
 -- ------------------------------
-INSERT INTO extractor_configurations VALUES (NULL, 25, 12, 1, 'VARIABLE', 'Matrícula', 0, '2', NULL, NULL);
-INSERT INTO extractor_configurations VALUES (NULL, 25, 12, 2, 'VARIABLE', 'Matrícula', 1, '1', NULL, NULL);
+INSERT INTO extractor_configurations VALUES (NULL, 25, 13, 1, 'VARIABLE', 'Matrícula', 0, '2', NULL, NULL);
+INSERT INTO extractor_configurations VALUES (NULL, 25, 13, 2, 'VARIABLE', 'Matrícula', 1, '1', NULL, NULL);
 
 -- ------------------------------
 -- 10. CAMPO: BASE (ID: 9) - VARIABLE
@@ -1990,16 +1990,16 @@ INSERT INTO extractor_configurations VALUES (NULL, 27, 2, 1, 'VARIABLE', 'FECHA'
 INSERT INTO extractor_configurations VALUES (NULL, 27, 3, 1, 'VARIABLE', 'FACTURA Nº', 6, '1', NULL, NULL);
 
 -- ------------------------------
--- 8. CAMPO: MODELO (ID: 11) - VARIABLE
+-- 8. CAMPO: MODELO (ID: 12) - VARIABLE
 -- Config: {'type': 'VARIABLE', 'ref_text': 'Modelo:', 'offset': -4, 'segment': 1}
 -- ------------------------------
-INSERT INTO extractor_configurations VALUES (NULL, 27, 11, 1, 'VARIABLE', 'Modelo:', -4, '1', NULL, NULL);
+INSERT INTO extractor_configurations VALUES (NULL, 27, 12, 1, 'VARIABLE', 'Modelo:', -4, '1', NULL, NULL);
 
 -- ------------------------------
--- 9. CAMPO: MATRICULA (ID: 12) - VARIABLE
+-- 9. CAMPO: MATRICULA (ID: 1132) - VARIABLE
 -- Config: {'type': 'VARIABLE', 'ref_text': 'Matrícula:', 'offset': -4, 'segment': 1}
 -- ------------------------------
-INSERT INTO extractor_configurations VALUES (NULL, 27, 12, 1, 'VARIABLE', 'Matrícula:', -4, '1', NULL, NULL);
+INSERT INTO extractor_configurations VALUES (NULL, 27, 13, 1, 'VARIABLE', 'Matrícula:', -4, '1', NULL, NULL);
 
 -- ------------------------------
 -- 10. CAMPO: BASE (ID: 9) - VARIABLE
@@ -2369,16 +2369,16 @@ INSERT INTO extractor_configurations VALUES (NULL, 33, 2, 1, 'VARIABLE', 'Fecha'
 INSERT INTO extractor_configurations VALUES (NULL, 33, 3, 1, 'VARIABLE', 'Nº Factura', 1, '2', NULL, NULL);
 
 -- ------------------------------
--- 8. CAMPO: MODELO (ID: 11) - VARIABLE
+-- 8. CAMPO: MODELO (ID: 12) - VARIABLE
 -- Config: {'type': 'VARIABLE', 'ref_text': 'Modelo', 'offset': +1, 'segment': 2}
 -- ------------------------------
-INSERT INTO extractor_configurations VALUES (NULL, 33, 11, 1, 'VARIABLE', 'Modelo', 1, '2', NULL, NULL);
+INSERT INTO extractor_configurations VALUES (NULL, 33, 12, 1, 'VARIABLE', 'Modelo', 1, '2', NULL, NULL);
 
 -- ------------------------------
--- 9. CAMPO: MATRICULA (ID: 12) - VARIABLE
+-- 9. CAMPO: MATRICULA (ID: 13) - VARIABLE
 -- Config: {'type': 'VARIABLE', 'ref_text': 'Matrícula', 'offset': +1, 'segment': 2}
 -- ------------------------------
-INSERT INTO extractor_configurations VALUES (NULL, 33, 12, 1, 'VARIABLE', 'Matrícula', 1, '2', NULL, NULL);
+INSERT INTO extractor_configurations VALUES (NULL, 33, 13, 1, 'VARIABLE', 'Matrícula', 1, '2', NULL, NULL);
 
 -- ------------------------------
 -- 10. CAMPO: BASE (ID: 9) - VARIABLE
@@ -2621,7 +2621,7 @@ INSERT INTO extractor_configurations VALUES (NULL, 37, 7, 1, 'FIXED_VALUE', NULL
 -- ------------------------------
 INSERT INTO extractor_configurations VALUES (NULL, 37, 8, 1, 'VARIABLE', '€', 0, '1', NULL, NULL);
 
--- Nota: FECHA (ID: 2), NUM_FACTURA (ID: 3), BASE (ID: 9), IVA (ID: 10), MODELO (ID: 11), y MATRICULA (ID: 12)
+-- Nota: FECHA (ID: 2), NUM_FACTURA (ID: 3), BASE (ID: 9), IVA (ID: 10), MODELO (ID: 12), y MATRICULA (ID: 13)
 -- no tienen entradas en la tabla de configuración ya que fueron omitidos/comentados en el EXTRACTION_MAPPING.
 
 -- ----------------------------------------------------------------------------------
@@ -2917,16 +2917,16 @@ INSERT INTO extractor_configurations VALUES (NULL, 42, 6, 5, 'VARIABLE', 'Nombre
 INSERT INTO extractor_configurations VALUES (NULL, 42, 7, 1, 'VARIABLE', 'DETALLE FACTURA', -1, '1', NULL, NULL);
 
 -- ------------------------------
--- 8. CAMPO: MODELO (ID: 11) - VARIABLE
+-- 8. CAMPO: MODELO (ID: 12) - VARIABLE
 -- Config: {'type': 'VARIABLE', 'ref_text': 'MODELO', 'offset': +1, 'segment': 1}
 -- ------------------------------
-INSERT INTO extractor_configurations VALUES (NULL, 42, 11, 1, 'VARIABLE', 'MODELO', 1, '1', NULL, NULL);
+INSERT INTO extractor_configurations VALUES (NULL, 42, 12, 1, 'VARIABLE', 'MODELO', 1, '1', NULL, NULL);
 
 -- ------------------------------
--- 9. CAMPO: MATRICULA (ID: 12) - VARIABLE
+-- 9. CAMPO: MATRICULA (ID: 13) - VARIABLE
 -- Config: {'type': 'VARIABLE', 'ref_text': 'MATRICULA', 'offset': +1, 'segment': 1}
 -- ------------------------------
-INSERT INTO extractor_configurations VALUES (NULL, 42, 12, 1, 'VARIABLE', 'MATRICULA', 1, '1', NULL, NULL);
+INSERT INTO extractor_configurations VALUES (NULL, 42, 13, 1, 'VARIABLE', 'MATRICULA', 1, '1', NULL, NULL);
 
 -- ------------------------------
 -- 10. CAMPO: BASE (ID: 9) - VARIABLE

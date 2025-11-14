@@ -1,7 +1,13 @@
 import sqlite3
 import os
-from typing import Any, List, Dict, Optional
+from typing import Any, List, Dict, Optional, Tuple
 from datetime import datetime # AÑADIDO: Necesario para obtener la fecha/hora de inserción
+
+# --- Definición de Excepción Personalizada ---
+class DuplicateInvoiceError(Exception):
+    """Excepción lanzada cuando se intenta insertar una factura duplicada."""
+    pass
+# ---------------------------------------------
 
 DB_NAME = "facturas.db"
 
@@ -85,7 +91,8 @@ def setup_database():
             is_validated INTEGER,
             log_data TEXT,
             procesado_en TEXT -- NUEVA COLUMNA,
-            concepto TEXT
+            concepto TEXT,
+            exportado TEXT       
         )
     """)
     conn.commit()
@@ -141,7 +148,8 @@ def setup_database():
         "tasas": "REAL",
         "log_data": "TEXT",
         "procesado_en": "TEXT",
-        "concepto":"TEXT" 
+        "concepto":"TEXT" ,
+        "exportado":"TEXT" 
     }
 
     try:
@@ -219,16 +227,111 @@ def get_extractor_configuration(extractor_name: str) -> Dict[str, Any] | None:
     finally:
         conn.close()
 
+def check_duplicate_invoice(numero_factura: str, cif_emisor: str, exclude_path: Optional[str] = None) -> List[Dict[str, Any]]:
+    """
+    Verifica si una factura con el mismo número y CIF emisor ya existe en processed_invoices,
+    excluyendo opcionalmente la factura actual por su path.
+    
+    Args:
+        numero_factura: El número de factura a buscar.
+        cif_emisor: El CIF o NIF del emisor a buscar.
+        exclude_path: Si se proporciona, excluye el registro con este 'path' de la búsqueda.
+        
+    Returns:
+        Una lista de diccionarios, donde cada diccionario representa una fila 
+        encontrada (factura duplicada). La lista estará vacía si no se encuentran duplicados.
+    """
+    conn = sqlite3.connect(DB_NAME)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    results = []
+    
+    # ⚠️ MODIFICACIÓN: Construir la consulta y parámetros de forma dinámica
+    sql = "SELECT * FROM processed_invoices WHERE cif_emisor=? AND numero_factura=?"
+    params: List[Any] = [cif_emisor, numero_factura]
+    
+    if exclude_path:
+        sql += " AND path != ?"
+        params.append(exclude_path)
+    
+    try:
+        # Ejecutar la consulta con los parámetros de forma segura
+        cursor.execute(sql, tuple(params))
+        rows = cursor.fetchall()
+        
+        # Convertir las filas sqlite3.Row a diccionarios
+        results = [dict(row) for row in rows]
+        
+    except sqlite3.Error as e:
+        print(f"Error de BBDD al verificar factura duplicada: {e}")
+        
+    finally:
+        conn.close()
+    print('results',results)   
+    return results
+
+def check_procesatedFiles_invoice(normalized_path: str) -> List[Dict[str, Any]]:
+    """
+    Verifica si una factura con el mismo número y CIF emisor ya existe en processed_invoices.
+    
+    Args:
+        numero_factura: El número de factura a buscar.
+        cif_emisor: El CIF o NIF del emisor a buscar.
+        
+    Returns:
+        Una lista de diccionarios, donde cada diccionario representa una fila 
+        encontrada (factura duplicada). La lista estará vacía si no se encuentran duplicados.
+    """
+    conn = sqlite3.connect(DB_NAME)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    results = []
+    
+    sql = "SELECT * FROM processed_invoices WHERE path=? "
+    
+    try:
+        # Ejecutar la consulta con los parámetros de forma segura
+        cursor.execute(sql, (normalized_path))
+        rows = cursor.fetchall()
+        
+        # Convertir las filas sqlite3.Row a diccionarios
+        results = [dict(row) for row in rows]
+        
+    except sqlite3.Error as e:
+        print(f"Error de BBDD al fichero procesado duplicada: {e}")
+        # En caso de error (ej. tabla no existe), se devuelve una lista vacía.
+        
+    finally:
+        conn.close()
+    print('results',results)   
+    return results
+
+
 
 def insert_invoice_data(data: Dict[str, Any], original_path: str, is_validated: int):
     """Inserta o actualiza los datos de una factura procesada."""
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
-    
+    print("data ",data)
+    print("--------------------------------------------")
+    numero_factura = data.get('Número de Factura', '').strip()
+    cif_emisor = data.get('CIF Emisor', '').strip()
+    print ('cif_emisor ', cif_emisor, ' numero_factura ', numero_factura)
     # ⚠️ MODIFICACIÓN: NORMALIZAR LA RUTA
     # Reemplazamos todas las barras invertidas de Windows por barras normales (/)
     # Esto asegura que la clave primaria 'path' sea siempre consistente.
     normalized_path = original_path.replace('\\', '/')
+ 
+    # 🚨 LÓGICA CORREGIDA: Se chequea si hay un duplicado en OTRAS facturas.
+    if numero_factura and cif_emisor:
+        # Se pasa 'normalized_path' al chequeo para que la factura actual NO se considere duplicado.
+        # Se elimina la llamada redundante a 'check_procesatedFiles_invoice'.
+        if check_duplicate_invoice(numero_factura, cif_emisor, normalized_path): # MODIFICACIÓN CLAVE
+            # Si check_duplicate_invoice devuelve resultados, lanzamos la excepción
+            raise DuplicateInvoiceError( # type: ignore
+                f"La factura con N° '{numero_factura}' y CIF '{cif_emisor}' ya existe en OTRA factura."
+            )
+   
     # 1. Limpieza de datos
     file_name = data.get('Archivo', os.path.basename(normalized_path))
     base = _clean_numeric_value(data.get('Base'))
@@ -246,7 +349,8 @@ def insert_invoice_data(data: Dict[str, Any], original_path: str, is_validated: 
             modelo, matricula, concepto, base, iva, importe, tasas, is_validated, log_data, procesado_en
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """
-    
+    #validaccion de factura comprobamos en si ya esta insertada una factura cion cif de emisor y numero de factura 
+
     # AÑADIDO: 'procesado_en' a la lista de valores.
     values = (
         normalized_path, file_name, data.get('Tipo'), data.get('Fecha'), 
@@ -272,7 +376,25 @@ def fetch_all_invoices() -> List[Dict[str, Any]]:
     
     try:
         # La consulta ahora funcionará porque la columna 'procesado_en' existe
-        cursor.execute("SELECT * FROM processed_invoices ORDER BY procesado_en DESC")
+        cursor.execute("SELECT * FROM processed_invoices  where exportado IS NULL ORDER BY procesado_en DESC")
+        rows = cursor.fetchall()
+        # Convertir Rows a lista de diccionarios
+        invoices = [dict(row) for row in rows]
+        return invoices
+    except sqlite3.Error as e:
+        print(f"Error de BBDD al recuperar datos: {e}")
+        return []
+    finally:
+        conn.close()
+def fetch_all_invoices_exported() -> List[Dict[str, Any]]:
+    """Recupera todos los registros de facturas."""
+    conn = sqlite3.connect(DB_NAME)
+    conn.row_factory = sqlite3.Row # Permite acceder a las columnas por nombre
+    cursor = conn.cursor()
+    
+    try:
+        # La consulta ahora funcionará porque la columna 'procesado_en' existe
+        cursor.execute("SELECT * FROM processed_invoices  where exportado IS NOT NULL ORDER BY procesado_en DESC")
         rows = cursor.fetchall()
         # Convertir Rows a lista de diccionarios
         invoices = [dict(row) for row in rows]
@@ -290,7 +412,7 @@ def fetch_all_invoices_OK() -> List[Dict[str, Any]]:
     cursor = conn.cursor()
     
     try:
-        cursor.execute("SELECT  path, file_name, tipo, fecha, numero_factura, emisor,cif_emisor, cliente, cif, modelo, matricula, concepto, base, iva, importe, tasas, is_validated, procesado_en FROM processed_invoices Where is_validated=1 ORDER BY file_name ASC")
+        cursor.execute("SELECT  path, file_name, tipo, fecha, numero_factura, emisor,cif_emisor, cliente, cif, modelo, matricula, concepto, base, iva, importe, tasas, is_validated, procesado_en FROM processed_invoices Where is_validated=1  ORDER BY file_name ASC")
         rows = cursor.fetchall()
         # Convertir Rows a lista de diccionarios
         invoices = [dict(row) for row in rows]
@@ -300,7 +422,7 @@ def fetch_all_invoices_OK() -> List[Dict[str, Any]]:
         return []
     finally:
         conn.close()
-
+        
 def update_invoice_field(file_path: str, field_name: str, new_value: Any) -> int:
     """
     Actualiza un campo específico de una factura en la BBDD.
@@ -482,7 +604,7 @@ def initialize_extractors_data():
         cursor.execute("SELECT COUNT(*) FROM extractors")
         if cursor.fetchone()[0] == 0:
             print("Inicializando tabla 'extractors' con datos de configuración...")
-            data_to_insert = [(key, path) for key, path in INITIAL_EXTRACTION_MAPPING.items()]
+            data_to_insert = [(key, path) for key, path in INITIAL_EXTRACTION_MAPPING.items()] # type: ignore
             cursor.executemany("INSERT INTO extractors (key, module_path) VALUES (?, ?)", data_to_insert)
             conn.commit()
             print("Inicialización de extractores completada.")
@@ -508,6 +630,37 @@ def get_extraction_mapping() -> Dict[str, str]:
     except Exception as e:
         print(f"Error de BBDD al obtener el mapeo de extractores: {e}")
         return {}
+    finally:
+        conn.close()
+
+def update_invoices_exported_status(file_paths: List[str], export_timestamp: str) -> int:
+    """
+    Actualiza el campo 'exportado' para una lista de rutas de archivo con la fecha/hora actual.
+    Returns: El número de filas afectadas.
+    """
+    if not file_paths: return 0
+    
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+    
+    # Normalizar las rutas antes de usarlas en la consulta
+    normalized_paths = [path.replace('\\', '/') for path in file_paths]
+    
+    placeholders = ', '.join('?' * len(normalized_paths))
+    
+    # La lista de valores de la tupla: primero el timestamp, luego las rutas.
+    values = (export_timestamp,) + tuple(normalized_paths) 
+    
+    sql = f"UPDATE processed_invoices SET exportado = ? WHERE path IN ({placeholders})"
+    
+    try:
+        cursor.execute(sql, values)
+        conn.commit()
+        return cursor.rowcount
+    except sqlite3.Error as e:
+        print(f"Error de BBDD al actualizar estado de exportación: {e}")
+        conn.rollback()
+        return 0
     finally:
         conn.close()
 

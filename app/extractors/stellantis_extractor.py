@@ -34,24 +34,6 @@ for key, value in EXTRACTION_MAPPING.items():
 # Reemplaza el mapeo original con el procesado
 EXTRACTION_MAPPING = EXTRACTION_MAPPING_PROCESSED
 
-EXTRACTION_MAPPING1: Dict[str, Dict[str, Any]] = {
-    'TIPO': {'type': 'FIXED_VALUE', 'value': 'COMPRA'},
-    'FECHA':  {'type': 'VARIABLE', 'ref_text': 'Fecha:', 'offset': -1, 'segment': 1},
-    'NUM_FACTURA': {'type': 'VARIABLE', 'ref_text': 'N° Factura', 'offset': -1, 'segment': 1},
-    'EMISOR': {'type': 'FIXED_VALUE', 'value': 'Placas de Piezas y Componentes de Recambio, S. A. U'},
-    'CIF_EMISOR': {'type': 'FIXED_VALUE', 'value': 'A87527800'},
-    'CLIENTE': {'type': 'FIXED_VALUE', 'value': 'NEWSATELITE S.L'},
-    'CIF': {'type': 'FIXED_VALUE', 'value': 'B85629020'},
-    #'MODELO': {'type': 'VARIABLE', 'ref_text': 'Matrícula', 'offset': +1, 'segment': 2},
-    #'MATRICULA': {'type': 'VARIABLE', 'ref_text': 'Modelo', 'offset': +1, 'segment': 2},
-    # Lógica VARIABLE compatible para los totales:
-    # BASE: 8 líneas arriba de 'Base Imponible'
-    'BASE': {'type': 'VARIABLE', 'ref_text': 'Total sin IVA', 'offset': -5, 'segment': 1},
-    # IVA: 9 líneas arriba de 'Base Imponible'
-    'IVA': {'type': 'VARIABLE', 'ref_text': 'Total sin IVA', 'offset': -8, 'segment': 1},
-    # IMPORTE: 10 líneas arriba de 'Base Imponible'
-    'IMPORTE': {'type': 'VARIABLE', 'ref_text': 'Total Bruto', 'offset': +5, 'segment': 1},
-}
 
 # 🚨 CORRECCIÓN CRÍTICA: Renombrar la clase a PincheteExtractor
 # Asumimos que hereda de BaseInvoiceExtractor

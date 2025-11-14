@@ -1,6 +1,7 @@
 
 import os
 import csv
+import sqlite3
 import sys
 import subprocess
 import tkinter as tk
@@ -29,9 +30,10 @@ import logic
 from config import TESSERACT_CMD_PATH, DEFAULT_VAT_RATE_STR, DEFAULT_VAT_RATE
 from logic import extraer_datos
 # update_invoice_field ahora funciona correctamente
-from database import fetch_all_invoices, delete_invoice_data, insert_invoice_data, update_invoice_field, delete_entire_database_schema, is_invoice_processed
+# 🚨 CORRECCIÓN: Se añade DuplicateInvoiceError a las importaciones
+from database import fetch_all_invoices, delete_invoice_data, fetch_all_invoices_OK, fetch_all_invoices_exported, insert_invoice_data, update_invoice_field, delete_entire_database_schema, is_invoice_processed, DuplicateInvoiceError 
 # Se asume que 'utils' existe y contiene 'calculate_total_and_vat'
-from utils import calculate_total_and_vat 
+from utils import calculate_total_and_vat  
 
 # 🚨 Llamar a la función de inicialización de la BBDD al inicio
 # Esto creará la tabla 'extractors' si no existe y la llenará con los datos
@@ -234,7 +236,7 @@ class InvoiceApp:
         op_frame1 = ttk.LabelFrame(right_stack_frame, text="3. Acciones", padding="5")
         op_frame1.pack(side='top', fill='x', pady=(0, 5)) # Empaquetado arriba en el nuevo contenedor
         ttk.Button(op_frame1, text="Exportar a CSV", command=self.export_to_csv).pack(side='left', padx=5, pady=5)
-        ttk.Button(op_frame1, text="Generador Extractor", command=self.launch_extractor_generator).pack(side='left', padx=5, pady=5)
+        ttk.Button(op_frame1, text="Editor de facturas", command=self.launch_extractor_generator).pack(side='left', padx=5, pady=5)
 
         # 4. Botones de Operación y Validar (debajo del 3)
         op_frame = ttk.LabelFrame(right_stack_frame, text="4. Operaciones", padding="5")
@@ -242,6 +244,7 @@ class InvoiceApp:
 
         # --- CONTENIDO DEL FRAME 4 ---
         ttk.Button(op_frame, text="🔄 Recargar BBDD", command=self.reload_database).pack(side='left', padx=5, pady=5) 
+        ttk.Button(op_frame, text="🔄 Ver Exportados", command=self.reload_database_exported).pack(side='left', padx=5, pady=5) 
         ttk.Button(op_frame, text="Limpiar BBDD", command=self.confirm_clear_database).pack(side='left', padx=5, pady=5)
         ttk.Button(op_frame, text="Eliminar", command=self.delete_selected_invoices).pack(side='left', padx=5, pady=5)
         ttk.Button(op_frame, text="Validar", command=self.validate_invoice).pack(side='left', padx=5, pady=5)
@@ -558,8 +561,18 @@ class InvoiceApp:
                 self.update_log_display(f"  -> Datos de factura guardados/actualizados: {data_dict.get('Número de Factura', 'N/A')}")
                 self.filesProcess.append(file_path)
                 total_processed += 1
+            except DuplicateInvoiceError as e: # type: ignore
+            # 🚨 ERROR CONTROLADO: Muestra el popup de duplicado.
+                messagebox.showerror("Error de Inserción", f"¡La factura es un duplicado!\n\n{str(e)}")
+                continue
+            except sqlite3.Error as e:
+            # Otros errores de BBDD
+                messagebox.showerror("Error de Base de Datos", f"Fallo al insertar la factura: {e}")
+        
             except Exception as e:
-                self.update_log_display(f"  -> ERROR al guardar en BBDD: {e}")
+            # Cualquier otro error inesperado
+                messagebox.showerror("Error Inesperado", f"Ocurrió un error al procesar la factura: {e}")
+
 
         self.update_log_display(f"--- Procesamiento finalizado. {total_processed} archivos procesados/re-procesados. ---")
         self.load_data_to_tree()
@@ -575,6 +588,12 @@ class InvoiceApp:
     def reload_database(self):
         """Recarga los datos de la BBDD y actualiza el Treeview."""
         self.load_data_to_tree()
+        self.update_log_display("Base de datos recargada. La tabla ha sido actualizada.", clear=True)
+        messagebox.showinfo("Recarga Completa", "Los datos de la base de datos han sido recargados y la tabla ha sido actualizada.")
+
+    def reload_database_exported(self):
+        """Recarga los datos de la BBDD y actualiza el Treeview."""
+        self.load_data_to_tree_exported()
         self.update_log_display("Base de datos recargada. La tabla ha sido actualizada.", clear=True)
         messagebox.showinfo("Recarga Completa", "Los datos de la base de datos han sido recargados y la tabla ha sido actualizada.")
     
@@ -598,6 +617,39 @@ class InvoiceApp:
 
         try:
             invoices = fetch_all_invoices()
+            for inv in invoices:
+                values = (
+                    inv.get('path'),
+                    inv.get('file_name'),
+                    inv.get('tipo'),
+                    inv.get('fecha'),
+                    inv.get('numero_factura'),
+                    inv.get('emisor'),
+                    inv.get('cif_emisor'),
+                    inv.get('cliente'),
+                    inv.get('cif'),
+                    inv.get('modelo'),
+                    inv.get('matricula'),
+                    f"{self.safe_float(inv.get('base')):.2f}".replace('.', ','),
+                    f"{self.safe_float(inv.get('iva')):.2f}".replace('.', ','),
+                    f"{self.safe_float(inv.get('importe')):.2f}".replace('.', ','),
+                    "✅" if inv.get('is_validated') == 1 else "❌",
+                    f"{self.safe_float(inv.get('tasas')):.2f}".replace('.', ','),
+                )
+                tag = 'validated' if inv.get('is_validated') == 1 else 'unvalidated'
+                self.tree.insert('', tk.END, values=values, tags=(tag,))
+
+        except Exception as e:
+            messagebox.showerror("Error de BBDD", f"Fallo al cargar datos de la base de datos: {e}")
+
+    def load_data_to_tree_exported(self):
+        """Carga los datos de la BBDD al Treeview."""
+        # Limpiar tabla
+        for i in self.tree.get_children():
+            self.tree.delete(i)
+
+        try:
+            invoices = fetch_all_invoices_exported()
             for inv in invoices:
                 values = (
                     inv.get('path'),
@@ -751,15 +803,38 @@ class InvoiceApp:
                 messagebox.showinfo("Exportación", "No hay datos para exportar.")
                 return
 
-            fieldnames = list(invoices[0].keys())
+            # Lista para guardar los paths de las facturas que se van a exportar
+            exported_paths = []
+            
+            # Obtener los nombres de los campos para el encabezado del CSV
+            # Eliminamos 'exportado' de los campos que vamos a escribir al CSV para
+            # evitar duplicidad o problemas si se quiere añadir después, pero lo incluimos
+            # si realmente quieres verlo en el CSV. Aquí lo mantendremos para simplicidad.
+            fieldnames = list(invoices[0].keys()) 
 
             with open(output_file, 'w', newline='', encoding='utf-8') as csvfile:
                 writer = csv.DictWriter(csvfile, fieldnames=fieldnames, delimiter=';') 
                 writer.writeheader()
                 writer.writerows(invoices)
+                
+                # Recorremos la lista de facturas para obtener los paths
+                for inv in invoices:
+                    exported_paths.append(inv.get('path'))
 
-            messagebox.showinfo("Exportación Exitosa", f"Datos exportados a: {output_file}")
+            # --- PARTE CLAVE: ACTUALIZAR EL ESTADO EN LA BBDD ---
+            from datetime import datetime
+            # Usar el formato ISO para consistencia con 'procesado_en'
+            export_timestamp = datetime.now().isoformat() 
+            
+            # Llamamos a la nueva función para actualizar el campo 'exportado'
+            rows_updated = database.update_invoices_exported_status(exported_paths, export_timestamp) 
+            
+            # Recargar la tabla para mostrar el nuevo estado 'exportado' si es visible
+            self.load_data_to_tree() 
+            # -----------------------------------------------------
 
+            messagebox.showinfo("Exportación Exitosa", f"Datos exportados a: {output_file}\n{rows_updated} registros actualizados en BBDD.")
+        
         except Exception as e:
             messagebox.showerror("Error de Exportación", f"Fallo al exportar a CSV: {e}")
 
@@ -831,7 +906,9 @@ class InvoiceApp:
             messagebox.showerror("Error de Ejecución", f"No se pudo ejecutar 'extractor_generator_gui.py'.\nError: {e}")
 
     def launch_extractor_generatorProcesed(self):
-        
+        if not self.filesProcess:
+            # Si la lista está vacía, no hay nada que procesar. Salir de la función.
+            return
         import sqlite3 # Necesario para sqlite3.connect y Row
         conn = sqlite3.connect(database.DB_NAME)
         conn.row_factory = sqlite3.Row

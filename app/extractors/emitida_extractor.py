@@ -14,29 +14,26 @@ import re
 # 'type': 'FIXED' (Fila Fija, línea absoluta 1-based), 'VARIABLE' (Variable, relativa a un texto), o 'FIXED_VALUE' (Valor Fijo, valor constante).
 # 'segment': Posición de la palabra en la línea (1-based), o un rango (ej. "3-5").
 
-EXTRACTION_MAPPING: Dict[str, Dict[str, Any]] = {
-    'TIPO': {'type': 'FIXED_VALUE', 'value': 'VENTA'},
-    'FECHA':  {'type': 'VARIABLE', 'ref_text': 'FECHA', 'offset': +1, 'segment': 1},
-    'NUM_FACTURA':  {'type': 'VARIABLE', 'ref_text': 'FACTURA', 'offset': +1, 'segment': 1},
-    'EMISOR': {'type': 'FIXED_VALUE', 'value': 'NEWSATELITE S.L'},
-    'CIF_EMISOR': {'type': 'FIXED_VALUE', 'value': 'B85629020'},
-    'CLIENTE': [{'type': 'VARIABLE', 'ref_text': 'Nombre:', 'offset': +1, 'segment': "1-5"},
-                {'type': 'VARIABLE', 'ref_text': 'Nombre:', 'offset': +1, 'segment': "1-4"},
-                {'type': 'VARIABLE', 'ref_text': 'Nombre:', 'offset': +1, 'segment': "1-3"},
-                {'type': 'VARIABLE', 'ref_text': 'Nombre:', 'offset': +1, 'segment': "1-2"},
-                {'type': 'VARIABLE', 'ref_text': 'Nombre:', 'offset': +1, 'segment': 1}
-               ],
-    'CIF': {'type': 'VARIABLE', 'ref_text': 'DETALLE FACTURA', 'offset': -1, 'segment': 1},
-    'MODELO': {'type': 'VARIABLE', 'ref_text': 'MODELO', 'offset': +1, 'segment': 1},
-    'MATRICULA': {'type': 'VARIABLE', 'ref_text': 'MATRICULA', 'offset': +1, 'segment': 1},
-    # Lógica VARIABLE compatible para los totales:
-    # BASE: 8 líneas arriba de 'Base Imponible'
-    'BASE': {'type': 'VARIABLE', 'ref_text': 'Base', 'offset': 0, 'segment': 2},
-    # IVA: 9 líneas arriba de 'Base Imponible'
-    'IVA': {'type': 'VARIABLE', 'ref_text': 'Iva 21%', 'offset': 0, 'segment': 3},
-    # IMPORTE: 10 líneas arriba de 'Base Imponible'
-    'IMPORTE': {'type': 'VARIABLE', 'ref_text': 'TOTAL A PAGAR', 'offset': 0, 'segment': 4},
-}
+import database
+EXTRACTOR_KEY = "emitida"
+
+EXTRACTION_MAPPING: Dict[str, Dict[str, Any]] = database.get_extractor_configuration(EXTRACTOR_KEY)
+print("EXTRACTION_MAPPING",EXTRACTION_MAPPING)
+
+EXTRACTION_MAPPING_PROCESSED = {}
+for key, value in EXTRACTION_MAPPING.items():
+    if isinstance(value, list) and len(value) > 0:
+        # Tomar el primer diccionario de la lista
+        EXTRACTION_MAPPING_PROCESSED[key] = value[0]
+    elif isinstance(value, dict):
+        # Si ya es un diccionario, usarlo directamente
+        EXTRACTION_MAPPING_PROCESSED[key] = value
+    else:
+        # Manejar otros casos o ignorar
+        EXTRACTION_MAPPING_PROCESSED[key] = None
+
+# Reemplaza el mapeo original con el procesado
+EXTRACTION_MAPPING = EXTRACTION_MAPPING_PROCESSED
 
 # 🚨 CORRECCIÓN CRÍTICA: Renombrar la clase a EmitidaExtractor
 # Asumimos que hereda de BaseInvoiceExtractor

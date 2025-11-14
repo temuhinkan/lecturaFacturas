@@ -3,49 +3,34 @@
 import re
 from typing import Tuple, List, Optional, Any, Dict
 
+from utils import extract_and_format_date
+
 # Se asume que estos imports están disponibles o se manejan en el entorno
 # from utils import _clean_and_convert_float 
 
 # --- Mapeo Genérico para Fallback ---
-BASE_EXTRACTION_MAPPING: Dict[str, Any] = {
-    'TIPO': {'type': 'FIXED_VALUE', 'value': 'COMPRA'},
-    'FECHA': [
-        {'type': 'VARIABLE', 'ref_text': 'Fecha', 'offset': 0, 'segment': 2},
-        {'type': 'VARIABLE', 'ref_text': 'Fecha de venta', 'offset': 1, 'segment': 1},
-        {'type': 'VARIABLE', 'ref_text': 'Fecha:', 'offset': 1, 'segment': 1},
-        {'type': 'VARIABLE', 'ref_text': 'Data/Hora', 'offset': 1, 'segment': 1},
-        {'type': 'VARIABLE', 'ref_text': 'edido', 'offset': 0, 'segment': 4},
-        {'type': 'FIXED', 'line': 1, 'segment': '2-99'}
-    ],
-    'NUM_FACTURA': [{'type': 'VARIABLE', 'ref_text': 'FACTURA', 'offset': 0, 'segment': 2},
-                    {'type': 'VARIABLE', 'ref_text': '[FACTURA', 'offset': 1, 'segment': 1}],
+import database
+EXTRACTOR_KEY = "base"
 
-    'EMISOR': [{'type': 'VARIABLE', 'ref_text': '"NIF:', 'offset': 0, 'segment': 2},
-               {'type': 'VARIABLE', 'ref_text': 'NIF', 'offset': 1, 'segment': "2-4"},
-              {'type': 'FIXED_VALUE', 'value': 'Emisor Desconocido'}] ,
-    'CIF_EMISOR': {'type': 'VARIABLE', 'ref_text': 'CIF', 'offset': 0, 'segment': 2},
-    'CLIENTE': {'type': 'FIXED_VALUE', 'value': 'NEWSATELITE S.L'},
-    'CIF': {'type': 'FIXED_VALUE', 'value': 'B85629020'},
-    'MODELO': {'type': 'VARIABLE', 'ref_text': 'Modelo', 'offset': 0, 'segment': 2},
-    'MATRICULA': {'type': 'VARIABLE', 'ref_text': 'Matrícula', 'offset': 0, 'segment': 2},
-    # Importes (se busca 'TOTAL' como valor genérico de prueba)
-    'IMPORTE': [{'type': 'VARIABLE', 'ref_text': 'TOTAL', 'offset': 0, 'segment': 2},
-                {'type': 'VARIABLE', 'ref_text': 'TOTAL', 'offset': 2, 'segment': 2},
-                {'type': 'VARIABLE', 'ref_text': 'Total', 'offset': 1, 'segment': 1},
-                {'type': 'VARIABLE', 'ref_text': 'Importe total EUR', 'offset': 1, 'segment': 1}],
-    # Valores por defecto para fallback si la búsqueda falla
-    'BASE': [{'type': 'VARIABLE', 'ref_text': 'BASE', 'offset': 0, 'segment': 2},
-             {'type': 'VARIABLE', 'ref_text': 'EXT', 'offset': -1, 'segment': 1},
-             {'type': 'VARIABLE', 'ref_text': 'TOTAL', 'offset': 0, 'segment': 3},
-             {'type': 'VARIABLE', 'ref_text': 'Subtotal', 'offset': 1, 'segment': 1},
-             {'type': 'VARIABLE', 'ref_text': 'Valor neto EUR', 'offset': 2, 'segment': 1}],
+EXTRACTION_MAPPING: Dict[str, Dict[str, Any]] = database.get_extractor_configuration(EXTRACTOR_KEY)
+print("EXTRACTION_MAPPING",EXTRACTION_MAPPING)
 
-    'IVA': [{'type': 'VARIABLE', 'ref_text': 'IVA', 'offset': 0, 'segment': 2},
-            {'type': 'VARIABLE', 'ref_text': 'TOTAL', 'offset': 1, 'segment': 1},
-            {'type': 'VARIABLE', 'ref_text': 'IVA', 'offset': 1, 'segment': 1},
-            {'type': 'VARIABLE', 'ref_text': 'IVA', 'offset': 3, 'segment': 1}],
-    'TASAS': {'type': 'VARIABLE', 'ref_text': 'SUPLIDOS', 'offset': 0, 'segment': 2},
-}
+EXTRACTION_MAPPING_PROCESSED = {}
+for key, value in EXTRACTION_MAPPING.items():
+    if isinstance(value, list) and len(value) > 0:
+        # Tomar el primer diccionario de la lista
+        EXTRACTION_MAPPING_PROCESSED[key] = value[0]
+    elif isinstance(value, dict):
+        # Si ya es un diccionario, usarlo directamente
+        EXTRACTION_MAPPING_PROCESSED[key] = value
+    else:
+        # Manejar otros casos o ignorar
+        EXTRACTION_MAPPING_PROCESSED[key] = None
+
+# Reemplaza el mapeo original con el procesado
+BASE_EXTRACTION_MAPPING = EXTRACTION_MAPPING_PROCESSED
+
+
 
 class BaseInvoiceExtractor:
     """

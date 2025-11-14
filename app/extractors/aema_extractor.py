@@ -6,6 +6,27 @@ import re
 # 🚨 EXTRACTION_MAPPING: Define la lógica de extracción.
 # 'VARIABLE_ALL': (NUEVO TIPO) Busca todas las coincidencias y concatena.
 # Se usan LISTAS para manejar múltiples formatos (intentos).
+import database
+EXTRACTOR_KEY = "aema"
+
+EXTRACTION_MAPPING: Dict[str, Dict[str, Any]] = database.get_extractor_configuration(EXTRACTOR_KEY)
+print("EXTRACTION_MAPPING",EXTRACTION_MAPPING)
+
+EXTRACTION_MAPPING_PROCESSED = {}
+for key, value in EXTRACTION_MAPPING.items():
+    if isinstance(value, list) and len(value) > 0:
+        # Tomar el primer diccionario de la lista
+        EXTRACTION_MAPPING_PROCESSED[key] = value[0]
+    elif isinstance(value, dict):
+        # Si ya es un diccionario, usarlo directamente
+        EXTRACTION_MAPPING_PROCESSED[key] = value
+    else:
+        # Manejar otros casos o ignorar
+        EXTRACTION_MAPPING_PROCESSED[key] = None
+
+# Reemplaza el mapeo original con el procesado
+EXTRACTION_MAPPING = EXTRACTION_MAPPING_PROCESSED
+
 
 EXTRACTION_MAPPING: Dict[str, Any] = {
     'TIPO': {'type': 'FIXED_VALUE', 'value': 'COMPRA'},

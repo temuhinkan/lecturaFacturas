@@ -13,25 +13,27 @@ import re
 # 🚨 EXTRACTION_MAPPING: Define la lógica de extracción.
 # 'type': 'FIXED' (Fila Fija, línea absoluta 1-based), 'VARIABLE' (Variable, relativa a un texto), o 'FIXED_VALUE' (Valor Fijo, valor constante).
 # 'segment': Posición de la palabra en la línea (1-based), o un rango (ej. "3-5").
+import database
+EXTRACTOR_KEY = "autodescuento"
 
-    EXTRACTION_MAPPING: Dict[str, Dict[str, Any]] = {
-        'TIPO': {'type': 'FIXED_VALUE', 'value': 'COMPRA'},
-        'FECHA':  {'type': 'VARIABLE', 'ref_text': 'Fecha', 'offset': +2, 'segment': 1},
-        'NUM_FACTURA':  {'type': 'VARIABLE', 'ref_text': 'Número', 'offset': +4, 'segment': 1},
-        'EMISOR': {'type': 'FIXED_VALUE', 'value': 'AUTODESCUENTO SL'},
-        'CIF_EMISOR': {'type': 'FIXED_VALUE', 'value': 'ESB83701003'},
-        'CLIENTE': {'type': 'FIXED_VALUE', 'value': 'NEWSATELITE S.L'},
-        'CIF': {'type': 'FIXED_VALUE', 'value': 'B85629020'},
-        #'MODELO': {'type': 'VARIABLE', 'ref_text': 'MODELO', 'offset': +7, 'segment': 1},
-        #'MATRICULA': {'type': 'VARIABLE', 'ref_text': 'MATRÍCULA', 'offset': +7, 'segment': 1},
-        # Lógica VARIABLE compatible para los totales:
-        # BASE: 8 líneas arriba de 'Base Imponible'
-        'BASE': {'type': 'VARIABLE', 'ref_text': 'Importe neto', 'offset': +4, 'segment': 1},
-        # IVA: 9 líneas arriba de 'Base Imponible'
-        'IVA': {'type': 'VARIABLE', 'ref_text': 'Cuota IVA', 'offset': +4, 'segment': 1},
-        # IMPORTE: 10 líneas arriba de 'Base Imponible'
-        'IMPORTE': {'type': 'VARIABLE', 'ref_text': 'Líquido(EUR):', 'offset': -2, 'segment': 1},
-    }
+EXTRACTION_MAPPING: Dict[str, Dict[str, Any]] = database.get_extractor_configuration(EXTRACTOR_KEY)
+print("EXTRACTION_MAPPING",EXTRACTION_MAPPING)
+
+EXTRACTION_MAPPING_PROCESSED = {}
+for key, value in EXTRACTION_MAPPING.items():
+    if isinstance(value, list) and len(value) > 0:
+        # Tomar el primer diccionario de la lista
+        EXTRACTION_MAPPING_PROCESSED[key] = value[0]
+    elif isinstance(value, dict):
+        # Si ya es un diccionario, usarlo directamente
+        EXTRACTION_MAPPING_PROCESSED[key] = value
+    else:
+        # Manejar otros casos o ignorar
+        EXTRACTION_MAPPING_PROCESSED[key] = None
+
+# Reemplaza el mapeo original con el procesado
+EXTRACTION_MAPPING = EXTRACTION_MAPPING_PROCESSED
+
 
 # 🚨 CORRECCIÓN CRÍTICA: Renombrar la clase a AutodescuentoExtractor
 # Asumimos que hereda de BaseInvoiceExtractor
