@@ -886,7 +886,14 @@ class {class_name}(BaseInvoiceExtractor):
         self.canvas.bind('<B1-Motion>', self._on_selection_drag)
         self.canvas.bind('<ButtonRelease-1>', self._on_selection_release)
         self.canvas.bind('<Configure>', self._on_canvas_resize)
-        
+        # Enlace para zoom con la combinación Control + Rueda del Ratón.
+        # El evento '<Control-MouseWheel>' es el estándar para Tkinter en la mayoría de las plataformas.
+        if VIEWER_AVAILABLE:
+            self.canvas.bind('<Control-MouseWheel>', self._handle_mouse_wheel_zoom)
+
+        # Nota: En sistemas Linux/Unix muy antiguos, podría ser necesario enlazar 
+        # a '<Control-Button-4>' (zoom in) y '<Control-Button-5>' (zoom out) 
+        # si '<Control-MouseWheel>' no funciona.
         # 3. Frame de control (Botones de Zoom/Página y Navegación)
         # Usamos el frame de controles creado en el paso 2 (self.viewer_controls_frame)
         control_frame = ttk.Frame(self.viewer_controls_frame) 
@@ -965,48 +972,37 @@ class {class_name}(BaseInvoiceExtractor):
     def _display_page(self):
         """Renderiza y muestra la página del documento actual en el canvas."""
         
-        # Asegurarse de que el documento esté cargado y el visor esté disponible
         if not self.doc or not VIEWER_AVAILABLE:
             return 
 
         # --- 1. Limpiar el canvas y resetear el estado ---
         self.canvas.delete(tk.ALL)
-        
-        # 🟢 CORRECCIÓN 1: Resetea la referencia de la imagen. 
-        # Esto previene el TclError al intentar actualizar un objeto borrado, 
-        # solucionando el problema del giro y el bloqueo de navegación.
-        self.image_display = None 
+        self.image_display = None # Reseteo para corregir los botones de navegación
         
         try:
             # --- 2. Preparación de la página y transformación ---
             page = self.doc[self.page_num]
             
-            # 🟢 CORRECCIÓN 2 ASUMIDA: self.zoom_level y self.rotation 
-            # deben estar inicializadas en self.__init__ (ej: 1.0 y 0).
+            # 2a. Crear las matrices de transformación.
+            
+            # ✅ ZOOM: Usar self.zoom_level (ej. 1.0, 1.5)
             zoom_matrix = fitz.Matrix(self.zoom_level, self.zoom_level)
             
-            # Creamos una matriz base y aplicamos la rotación (post-multiplicando el giro).
-            rotation_matrix = fitz.Matrix(1, 1).prerotate(self.rotation)
+            # ✅ ROTACIÓN: Usar self.rotation_angle (ej. 0, 90, 180, 270)
+            rotation_matrix = fitz.Matrix(1, 1).prerotate(self.rotation_angle)
             
-            # 🟢 CORRECCIÓN 3: Usar .premultiply() en lugar del operador @.
-            # Esto soluciona el error 'unsupported operand type(s) for @'.
-            matrix = zoom_matrix.premultiply(rotation_matrix)
+            # Combinación de matrices
+            matrix = zoom_matrix * rotation_matrix 
             
-            # Obtener el Pixmap (bitmap) con la transformación aplicada
+            # Obtener el Pixmap (bitmap)
             pix = page.get_pixmap(matrix=matrix, alpha=False)
             
             # --- 3. Conversión a imagen Tkinter ---
-            # Convertir PyMuPDF Pixmap a PIL Image (formato 'ppm' es eficiente y directo)
             img_data = pix.tobytes("ppm")
             image = Image.open(io.BytesIO(img_data))
-            
-            # Convertir PIL Image a Tkinter PhotoImage. 
-            # Se debe guardar la referencia en una variable de instancia (self.tk_photo) 
-            # para evitar que Python la borre (garbage collection).
             self.tk_photo = ImageTk.PhotoImage(image)
             
             # --- 4. Mostrar en el Canvas ---
-            # Obtener dimensiones del canvas para centrar la imagen
             canvas_width = self.canvas.winfo_width()
             canvas_height = self.canvas.winfo_height()
             
@@ -1020,12 +1016,11 @@ class {class_name}(BaseInvoiceExtractor):
                 anchor=tk.CENTER
             )
             
-            # Ajustar la región de desplazamiento del canvas (scrollregion)
-            # Esto permite que las barras de desplazamiento se ajusten al tamaño de la imagen.
+            # Ajustar la región de desplazamiento
             self.canvas.config(scrollregion=self.canvas.bbox(tk.ALL))
             
         except Exception as e:
-            # Manejo de errores de última instancia
+            # Manejo de errores
             print(f"Error al renderizar la página {self.page_num}: {e}")
             self.canvas.create_text(
                 self.canvas.winfo_width() // 2, 
@@ -1034,7 +1029,6 @@ class {class_name}(BaseInvoiceExtractor):
                 fill="red"
             )
             
-        # Asumiendo que esta función existe para mantener actualizada la UI
         self._update_page_label()
 
     def _update_page_label(self):
@@ -1062,6 +1056,43 @@ class {class_name}(BaseInvoiceExtractor):
             # Actualizar la etiqueta de posición de la factura si existe
             if hasattr(self, 'invoice_position_label'):
                 self.invoice_position_label.config(text=f"Factura {current_invoice_display} de {total_invoices}")
+
+    def _open_document(self, file_path: str):
+        """
+        Carga el documento PDF especificado en el visor y lo inicializa.
+        """
+        if not VIEWER_AVAILABLE:
+            messagebox.showerror("Error de Visor", "PyMuPDF o Pillow no están instalados. Instale las dependencias.")
+            return
+
+        try:
+            # 1. Cerrar documento anterior si existe
+            if self.doc:
+                self.doc.close()
+            
+            # 2. Cargar el nuevo documento
+            self.doc = fitz.open(file_path)
+            
+            # 3. Reinicializar el estado del visor (CRÍTICO)
+            # Esto asegura que el zoom y la rotación vuelvan al estado por defecto
+            # cada vez que se carga un nuevo archivo.
+            self.file_path = file_path # Guardar la ruta del archivo
+            self.page_num = 0           # Empezar en la primera página
+            self.rotation_angle = 0     # Rotación a 0°
+            self.zoom_level = 1.0       # Zoom por defecto (100%)
+            
+            # 4. Mostrar la primera página
+            self._display_page()
+            
+            # Opcional: Actualizar el título de la ventana
+            self.master.title(f"Extractor/Generador de Facturas - {os.path.basename(file_path)}")
+
+        except fitz.EmptyFileError:
+            messagebox.showerror("Error de Archivo", "El archivo PDF está vacío o corrupto.")
+            self.doc = None
+        except Exception as e:
+            messagebox.showerror("Error al Abrir", f"No se pudo abrir el documento: {e}")
+            self.doc = None
 
     def _open_document(self, path: str):
         # [Cuerpo de _open_document - Mantenido]
@@ -1190,6 +1221,30 @@ class {class_name}(BaseInvoiceExtractor):
         self.active_data_field = None
         self.word_var.set("[Ninguna]")
 
+    def _handle_mouse_wheel_zoom(self, event):
+        """
+        Controla el zoom de la página al pulsar Control + Rueda del ratón.
+        """
+        # Asumimos que VIEWER_AVAILABLE está definido al inicio del archivo
+        if not self.doc or not VIEWER_AVAILABLE:
+            return
+            
+        ZOOM_INCREMENT = 1.10 # 10% de cambio por cada 'tick'
+        
+        # event.delta es el valor de desplazamiento (positivo para arriba, negativo para abajo).
+        # En Tkinter, delta puede ser un valor pequeño (Windows) o grande (macOS/Linux)
+        if event.delta > 0:
+            # Scroll hacia arriba (Zoom In)
+            self.zoom_level *= ZOOM_INCREMENT
+        else:
+            # Scroll hacia abajo (Zoom Out)
+            self.zoom_level /= ZOOM_INCREMENT
+            
+        # Opcional: Establecer límites razonables al zoom
+        self.zoom_level = max(0.1, min(10.0, self.zoom_level)) 
+
+        # Redibujar la página. Conservará la rotación actual.
+        self._display_page()
 
     def _apply_to_rule_field(self, target_key: str):
         # [Cuerpo de _apply_to_rule_field - Mantenido]
