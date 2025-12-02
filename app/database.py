@@ -306,7 +306,70 @@ def check_procesatedFiles_invoice(normalized_path: str) -> List[Dict[str, Any]]:
     print('results',results)   
     return results
 
-
+def get_extractor_configurations_by_name(extractor_name: str) -> Dict[str, List[Dict[str, Any]]]:
+    """
+    Recupera la configuración de extracción (reglas) para un extractor dado su nombre.
+    
+    Returns:
+        Un diccionario mapeando FIELD_NAME a una lista de diccionarios de reglas.
+        Ej: {'FECHA': [{'type': 'VARIABLE', 'ref_text': 'Fecha', 'offset': 0, 'segment': '2'}, ...]}
+    """
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+    
+    # Consulta JOIN para obtener todas las reglas de un extractor, ordenadas por campo y orden de intento
+    query = """
+    SELECT 
+        ef.field_name, 
+        ec.type, 
+        ec.ref_text, 
+        ec.offset, 
+        ec.segment, 
+        ec.value, 
+        ec.line 
+    FROM extractor_configurations ec 
+    JOIN extractors e ON ec.extractor_id = e.extractor_id 
+    JOIN extraction_fields ef ON ec.field_id = ef.field_id 
+    WHERE e.name = ? 
+    ORDER BY ef.field_name, ec.attempt_order
+    """
+    print(f"BBDD TRACE: Intentando recuperar reglas para el extractor '{extractor_name}'...") # <-- NUEVA TRAZA
+    extraction_mapping: Dict[str, List[Dict[str, Any]]] = {}
+    
+    try:
+        cursor.execute(query, (extractor_name,))
+        rows = cursor.fetchall()
+        
+        for row in rows:
+            # Los campos están en el orden de la SELECT
+            field_name, config_type, ref_text, offset, segment, value, line = row
+            
+            config_attempt = {'type': config_type}
+            
+            # Reconstruir el diccionario de la regla (añadiendo solo campos relevantes que no son None)
+            if ref_text is not None:
+                config_attempt['ref_text'] = ref_text
+            if offset is not None:
+                config_attempt['offset'] = offset
+            if segment is not None:
+                config_attempt['segment'] = segment
+            if value is not None:
+                config_attempt['value'] = value
+            if line is not None:
+                config_attempt['line'] = line
+                
+            if field_name not in extraction_mapping:
+                extraction_mapping[field_name] = []
+            
+            extraction_mapping[field_name].append(config_attempt)
+        print(f"BBDD TRACE: Mapeo de reglas finalizado. Campos únicos con reglas: {list(extraction_mapping.keys())}")
+        return extraction_mapping
+        
+    except sqlite3.Error as e:
+        print(f"Error de BBDD al obtener configuraciones del extractor '{extractor_name}': {e}")
+        return {}
+    finally:
+        conn.close()
 
 def insert_invoice_data(data: Dict[str, Any], original_path: str, is_validated: int):
     """Inserta o actualiza los datos de una factura procesada."""
@@ -663,7 +726,39 @@ def update_invoices_exported_status(file_paths: List[str], export_timestamp: str
         return 0
     finally:
         conn.close()
+# Función para GUARDAR/ACTUALIZAR una regla en la tabla existente
+def save_extractor_configuration(extractor_name: str, field_name: str, rule_dict: dict):
+    """
+    Guarda una regla en la tabla 'extractor_configurations'.
+    Serializa el diccionario de la regla a JSON antes de guardar.
+    """
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+    
+    try:
+        # Convertimos el diccionario de la regla a JSON string para guardarlo
+        rule_json_str = json.dumps(rule_dict)
+        
+        # NOTA: Ajusta el nombre de las columnas según tu esquema real de 'extractor_configurations'
+        # Aquí asumo una estructura estándar: extractor_name, field_name, configuration_value
+        
+        # Opción A: Si la tabla guarda una fila por regla
+        cursor.execute('''
+            INSERT INTO extractor_configurations (extractor_name, field_name, rule_data, created_at)
+            VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+        ''', (extractor_name, field_name, rule_json_str))
+        
+        # Opción B: Si necesitas evitar duplicados, usa INSERT OR REPLACE o verifica antes
+        # cursor.execute('DELETE FROM extractor_configurations WHERE extractor_name=? AND field_name=?', (extractor_name, field_name))
+        # cursor.execute('INSERT ...')
 
+        conn.commit()
+        return True
+    except sqlite3.Error as e:
+        print(f"Error BBDD al guardar configuración: {e}")
+        return False
+    finally:
+        conn.close()
 # OPCIONAL: Puede llamar a initialize_extractors_data() al final de database.py
 # para que la inicialización ocurra en el primer import del módulo.
 # initialize_extractors_data()
