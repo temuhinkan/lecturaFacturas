@@ -188,3 +188,73 @@ def calculate_base_and_vat_from_total(total_amount_str: str):
     except Exception:
         # Maneja cualquier otro error
         return None, None
+    
+    def recalculate_invoice_amounts(changed_field: str,value_str: str,current_values: Dict[str, Any],vat_rate: Optional[float] = VAT_RATE) -> Dict[str, Optional[str]]:
+        """
+        Recalcula los importes de la factura (Base, Total, IVA) en función de 
+        cuál de los tres campos ha sido modificado.
+
+        Args:
+            changed_field: Clave del campo modificado ('base_amount', 'total_amount', o 'vat_amount').
+            value_str: El nuevo valor (formateado como string) introducido por el usuario para ese campo.
+            current_values: Diccionario con los valores actuales (incluyendo la tasa de IVA si no se pasa).
+            vat_rate: Tasa de IVA a utilizar (por defecto, VAT_RATE).
+
+        Returns:
+            Un diccionario con los importes actualizados y formateados. 
+            Ej: {'base_amount': '1.000,00', 'total_amount': '1.210,00', 'vat_amount': '210,00'}
+        """
+        
+        # 1. Preparar valores iniciales y tasa de IVA
+        updated_amounts = current_values.copy()
+        
+        # Usar la tasa pasada o la del diccionario si existe, si no, usar la por defecto
+        rate = vat_rate if vat_rate is not None else current_values.get('vat_rate', DEFAULT_VAT_RATE)
+
+        # 2. Asignar el nuevo valor introducido
+        # Es crucial que el valor introducido sea el punto de partida para el cálculo
+        updated_amounts[changed_field] = value_str
+
+        base_amount = None
+        total_amount = None
+        vat_amount = None
+
+        # 3. Lógica de Recálculo
+        if changed_field == 'base_amount':
+            # Si cambia la BASE, calculamos TOTAL e IVA.
+            total_amount, vat_amount = calculate_total_and_vat(value_str, rate)
+            base_amount = value_str
+
+        elif changed_field == 'total_amount':
+            # Si cambia el TOTAL, calculamos BASE e IVA.
+            base_amount, vat_amount = calculate_base_and_vat_from_total(value_str)
+            total_amount = value_str
+        
+        # NO: Si cambiara el importe del IVA (vat_amount), la lógica sería más compleja, 
+        # ya que se debe decidir si recalcular Base y Total o Total y Base.
+        # Por lo general, en interfaces de usuario, solo se permite editar Base o Total.
+        # Si fuera necesario, se podría implementar una lógica para recalcular 
+        # Base y Total a partir del nuevo IVA y un valor de Base/Total anterior, o 
+        # asumir que se quiere mantener el Total y recalcular la Base, o viceversa.
+        # Dejaremos esta rama sin recálculo por ahora, ya que suele ser inusual.
+        elif changed_field == 'vat_amount':
+            # Si el usuario cambia el IVA, asumiremos que no hay recálculo automático 
+            # de Base/Total, o se le pide que cambie uno de los otros dos.
+            # Si necesitas esta funcionalidad, necesitaríamos definir qué campo 
+            # (Base o Total) debe ser recalculado.
+            pass # No hacemos nada, mantenemos los valores existentes.
+
+        # 4. Actualizar el diccionario de resultados con los valores calculados
+        if base_amount is not None:
+            updated_amounts['base_amount'] = base_amount
+        if total_amount is not None:
+            updated_amounts['total_amount'] = total_amount
+        if vat_amount is not None:
+            updated_amounts['vat_amount'] = vat_amount
+
+        # Aseguramos que solo devolvemos los 3 campos de importe
+        return {
+            'base_amount': updated_amounts.get('base_amount'),
+            'total_amount': updated_amounts.get('total_amount'),
+            'vat_amount': updated_amounts.get('vat_amount'),
+        }

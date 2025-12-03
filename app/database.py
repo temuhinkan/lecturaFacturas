@@ -729,33 +729,61 @@ def update_invoices_exported_status(file_paths: List[str], export_timestamp: str
 # Función para GUARDAR/ACTUALIZAR una regla en la tabla existente
 def save_extractor_configuration(extractor_name: str, field_name: str, rule_dict: dict):
     """
-    Guarda una regla en la tabla 'extractor_configurations'.
-    Serializa el diccionario de la regla a JSON antes de guardar.
+    Guarda o reemplaza (si ya existe) una configuración de regla en la tabla 'extractor_configurations'.
+    Mapea el diccionario de reglas a las columnas individuales de la tabla.
     """
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
     
     try:
-        # Convertimos el diccionario de la regla a JSON string para guardarlo
-        rule_json_str = json.dumps(rule_dict)
+        # 1. Obtener IDs para la relación (Foreign Keys)
         
-        # NOTA: Ajusta el nombre de las columnas según tu esquema real de 'extractor_configurations'
-        # Aquí asumo una estructura estándar: extractor_name, field_name, configuration_value
+        # Obtener extractor_id
+        cursor.execute("SELECT extractor_id FROM extractors WHERE name = ?", (extractor_name,))
+        res_ext = cursor.fetchone()
+        if not res_ext:
+            print(f"ADVERTENCIA: Extractor '{extractor_name}' no encontrado. No se guarda la regla.")
+            return False 
+        extractor_id = res_ext[0]
+
+        # Obtener field_id
+        cursor.execute("SELECT field_id FROM extraction_fields WHERE field_name = ?", (field_name,))
+        res_field = cursor.fetchone()
+        if not res_field: 
+            print(f"ADVERTENCIA: Campo '{field_name}' no encontrado. No se guarda la regla.")
+            return False
+        field_id = res_field[0]
         
-        # Opción A: Si la tabla guarda una fila por regla
+        # 2. Preparar los datos de la regla y usar valores por defecto si no existen
+        # Nota: La columna 'attempt_order' es clave para identificar reglas duplicadas
+        attempt_order = rule_dict.get('attempt_order', 1) 
+        
+        # Usamos INSERT OR REPLACE para que si el (extractor_id, field_id, attempt_order) ya existe, se actualice.
         cursor.execute('''
-            INSERT INTO extractor_configurations (extractor_name, field_name, rule_data, created_at)
-            VALUES (?, ?, ?, CURRENT_TIMESTAMP)
-        ''', (extractor_name, field_name, rule_json_str))
-        
-        # Opción B: Si necesitas evitar duplicados, usa INSERT OR REPLACE o verifica antes
-        # cursor.execute('DELETE FROM extractor_configurations WHERE extractor_name=? AND field_name=?', (extractor_name, field_name))
-        # cursor.execute('INSERT ...')
+            INSERT OR REPLACE INTO extractor_configurations 
+            (extractor_id, field_id, attempt_order, type, ref_text, ref_regex, offset, segment, value, value_regex, distance_lines, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+        ''', (
+            extractor_id, 
+            field_id, 
+            attempt_order, 
+            rule_dict.get('type', 'VARIABLE'),
+            rule_dict.get('ref_text', ''),
+            rule_dict.get('ref_regex', ''),
+            rule_dict.get('offset', 0),
+            rule_dict.get('segment', 1),
+            rule_dict.get('value', ''),
+            rule_dict.get('value_regex', ''),
+            rule_dict.get('distance_lines', 0)
+            # created_at se actualiza con CURRENT_TIMESTAMP
+        ))
 
         conn.commit()
+        print(f"✅ Regla guardada/actualizada con éxito para {extractor_name}:{field_name}.")
         return True
+    
     except sqlite3.Error as e:
-        print(f"Error BBDD al guardar configuración: {e}")
+        print(f"❌ Error BBDD al guardar configuración: {e}")
         return False
     finally:
         conn.close()

@@ -893,10 +893,11 @@ class InvoiceApp:
             str(row['cif'] or ""),         # 10
             str(row['modelo'] or ""),      # 11
             str(row['matricula'] or ""),   # 12
-            str(row['base'] if row['base'] is not None else ""), # 13
-            str(row['iva'] if row['iva'] is not None else ""),   # 14
-            str(row['importe'] if row['importe'] is not None else ""), # 15
-            str(row['tasas'] if row['tasas'] is not None else "")  # 16
+            str(row['concepto'] or ""),    # <--- 13: AÑADIR ESTA LÍNEA (FALTABA)
+            str(row['base'] if row['base'] is not None else ""), # 14 (Antes era 13)
+            str(row['iva'] if row['iva'] is not None else ""),   # 15 (Antes era 14)
+            str(row['importe'] if row['importe'] is not None else ""), # 16 (Antes era 15)
+            str(row['tasas'] if row['tasas'] is not None else "")  # 17 (Antes era 16)
         ]
 
         try:
@@ -936,10 +937,11 @@ class InvoiceApp:
             str(row['cif'] or ""),         # 10
             str(row['modelo'] or ""),      # 11
             str(row['matricula'] or ""),   # 12
-            str(row['base'] if row['base'] is not None else ""), # 13
-            str(row['iva'] if row['iva'] is not None else ""),   # 14
-            str(row['importe'] if row['importe'] is not None else ""), # 15
-            str(row['tasas'] if row['tasas'] is not None else "")  # 16
+            str(row['concepto'] or ""),    # <--- 13: AÑADIR ESTA LÍNEA (FALTABA)
+            str(row['base'] if row['base'] is not None else ""), # 14 (Antes era 13)
+            str(row['iva'] if row['iva'] is not None else ""),   # 15 (Antes era 14)
+            str(row['importe'] if row['importe'] is not None else ""), # 16 (Antes era 15)
+            str(row['tasas'] if row['tasas'] is not None else "")  # 17 (Antes era 16)
         ]
 
         try:

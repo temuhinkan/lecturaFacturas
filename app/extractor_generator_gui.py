@@ -156,7 +156,9 @@ class InvoiceApp:
         # Argumentos de datos de factura (índices 4 a 16)
         invoice_fields = [
             'tipo', 'fecha', 'numero_factura', 'emisor', 'cif_emisor', 
-            'cliente', 'cif', 'modelo', 'matricula', 'base', 
+            'cliente', 'cif', 'modelo', 'matricula', 
+            'concepto', # <--- AÑADIR ESTO AQUÍ
+            'base', 
             'iva', 'importe', 'tasas'
         ]
         
