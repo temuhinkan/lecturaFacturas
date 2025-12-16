@@ -254,10 +254,11 @@ class InvoiceApp:
         tree_frame = ttk.Frame(table_panel)
         tree_frame.pack(side='top', fill='both', expand=True)
 
-        columns = ("path", "file_name", "tipo", "fecha", "numero_factura", "emisor", "cif_emisor", "cliente", "cif", "modelo", "matricula", "base", "iva", "importe", "is_validated", "tasas")
+        columns = ("path", "file_name", "tipo", "fecha", "numero_factura", "emisor", "cif_emisor", "cliente", "cif", "modelo", "matricula","concepto", "base", "iva", "importe", "tasas","is_validated" )
         self.tree = ttk.Treeview(tree_frame, columns=columns, show='headings')
-        self.tree.tag_configure('validated', background='light green')
-        self.tree.tag_configure('unvalidated', background='light yellow')
+        # Configuración de colores (Tags)
+        self.tree.tag_configure('validated', background='#d4edda') # Verde claro suave
+        self.tree.tag_configure('unvalidated', background='#fff3cd') # Amarillo claro suave
 
         self.tree.heading("file_name", text="Archivo", anchor="w")
         self.tree.heading("tipo", text="Tipo", anchor="center")
@@ -269,6 +270,8 @@ class InvoiceApp:
         self.tree.heading("cif", text="CIF", anchor="center")
         self.tree.heading("modelo", text="Modelo", anchor="center")
         self.tree.heading("matricula", text="Matrícula", anchor="center")
+        self.tree.heading("concepto", text="Concepto", command=lambda: self.treeview_sort_column("concepto", False)) # <--- AÑADIR ESTO
+        self.tree.column("concepto", width=150, anchor="w")
         self.tree.heading("base", text="Base", anchor="e")
         self.tree.heading("iva", text="IVA", anchor="e")
         self.tree.heading("importe", text="Importe", anchor="e")
@@ -276,7 +279,6 @@ class InvoiceApp:
         self.tree.heading("is_validated", text="Validada", anchor="center")
         
         self.tree.column("path", width=0, stretch=tk.NO) 
-        self.tree.column("tasas", width=0, stretch=tk.NO) 
         self.tree.column("file_name", width=150, anchor="w")
         self.tree.column("base", width=80, anchor="e")
         self.tree.column("importe", width=80, anchor="e")
@@ -557,6 +559,7 @@ class InvoiceApp:
             data_dict['DebugLines'] = log_data
 
             try:
+                print("ante del insert")
                 insert_invoice_data(data_dict, original_path=file_path, is_validated=0) 
                 self.update_log_display(f"  -> Datos de factura guardados/actualizados: {data_dict.get('Número de Factura', 'N/A')}")
                 self.filesProcess.append(file_path)
@@ -618,6 +621,15 @@ class InvoiceApp:
         try:
             invoices = fetch_all_invoices()
             for inv in invoices:
+                # --- CORRECCIÓN LÓGICA: Conversión segura ---
+                raw_validated = inv.get('is_validated')
+                is_validated = False
+                try:
+                    # Intenta convertir a entero, maneja "1", 1, o True
+                    is_validated = int(raw_validated) == 1
+                except (TypeError, ValueError):
+                    is_validated = False
+                # --------------------------------------------
                 values = (
                     inv.get('path'),
                     inv.get('file_name'),
@@ -630,13 +642,15 @@ class InvoiceApp:
                     inv.get('cif'),
                     inv.get('modelo'),
                     inv.get('matricula'),
+                    inv.get('concepto'),
                     f"{self.safe_float(inv.get('base')):.2f}".replace('.', ','),
                     f"{self.safe_float(inv.get('iva')):.2f}".replace('.', ','),
                     f"{self.safe_float(inv.get('importe')):.2f}".replace('.', ','),
-                    "✅" if inv.get('is_validated') == 1 else "❌",
                     f"{self.safe_float(inv.get('tasas')):.2f}".replace('.', ','),
+                    "✅" if is_validated else "❌", # Usamos la variable saneada
+                    
                 )
-                tag = 'validated' if inv.get('is_validated') == 1 else 'unvalidated'
+                tag = 'validated' if is_validated else 'unvalidated'
                 self.tree.insert('', tk.END, values=values, tags=(tag,))
 
         except Exception as e:
@@ -663,11 +677,13 @@ class InvoiceApp:
                     inv.get('cif'),
                     inv.get('modelo'),
                     inv.get('matricula'),
+                    inv.get('concepto'),
                     f"{self.safe_float(inv.get('base')):.2f}".replace('.', ','),
                     f"{self.safe_float(inv.get('iva')):.2f}".replace('.', ','),
                     f"{self.safe_float(inv.get('importe')):.2f}".replace('.', ','),
-                    "✅" if inv.get('is_validated') == 1 else "❌",
                     f"{self.safe_float(inv.get('tasas')):.2f}".replace('.', ','),
+                    "✅" if inv.get('is_validated') == 1 else "❌",
+                    
                 )
                 tag = 'validated' if inv.get('is_validated') == 1 else 'unvalidated'
                 self.tree.insert('', tk.END, values=values, tags=(tag,))
@@ -701,8 +717,7 @@ class InvoiceApp:
         column_id = self.tree.identify_column(event.x)
         column_index = int(column_id.replace('#', '')) - 1
 
-        TREE_COLUMNS = ("path", "file_name", "tipo", "fecha", "numero_factura", "emisor", "cid_emisor", "cliente", "cif", "modelo", "matricula", "base", "iva", "importe", "is_validated", "tasas")
-        TREE_COLUMNS = ("path", "file_name", "tipo", "fecha", "numero_factura", "emisor", "cif_emisor", "cliente", "cif", "modelo", "matricula", "base", "iva", "importe", "is_validated", "tasas")
+        TREE_COLUMNS = ("path", "file_name", "tipo", "fecha", "numero_factura", "emisor", "cid_emisor", "cliente", "cif", "modelo", "matricula", "Concepto""base", "iva", "importe", "tasas","is_validated")
         if column_index < 0 or column_index >= len(TREE_COLUMNS): return
         db_column_name = TREE_COLUMNS[column_index]
         item_id = self.tree.identify_row(event.y)
@@ -775,19 +790,61 @@ class InvoiceApp:
         conn.close()
 
     def validate_invoice(self):
-        selected_items = self.tree.selection()
-        if not selected_items:
-            messagebox.showwarning("Validación", "Seleccione un registro para validar.")
-            return
+            selected_items = self.tree.selection()
+            
+            # 1. Comprobación inicial (correcto)
+            if not selected_items:
+                messagebox.showwarning("Validación", "Seleccione uno o más registros para validar.")
+                return
+            
+            validated_count = 0
+            print("numero", len(selected_items))
+            
+            # 2. Iterar sobre todos los ítems seleccionados
+            for item_id in selected_items:
+                print("item_id a validar:", item_id)
+                
+                try:
+                    # Obtener el path, que se usa como identificador en BBDD
+                    # (asumiendo que es el primer valor 'values')[0]
+                    file_path = self.tree.item(item_id, 'values')[0]
 
-        item_id = selected_items[0]
-        file_path = self.tree.item(item_id, 'values')[0]
+                    # 3. Llamar a la BBDD
+                    if update_invoice_field(file_path, 'is_validated', 1): 
+                        validated_count += 1
+                        
+                        # 4. 🟢 CORRECCIÓN VISUAL DIRECTA (para el color verde)
+                        # No es necesario un messagebox dentro del bucle
+                        
+                        # Actualizar el valor de la columna 'is_validated' (si existe, para mostrar 'V' o 1)
+                        # Asumo que su columna de estado se llama 'status' internamente en el Treeview
+                        # Si no lo tiene, puede omitir esta línea o usar el índice de la columna (ej: self.tree.set(item_id, '#5', 'V'))
+                        try:
+                            self.tree.set(item_id, 'status', 'V') # Ejemplo
+                        except tk.TclError:
+                            # Alternativamente, si no hay columna 'status' visible, no pasa nada
+                            pass 
+                        
+                        # Aplicar el tag de estilo que define el color verde (VERIFICAR SU NOMBRE)
+                        self.tree.item(item_id, tags=('Validated.Treenode',)) 
 
-        if update_invoice_field(file_path, 'is_validated', 1): 
-             messagebox.showinfo("Validación", "Registro marcado como validado.")
-             self.load_data_to_tree()
-        else:
-             messagebox.showerror("Error", "Fallo al validar el registro.")
+                    else:
+                        messagebox.showerror("Error BBDD", f"Fallo al validar el registro con path: {file_path}")
+                
+                except Exception as e:
+                    # Capturar errores en la obtención del item o BBDD
+                    print(f"❌ Error procesando item {item_id}: {e}")
+                    
+            # 5. 🚨 CORRECCIÓN CRÍTICA: Llamar a load_data_to_tree() UNA SOLA VEZ, al final.
+            # Si la actualización visual directa (paso 4) funciona, puede que NO necesite esta recarga, 
+            # que es más lenta. Si la necesita, hágalo aquí.
+            if validated_count > 0:
+                messagebox.showinfo("Validación Completa", f"{validated_count} registro(s) marcado(s) como validado(s).")
+                self.load_data_to_tree() # ⬅️ Descomentar solo si necesita la recarga total
+
+            # Si NO usa self.load_data_to_tree() al final, elimine la línea self.tree.set() y el messagebox
+            # dentro del bucle for.
+    
 
     def export_to_csv(self):
         output_file = filedialog.asksaveasfilename(
@@ -881,6 +938,7 @@ class InvoiceApp:
         comando = [
             sys.executable,
             'extractor_generator_gui.py',
+            #'main.py', # ⬅️ POR EL NUEVO PUNTO DE ENTRADA
             str(row['path']),              # 1
             str(nombre_base_archivo),      # 2 (Extractor Name Suggestion)
             str(row['log_data'] or ""),    # 3 (Debug Lines)
@@ -925,6 +983,7 @@ class InvoiceApp:
         comando = [
             sys.executable,
             'extractor_generator_gui.py',
+            #'main.py', # ⬅️ POR EL NUEVO PUNTO DE ENTRADA
             str(row['path']),              # 1
             str(nombre_base_archivo),      # 2 (Extractor Name Suggestion)
             str(row['log_data'] or ""),    # 3 (Debug Lines)

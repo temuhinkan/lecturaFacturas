@@ -19,7 +19,7 @@ except ImportError:
 
 # Importar configuración y dependencias
 # from config import EXTRACTION_MAPPING, TESSERACT_CMD_PATH, ERROR_DATA, DEFAULT_VAT_RATE_STR
-from config import TESSERACT_CMD_PATH, DEFAULT_VAT_RATE_STR # La constante EXTRACTION_MAPPING ya no se importa
+from config import ERROR_DATA, TESSERACT_CMD_PATH, DEFAULT_VAT_RATE_STR # La constante EXTRACTION_MAPPING ya no se importa
 # Asegurarse de que 'import database' está presente (si no lo está, agréguelo)
 import database
 from split_pdf import split_pdf_into_single_page_files # Función de utilidad
@@ -151,52 +151,165 @@ def _load_extractor_class_dynamic(extractor_path_str: str):
 
 
 def find_extractor_for_file(file_path: str) -> Optional[str]:
-    """Identifica el extractor adecuado por nombre de archivo o por CIF extraído."""
+    """Identifica el extractor adecuado por nombre de archivo o buscando CIFs conocidos en el texto."""
+    
+    # Dependencias necesarias (asumo que ya existen en tu entorno)
+    # import os
+    # import re
+    # from typing import Optional, Dict, Any
+    # from . import database # Asumo que database es accesible
+    # from ._utils import _get_pdf_lines # Asumo que _get_pdf_lines está definido en alguna utilidad
+    
     nombre_archivo = os.path.basename(file_path).lower()
-    # 1. Búsqueda por palabra clave en el nombre del archivo
-    print("DEBUG FLOW: find_extractor_for_file: Iniciando búsqueda por palabra clave en nombre.")
+    
+    # --- 1. Búsqueda por palabra clave en el nombre del archivo (Rápida) ---
+    print("DEBUG FLOW: find_extractor_for_file: Iniciando búsqueda por nombre.")
     for keyword, class_path in EXTRACTION_MAPPING.items():
         if keyword in nombre_archivo:
-            print(f"DEBUG FLOW: find_extractor_for_file: Coincidencia por palabra clave '{keyword}'. Extractor: {class_path}")
+            print(f"DEBUG FLOW: Coincidencia por nombre '{keyword}'. Extractor: {class_path}")
             return class_path
 
-    # 2. Búsqueda por CIF usando el extractor base
-    print("DEBUG FLOW: find_extractor_for_file: No se encontró por nombre. Intentando búsqueda por CIF.")
+    # --- 2. Búsqueda por contenido (CIF/NIF conocidos) ---
+    print("DEBUG FLOW: No se encontró por nombre. Escaneando CIFs en el documento...")
+    
     try:
-        # Se asume que lines ya fue cargado por _get_pdf_lines, pero lo volvemos a llamar por si acaso.
+        # Llamar a la función de lectura SOLO una vez y reutilizar 'lines'
         lines = _get_pdf_lines(file_path)
         if not lines: return None
-
-        # Usamos BaseInvoiceExtractor para una extracción preliminar (busca el CIF)
-        temp_extractor = BaseInvoiceExtractor(lines, file_path)
         
-        # Llama a extract_all para obtener la tupla completa
-        extracted_data = temp_extractor.extract_all()
+        texto_completo = "\n".join(lines).upper()
         
-        # El índice 4 es para CIF_EMISOR en la tupla
-        cif_extraido_base = str(extracted_data[4]).replace('-', '').replace('.', '').strip().upper() if len(extracted_data) > 4 and extracted_data[4] else None
+        # CIF de tu empresa que siempre debemos ignorar como emisor
+        CIF_CLIENTE_FIJO = "B85629020" 
+        
+        # Expresión regular para capturar cualquier CIF/NIF (Letra + 7/8 dígitos + opcional)
+        patron_cif = re.compile(r'[A-Z]\d{7,8}[A-Z0-9]?')
+        cifs_encontrados = patron_cif.findall(texto_completo)
+        
+        # Limpiamos, estandarizamos y eliminamos duplicados del documento
+        cifs_limpios = set([
+            c.replace('-', '').replace('.', '').strip()
+            for c in cifs_encontrados
+        ])
+        
+        if not cifs_limpios:
+            print("DEBUG FLOW: No se detectó ningún patrón de CIF en el texto.")
+            return None
 
-        if cif_extraido_base:
-            print(f"DEBUG FLOW: find_extractor_for_file: CIF Base extraído: {cif_extraido_base}")
-            for keyword, class_path in EXTRACTION_MAPPING.items():
-                try:
-                    module_path, class_name = class_path.rsplit('.', 1)
-                    module = importlib.import_module(module_path)
-                    ExtractorClass = getattr(module, class_name)
-                    if hasattr(ExtractorClass, 'EMISOR_CIF') and ExtractorClass.EMISOR_CIF.upper() == cif_extraido_base:
-                        print(f"DEBUG FLOW: find_extractor_for_file: Coincidencia por CIF para clase '{class_path}'.")
-                        return class_path
-                except Exception:
+        print(f"DEBUG FLOW: CIFs detectados en el PDF: {cifs_limpios}")
+        print(f"VERIFICACION DE CIFS")
+
+        # Se mantiene la función get_value aquí, ya que depende de 'lines'
+        # --- Funciones Auxiliares (reubicadas para claridad/contexto) ---
+        def find_reference_line(ref_text: str) -> Optional[int]:
+            ref_text_lower = ref_text.lower()
+            for i, line in enumerate(lines):
+                if ref_text_lower in line.lower():
+                    return i
+            return None
+            
+        def get_value(mapping: Dict[str, Any]) -> Optional[str]:
+            
+            # 1. Caso FIXED_VALUE (valor constante)
+            if mapping['type'] == 'FIXED_VALUE':
+                return mapping.get('value')
+                
+            line_index = None
+            
+            # 2. Determinar el índice de la línea final (0-based)
+            if mapping['type'] == 'FIXED':
+                abs_line_1based = mapping.get('line')
+                if abs_line_1based is not None and abs_line_1based > 0:
+                    line_index = abs_line_1based - 1 
+                    
+            elif mapping['type'] == 'VARIABLE':
+                ref_text = mapping.get('ref_text', '')
+                offset = mapping.get('offset', 0)
+                
+                ref_index = find_reference_line(ref_text)
+                
+                if ref_index is not None:
+                    line_index = ref_index + offset
+                
+            if line_index is None or not (0 <= line_index < len(lines)):
+                return None
+                
+            # 3. Obtener el segmento
+            segment_input = mapping['segment']
+            
+            try:
+                # Dividir por espacios para obtener segmentos de la línea
+                line_segments = re.split(r'\s+', lines[line_index].strip())
+                line_segments = [seg for seg in line_segments if seg]
+                
+                # Manejar rangos de segmentos (ej. '1-3')
+                if isinstance(segment_input, str) and re.match(r'^\d+-\d+$', segment_input):
+                    start_s, end_s = segment_input.split('-')
+                    start_idx = int(start_s) - 1 # 0-based start
+                    end_idx = int(end_s)        # 0-based exclusive end
+                    
+                    if 0 <= start_idx < end_idx and end_idx <= len(line_segments):
+                        return ' '.join(line_segments[start_idx:end_idx]).strip()
+                    
+                # Manejar segmento simple (ej. 1)
+                segment_index_0based = int(segment_input) - 1
+                
+                if segment_index_0based < len(line_segments):
+                    return line_segments[segment_index_0based].strip()
+            except Exception:
+                # Si falla al parsear el segmento o el índice, simplemente devuelve None
+                return None
+                
+            return None
+        # --- Fin Funciones Auxiliares ---
+
+
+        # Iteramos sobre todos los extractores conocidos
+        for keyword, class_path in EXTRACTION_MAPPING.items():
+            print("class_path ", class_path, " keyword", keyword)
+
+            try:
+                # Obtenemos la configuración de extracción para este extractor
+                EXTRACTION_MAPPING_CAMPIOS: Dict[str, Dict[str, Any]] = database.get_extractor_configuration(keyword)
+                
+                # Verificamos si este extractor tiene un mapeo para el CIF del emisor
+                cif_emisor_mappings = EXTRACTION_MAPPING_CAMPIOS.get('CIF_EMISOR', [])
+
+                if not cif_emisor_mappings:
+                    # Si no hay mapeo de CIF_EMISOR para este extractor, pasamos al siguiente
                     continue
-        else:
-            print("DEBUG FLOW: find_extractor_for_file: No se pudo extraer CIF con el extractor base.")
+                
+                # Iteramos sobre todos los posibles mappings para 'CIF_EMISOR' (Solución al error)
+                for cif_mapping in cif_emisor_mappings:
+                    
+                    # 'cif_mapping' ahora es el diccionario simple esperado por get_value
+                    value = get_value(cif_mapping)
+                    
+                    if value:
+                        # Limpiar el CIF extraído para compararlo con los cifs_limpios del documento
+                        cif_objetivo = value.replace('-', '').replace('.', '').strip().upper() 
+                        
+                        print(f"DEBUG FLOW: Evaluando {keyword}. CIF objetivo: {cif_objetivo}")
+
+                        # Verificación
+                        if cif_objetivo in cifs_limpios and cif_objetivo != CIF_CLIENTE_FIJO:
+                            print(f"DEBUG FLOW: ¡Match encontrado! El CIF {cif_objetivo} está en el documento. Usando: {class_path}")
+                            return class_path
+                    
+                    # Si no hay match con este mapping específico, continuamos probando el siguiente mapping de CIF_EMISOR
+                    
+            except Exception as e:
+                # Este except captura errores durante la obtención/procesamiento de la configuración del extractor actual
+                print(f"DEBUG FLOW: Error al procesar la configuración del extractor '{keyword}': {e}")
+                continue # Continuar con el siguiente extractor
 
     except Exception as e:
-        print(f"DEBUG FLOW: find_extractor_for_file: Falló la búsqueda por CIF. Error: {e}")
-        pass
+        # Este except captura errores generales (ej. error en _get_pdf_lines o en la expresión regular inicial)
+        print(f"DEBUG FLOW: Error en búsqueda exhaustiva de CIF: {e}")
 
-    print("DEBUG FLOW: find_extractor_for_file: No se encontró extractor específico. Usando fallback.")
+    print("DEBUG FLOW: No se encontró ningún CIF emisor conocido. Se usará el extractor genérico.")
     return None
+
 
 def _pad_data(data: Tuple) -> Tuple:
     """Asegura que la tupla de datos tenga el número correcto de campos (13)."""
@@ -275,6 +388,36 @@ def extraer_datos(pdf_path: str, debug_mode: bool = False) -> Tuple[Any, ...]:
         debug_output += "➡️ No specific invoice type detected or specific extractor failed. Using generic extraction function (BaseInvoiceExtractor).\n"
         generic_extractor = BaseInvoiceExtractor(lines, doc_path_for_extractor)
         extracted_data_raw = generic_extractor.extract_all()
+        # ==============================================================================
+        # [INICIO] NUEVO BLOQUE DE RESCATE PARA CIF (AÑADIR ESTO)
+        # ==============================================================================
+        # Si el CIF del emisor (índice 4) es None, intentamos buscarlo "mirando la siguiente línea"
+        # La tupla es: (Tipo, Fecha, Num, Emisor, CIF_EMISOR, ...)
+        
+        # Convertimos a lista porque las tuplas no se pueden modificar
+        data_list = list(_pad_data(extracted_data_raw))
+        cif_emisor_index = 4 
+
+        if not data_list[cif_emisor_index]: # Si no hay CIF
+            print("DEBUG FLOW: CIF no encontrado por extractor base. Intentando rescate 'línea siguiente'.")
+            for i, line in enumerate(lines):
+                # Buscamos la etiqueta, ignorando mayúsculas/minúsculas
+                if "CIF" in line.upper() or "NIF" in line.upper():
+                    # Verificamos que no estemos en la última línea
+                    if i + 1 < len(lines):
+                        next_line = lines[i+1].strip()
+                        # Regex simple para CIF/NIF español: Letra al principio, longitud aprox 9
+                        if re.match(r'^[A-Z]\d{7,8}[A-Z0-9]$', next_line):
+                            data_list[cif_emisor_index] = next_line
+                            debug_output += f"⚠️ CIF recuperado por lógica de rescate en logic.py: {next_line}\n"
+                            print(f"DEBUG FLOW: CIF rescatado: {next_line}")
+                            break
+        
+        # Reconstruimos la tupla con los datos (posiblemente) corregidos
+        extracted_data_raw = tuple(data_list)
+        # ==============================================================================
+        # [FIN] NUEVO BLOQUE DE RESCATE
+        # ==============================================================================
         debug_output += "✅ Extracción exitosa con Extractor Genérico.\n"
         print("DEBUG FLOW: Extracción con extractor genérico completada.")
         return (*_pad_data(extracted_data_raw), debug_output)

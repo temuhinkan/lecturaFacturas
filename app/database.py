@@ -28,6 +28,8 @@ def _clean_numeric_value(value: Any) -> Optional[float]:
 
 def insert_default_fields():
     """Inserta los campos obligatorios y opcionales por defecto con su tipo de dato."""
+    print("entramos en el insert")
+    
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
     
@@ -44,6 +46,7 @@ def insert_default_fields():
         ('BASE', 1, 'FLOAT', 'Base imponible'),
         ('IVA', 1, 'FLOAT', 'Impuesto de valor añadido'),
         ('TASAS', 1, 'FLOAT', 'Otros cargos o tasas'),
+        ('CONCEPTO', 0, 'TEXT', 'Descripción o concepto principal'),
         ('MODELO', 0, 'TEXT', 'Modelo de vehículo/producto'), # Opcional
         ('MATRICULA', 0, 'TEXT', 'Matrícula de vehículo'),   # Opcional
     ]
@@ -90,7 +93,7 @@ def setup_database():
             tasas REAL,
             is_validated INTEGER,
             log_data TEXT,
-            procesado_en TEXT -- NUEVA COLUMNA,
+            procesado_en TEXT,
             concepto TEXT,
             exportado TEXT       
         )
@@ -377,14 +380,24 @@ def insert_invoice_data(data: Dict[str, Any], original_path: str, is_validated: 
     cursor = conn.cursor()
     print("data ",data)
     print("--------------------------------------------")
-    numero_factura = data.get('Número de Factura', '').strip()
+    print("aqui antes de numero de factura")
+   
+    
+    if data.get('Número de Factura')!=None:
+        numero_factura = data.get('Número de Factura', '').strip()
+    else:
+        numero_factura = "Numero factura  No encotrado"
+    print("aqui despues de numero de factura")
+    print("aqui antes de cif emisor")
     cif_emisor = data.get('CIF Emisor', '').strip()
+    print("aqui despues de cif emisor")
     print ('cif_emisor ', cif_emisor, ' numero_factura ', numero_factura)
+    print("aqui1")
     # ⚠️ MODIFICACIÓN: NORMALIZAR LA RUTA
     # Reemplazamos todas las barras invertidas de Windows por barras normales (/)
     # Esto asegura que la clave primaria 'path' sea siempre consistente.
     normalized_path = original_path.replace('\\', '/')
- 
+    print("aqui1")
     # 🚨 LÓGICA CORREGIDA: Se chequea si hay un duplicado en OTRAS facturas.
     if numero_factura and cif_emisor:
         # Se pasa 'normalized_path' al chequeo para que la factura actual NO se considere duplicado.
@@ -421,6 +434,7 @@ def insert_invoice_data(data: Dict[str, Any], original_path: str, is_validated: 
         data.get('CIF'), data.get('Modelo'), data.get('Matricula'),  data.get('Concepto'),
         base, iva, importe, tasas, is_validated, data.get('DebugLines'), procesado_en
     )
+    print("vamos a ejecutar al el insert")
     try:
         cursor.execute(sql, values)
         conn.commit()

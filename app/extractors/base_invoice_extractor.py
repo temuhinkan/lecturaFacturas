@@ -1,4 +1,4 @@
-# Contenido COMPLETO para el archivo: extractors/base_invoice_extractor.py
+# Contenido MODIFICADO para el archivo: extractors/base_invoice_extractor.py
 
 import re
 from typing import Tuple, List, Optional, Any, Dict
@@ -12,25 +12,27 @@ from utils import extract_and_format_date
 import database
 EXTRACTOR_KEY = "base"
 
-EXTRACTION_MAPPING: Dict[str, Dict[str, Any]] = database.get_extractor_configuration(EXTRACTOR_KEY)
+# EXTRACTION_MAPPING ahora es el mapeo COMPLETO con listas de reglas (si las hay)
+EXTRACTION_MAPPING: Dict[str, List[Dict[str, Any]]] = database.get_extractor_configuration(EXTRACTOR_KEY)
 print("EXTRACTION_MAPPING",EXTRACTION_MAPPING)
 
-EXTRACTION_MAPPING_PROCESSED = {}
-for key, value in EXTRACTION_MAPPING.items():
-    if isinstance(value, list) and len(value) > 0:
-        # Tomar el primer diccionario de la lista
-        EXTRACTION_MAPPING_PROCESSED[key] = value[0]
-    elif isinstance(value, dict):
-        # Si ya es un diccionario, usarlo directamente
-        EXTRACTION_MAPPING_PROCESSED[key] = value
-    else:
-        # Manejar otros casos o ignorar
-        EXTRACTION_MAPPING_PROCESSED[key] = None
+# ELIMINAMOS O COMENTAMOS EL BLOQUE QUE ANULABA LAS REGLAS ALTERNATIVAS (EL PROBLEMA)
+# -----------------------------------------------------------------------------------
+# EXTRACTION_MAPPING_PROCESSED = {}
+# for key, value in EXTRACTION_MAPPING.items():
+#     if isinstance(value, list) and len(value) > 0:
+#         # Tomar el primer diccionario de la lista
+#         EXTRACTION_MAPPING_PROCESSED[key] = value[0]
+#     elif isinstance(value, dict):
+#         # Si ya es un diccionario, usarlo directamente
+#         EXTRACTION_MAPPING_PROCESSED[key] = value
+#     else:
+#         # Manejar otros casos o ignorar
+#         EXTRACTION_MAPPING_PROCESSED[key] = None
 
-# Reemplaza el mapeo original con el procesado
-BASE_EXTRACTION_MAPPING = EXTRACTION_MAPPING_PROCESSED
-
-
+# Reemplazamos el mapeo original con el mapeo COMPLETO
+BASE_EXTRACTION_MAPPING = EXTRACTION_MAPPING 
+# -----------------------------------------------------------------------------------
 
 class BaseInvoiceExtractor:
     """
@@ -82,12 +84,14 @@ class BaseInvoiceExtractor:
     def _find_reference_line(self, ref_text: str) -> Optional[int]:
         """Busca línea de referencia (primera coincidencia)."""
         ref_text_lower = ref_text.lower()
-        print(f"DEBUG FALLBACK: Buscando referencia '{ref_text}'...")
+        # Se elimina el print de la búsqueda aquí, ya que se hará antes de llamar a _get_value
+        # print(f"DEBUG FALLBACK: Buscando referencia '{ref_text}'...") 
         for i, line in enumerate(self.lines):
             if ref_text_lower in line.lower():
                 print(f"DEBUG FALLBACK: Referencia '{ref_text}' encontrada en línea {i}.")
                 return i
-        print(f"DEBUG FALLBACK: Referencia '{ref_text}' NO encontrada.")
+        # Se elimina el print de la no encontrada aquí, ya que se hará al final de la iteración de reglas
+        # print(f"DEBUG FALLBACK: Referencia '{ref_text}' NO encontrada.")
         return None
         
     def _get_value(self, mapping: Dict[str, Any]) -> Optional[str]:
@@ -115,6 +119,7 @@ class BaseInvoiceExtractor:
             if ref_index is not None:
                 line_index = ref_index + offset
                 print(f"DEBUG FALLBACK: Mapeo VARIABLE. Ref. index: {ref_index}, Offset: {offset}, Línea final: {line_index}.")
+            # Nota: Si ref_index es None, line_index sigue siendo None y fallará el check posterior
         
         if line_index is None or not (0 <= line_index < len(self.lines)):
             return None
@@ -193,30 +198,45 @@ class BaseInvoiceExtractor:
         print("\nDEBUG FALLBACK: --- INICIANDO EXTRACCIÓN GENÉRICA (BaseInvoiceExtractor) ---")
 
         # 4. Aplicar el mapeo genérico
-        for key, mapping in BASE_EXTRACTION_MAPPING.items():
+        # BASE_EXTRACTION_MAPPING ahora contiene listas de reglas para cada campo
+        for key, rules_list in BASE_EXTRACTION_MAPPING.items():
             
             value = None
             key_lower = key.lower()
             
-            if mapping is None:
+            if rules_list is None:
                 extracted_data[key_lower] = None
                 continue
                 
             print(f"\nDEBUG FALLBACK: Procesando campo '{key}'...")
-                
-            # Intento de extracción por reglas de mapeo
-            if isinstance(mapping, list):
-                if mapping and mapping[0].get('type') == 'VARIABLE_ALL':
-                    value = self._get_all_values_from_attempts(mapping)
-                else:
-                    for single_mapping in mapping:
-                        value = self._get_value(single_mapping)
-                        if value is not None:
-                            break 
             
-            elif isinstance(mapping, dict):
-                 value = self._get_value(mapping)
+            # Aseguramos que rules_list es una lista de diccionarios (aunque sea de un solo elemento)
+            if not isinstance(rules_list, list):
+                if isinstance(rules_list, dict):
+                    rules_list = [rules_list]
+                else:
+                    extracted_data[key_lower] = None
+                    continue
 
+            # ⚠️ NUEVA LÓGICA: Iterar sobre TODAS las reglas para el campo
+            for mapping in rules_list:
+                
+                # Para el mapeo VARIABLE, imprimimos la referencia antes de intentar la búsqueda.
+                if mapping.get('type') == 'VARIABLE':
+                    ref_text = mapping.get('ref_text', '')
+                    print(f"DEBUG FALLBACK: Buscando referencia '{ref_text}'...")
+                
+                # Intento de extracción por regla
+                value = self._get_value(mapping)
+                
+                if value is not None:
+                    # Regla exitosa: usamos el valor y rompemos el bucle interno de reglas.
+                    break 
+
+            # Si después de todas las reglas, el valor es None, mostramos el fallo general
+            if value is None:
+                print(f"DEBUG FALLBACK: Referencia de mapeo NO encontrada para todas las reglas del campo '{key}'.")
+                
             # APLICAR FALLBACK SOLO A LA FECHA
             if key == 'FECHA' and (value is None or value.strip() == ''):
                 value = self._find_date_fallback()
@@ -241,11 +261,20 @@ class BaseInvoiceExtractor:
     def extract_all(self) -> Tuple[Any, ...]:
         """Método de fallback llamado por logic.py para obtener la tupla de 13 campos."""
         data_dict = self.extract_data(self.lines)
-
+        print ("cif_emisor", data_dict.get('cif_emisor'))
+        print ("------------------------------------------------------------------------------------------------------------------------------------")
+        cif_emisor="CIF No encotrado"
+        if data_dict.get('cif_emisor')!=None:
+           cif_emisor=data_dict.get('cif_emisor')
+        print ("cif_emisor",cif_emisor)     
+        nun_fact="Numero factura  No encotrado"
+        if data_dict.get('num_factura')!=None:
+           nun_fact=data_dict.get('num_factura')
+        print ("cif_emisor",cif_emisor)     
         # Mapeo de dict a tupla (Tupla de 13 elementos)
         return (
-            data_dict.get('tipo'), data_dict.get('fecha'), data_dict.get('num_factura'),
-            data_dict.get('emisor', self.EMISOR_NAME), data_dict.get('cif_emisor', self.EMISOR_CIF), 
+            data_dict.get('tipo'), data_dict.get('fecha'), nun_fact,
+            data_dict.get('emisor', self.EMISOR_NAME), cif_emisor, 
             data_dict.get('cliente'), data_dict.get('cif'), data_dict.get('modelo'), 
             data_dict.get('matricula'), data_dict.get('importe'), 
             data_dict.get('base'), data_dict.get('iva'), data_dict.get('tasas')

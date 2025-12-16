@@ -716,7 +716,7 @@ class InvoiceApp:
         
         # 1. Cargar datos de la BBDD
         new_data = self._load_invoice_data_from_db(new_file_path)
-
+        print("newdata",new_data)
         # Actualizar estados internos de la app
         self.data = new_data
         self.file_path = new_file_path
@@ -761,7 +761,14 @@ class InvoiceApp:
         # 6. Actualizar etiqueta de posición de factura
         if self.invoice_position_label:
             self.invoice_position_label.config(text=f"Factura {self.current_invoice_index + 1} de {len(self.invoice_file_paths)}")
-            
+        # 7 .activar boton de validacion si es necesario si esta validado se queda bloquado
+        print("is_validated",self.data.get('is_validated'))
+        if  self.data.get('is_validated') != '1':
+            print("desbloquear")
+            self.validate_button.config(state=tk.NORMAL)  
+        else:
+           print("bloquear")
+           self.validate_button.config(state=tk.DISABLED)       
     def initial_load(self):
         """Carga inicial del documento en el visor, log y etiquetas al iniciar la GUI."""
         
@@ -1705,8 +1712,8 @@ class {class_name}(BaseInvoiceExtractor):
                 self.validate_button.config(state=tk.DISABLED)
                 
                 # Llamar al callback para actualizar la tabla principal si existe
-                if self.load_callback and callable(self.load_callback):
-                    self.load_callback()
+              #  if self.load_callback and callable(self.load_callback):
+               #     self.load_callback()
 
             else:
                 messagebox.showerror("Error de BBDD", "No se pudo actualizar el estado de la factura. Compruebe la consola para ver errores.")
