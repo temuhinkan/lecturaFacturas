@@ -11,6 +11,11 @@ import traceback
 import importlib.util
 import re
 import json # Necesario para mostrar reglas como JSON en el listado
+import rule_suggester # ⬅️ AÑADIR ESTA LÍNEA
+
+
+# Asegúrate de importar esto al principio del archivo
+from extractors.base_invoice_extractor import BaseInvoiceExtractor
 
 # Importaciones de dependencias para el visor de documentos
 try:
@@ -27,38 +32,8 @@ except ImportError:
 
 # --- Importaciones de Módulos (Se asume su existencia) ---
 # Se asume que estos módulos (database y utils) existen en el mismo entorno.
-try:
-    import database 
-    import utils 
-except ImportError:
-    # Mocks para que la GUI funcione sin dependencias externas
-    class MockDatabase:
-        DB_NAME = 'mock_invoices.db'
-        def _clean_numeric_value(self, value):
-            if isinstance(value, (int, float)): return value
-            value = str(value).replace('.', '').replace(',', '.')
-            try: return float(value)
-            except: return None
-        # MOCK para navegación: Solo devuelve un placeholder
-        def fetch_all_invoices(self):
-             return [{'path': 'placeholder_factura.pdf', 'file_name': 'placeholder_factura.pdf', 'procesado_en': '2000-01-01T00:00:00'}]
-        def get_invoice_data(self, file_path):
-             return {'file_path': file_path, 'extractor_name': 'placeholder_extractor', 'log_data': "DEBUG FLOW: Usando datos de prueba (MOCK BBDD).", 'tipo': '', 'fecha': '', 'numero_factura': '', 'emisor': '', 'cif_emisor': '', 'cliente': '', 'cif': '', 'modelo': '', 'matricula': '', 'base': '', 'iva': '', 'importe': '', 'tasas': ''}
-        def update_invoice_field(self, file_path, field_name, new_value):
-             print(f"MOCK BBDD: Actualizando {field_name} a {new_value} para {file_path}")
-             return 1
-    database = MockDatabase()
-    class MockUtils:
-        def calculate_total_and_vat(self, base_str, vat_rate):
-            try:
-                base = float(base_str.replace(',', '.'))
-                iva = base * vat_rate
-                total = base + iva
-                return f"{total:.2f}".replace('.', ','), f"{iva:.2f}".replace('.', ',')
-            except:
-                return "0,00", "0,00"
-    utils = MockUtils()
-    print("⚠️ ADVERTENCIA: Módulos 'database' y 'utils' no encontrados. Usando Mocks.")
+import database 
+import utils 
 
 # --- Importación de Constantes ---
 try:
@@ -78,23 +53,23 @@ MOCK_EXTRACTION_FIELDS = [
 ]
 
 # Las reglas son ahora una lista de diccionarios, incluso si solo hay una regla.
-MOCK_EXTRACTION_MAPPING = {
-    'TIPO': [{'type': 'FIXED_VALUE', 'value': 'COMPRA'}],
-    'FECHA': [
-        {'type': 'VARIABLE', 'ref_text': 'Fecha', 'offset': 0, 'segment': 2},
-        {'type': 'VARIABLE', 'ref_text': 'Fecha de venta', 'offset': 1, 'segment': 1},
-        {'type': 'FIXED', 'line': 1, 'segment': '2-99'}
-    ],
-    'NUM_FACTURA': [
-        {'type': 'VARIABLE', 'ref_text': 'FACTURA NÚMERO', 'offset': 0, 'segment': 2},
-        {'type': 'FIXED', 'line': 6, 'segment': 2}
-    ],
-    'IMPORTE': [
-        {'type': 'VARIABLE', 'ref_text': 'TOTAL A PAGAR', 'offset': 0, 'segment': 2}
-    ],
-    'EMISOR': [{'type': 'FIXED_VALUE', 'value': 'AutoDocs, S.L.'}],
-    'BASE': [], # Campo sin reglas definidas, para simular
-}
+#MOCK_EXTRACTION_MAPPING = {
+#    'TIPO': [{'type': 'FIXED_VALUE', 'value': 'COMPRA'}],
+#    'FECHA': [
+#        {'type': 'VARIABLE', 'ref_text': 'Fecha', 'offset': 0, 'segment': 2},
+#        {'type': 'VARIABLE', 'ref_text': 'Fecha de venta', 'offset': 1, 'segment': 1},
+#        {'type': 'FIXED', 'line': 1, 'segment': '2-99'}
+#    ],
+#   'NUM_FACTURA': [
+#        {'type': 'VARIABLE', 'ref_text': 'FACTURA NÚMERO', 'offset': 0, 'segment': 2},
+#        {'type': 'FIXED', 'line': 6, 'segment': 2}
+#    ],
+#    'IMPORTE': [
+#        {'type': 'VARIABLE', 'ref_text': 'TOTAL A PAGAR', 'offset': 0, 'segment': 2}
+#    ],
+#    'EMISOR': [{'type': 'FIXED_VALUE', 'value': 'AutoDocs, S.L.'}],
+#    'BASE': [], # Campo sin reglas definidas, para simular
+#}
 
 NEW_RULE_TEMPLATE = {
     'type': 'VARIABLE',
@@ -105,7 +80,7 @@ NEW_RULE_TEMPLATE = {
 }
 # ------------------------------------
 
-
+DEFAULT_EXTRACTOR_NAME = 'base'
 # --- UTILIDAD: Función de lectura de texto (MOCK/PLACEHOLDER) ---
 def _get_document_lines(file_path: str) -> List[str]:
     """
@@ -169,15 +144,42 @@ class InvoiceApp:
     def __init__(self, master):
         self.master = master
         master.title("Extractor Generator GUI")
+
+        # --- INICIALIZACIÓN DE ATRIBUTOS CLAVE (PRIMER PASO) ---
+        # 🚨 Lectura de los argumentos de sys.argv: ESTO ES LO QUE BUSCAS
+        
+        # Argumentos individuales (índices 1, 2, y 3)
+        self.file_path = sys.argv[1]
+        self.extractor_name = sys.argv[2]
+        self.log_data = sys.argv[3] 
+        
+        # Argumentos de datos de factura (índices 4 a 16)
+        invoice_fields = [
+            'tipo', 'fecha', 'numero_factura', 'emisor', 'cif_emisor', 
+            'cliente', 'cif', 'modelo', 'matricula', 
+            'concepto', # <--- AÑADIR ESTO AQUÍ
+            'base', 
+            'iva', 'importe', 'tasas'
+        ]
+        
+        self.data = {}
+        for i, field in enumerate(invoice_fields):
+            # i+4 para empezar a leer desde sys.argv[4]
+            self.data[field] = sys.argv[i + 4]
+
         master.state('zoomed') # Maximizar ventana
 
         # 1. PARSEAR ARGUMENTOS DE sys.argv (Original)
         self.data = self._parse_argv()
         
         self.file_path = self.data.get('file_path')
-        self.log_data = self.data.get('log_data', "No hay log de extracción disponible.")
-        self.extractor_name = self.data.get('extractor_name', 'NuevoExtractor') 
+        #self.log_data = self.data.get('log_data', "No hay log de extracción disponible.")
+        #self.extractor_name = self.data.get('extractor_name', 'NuevoExtractor') 
         
+
+        #print("file_path",self.file_path)
+        #print("log_data",self.log_data)
+        #print("extractor_name",self.extractor_name)
         # Estado del visor y variables del editor de reglas (Original)
         self.doc: Optional[fitz.Document] = None # type: ignore
         self.page_num = 0
@@ -186,6 +188,10 @@ class InvoiceApp:
         self.photo_image: Optional[ImageTk.PhotoImage] = None # type: ignore
         self.image_display: Optional[int] = None
         
+        # 🟢 CORRECCIÓN CLAVE: Inicializar el zoom y la rotación.
+        self.zoom_level = 1.0             # Nivel de zoom inicial (1.0 = 100%)
+        self.rotation = 0                 # Ángulo de rotación inicial (0°)
+
         # ESTADOS PARA SELECCIÓN DE TEXTO DE ÁREA (Original)
         self.selected_word: Optional[str] = None 
         self.selected_line_content: Optional[str] = None 
@@ -244,11 +250,15 @@ class InvoiceApp:
         # Actualizar self.file_path, extractor_name y log_data
         self.file_path = self.data.get('file_path', initial_file_path)
         # Re-determinar extractor (necesario para la traza en el log)
+        print("LLAMADA A CONFIGURACION DE EXTRACTOR 1")
         self.extractor_name, self.log_data = self._determine_extractor_and_add_trace(
             self.data.get('log_data', self.log_data), 
             self.data.get('extractor_name', self.extractor_name)
         )
-        
+        # 3. 🚨 LLAMADA CRÍTICA: INICIAR LA CARGA DE REGLAS 🚨
+        # Esta llamada ejecuta self._load_current_extractor_rules()
+        # y almacena el resultado en self.current_extractor_mapping
+        self.current_extractor_mapping: Dict[str, List[Dict[str, Any]]] = self._load_current_extractor_rules()
         # =========================================================================
         # FIN MODIFICACIONES DE NAVEGACIÓN
         # =========================================================================
@@ -263,41 +273,76 @@ class InvoiceApp:
         # Usamos initial_load para cargar el documento y actualizar la etiqueta de posición inicial.
         self.master.after_idle(lambda: self.initial_load()) 
 
-    def _determine_extractor_and_add_trace(self, log_data: str, fallback_name: str) -> Tuple[str, str]:
-        """Busca el extractor real usado en el log_data y añade la traza de decisión."""
+    def _determine_extractor_and_add_trace(self, log_data: str, current_extractor_name: str) -> Tuple[str, str]:
+        """
+        Determina el nombre del extractor finalizando basándose en el log de extracción
+        y añade la traza de depuración a log_data.
+        """
+        # 🚨 TRAZA 1: Mostrar el log_data recibido para depuración
+        new_extractor_name = None
         
-        new_extractor_name = fallback_name
-        trace_status = "ADVERTENCIA (G. Extractor): El extractor real usado no se pudo determinar a partir del log."
+        # 1. Intentar extraer el nombre del módulo con REGEX
+        # Patrón: busca 'extractors.' seguido del nombre del módulo (\w+) hasta el siguiente '.' o espacio.
+        extractor_match = re.search(r'extractors\.(\w+)(?:\.|\s|$)', log_data)
         
-        # 1. Búsqueda de Extractor Específico (Ej: extractors.aema_extractor.AemaExtractor -> aema_extractor)
-        specific_match = re.search(r'Extractor encontrado en mapeo:\s*extractors\.(\w+_extractor)\.\w+', log_data)
-        
-        # 2. Búsqueda de Extractor Genérico
-        generic_used = 'Using generic extraction function (BaseInvoiceExtractor)' in log_data
-        
-        used_extractor_path = None
+        if extractor_match:
+            new_extractor_name = extractor_match.group(1) # e.g., 'stellantis_extractor'
+            # 🚨 CORRECCIÓN CLAVE: Eliminar el sufijo '_extractor' para buscar en la BBDD
+            if new_extractor_name.endswith('_extractor'):
+                cleaned_name = new_extractor_name.rsplit('_extractor', 1)[0] # e.g., 'stellantis'
+                print(f"DEBUG LOGIC: Nombre ajustado de '{new_extractor_name}' a '{cleaned_name}' para búsqueda en BBDD.")
+                new_extractor_name = cleaned_name
+            
+            print(f"DEBUG LOGIC: Extractor final para búsqueda: '{new_extractor_name}'. Reemplazando '{current_extractor_name}'.")
+            
+            # Devolver el nombre ajustado (e.g., 'stellantis')
+            return new_extractor_name, log_data
 
-        if specific_match:
-            new_extractor_name = specific_match.group(1)
-            used_extractor_path = specific_match.group(0).split(':')[-1].strip() 
-            trace_status = f"✅ Extractor Específico detectado: {used_extractor_path}"
+        # 2. Si no se encuentra un extractor específico en el log... 🎯 CAMBIO AQUÍ
+        
+        # Usamos el nombre 'base' para buscar la configuración genérica
+        final_name = DEFAULT_EXTRACTOR_NAME 
+        
+        print(f"DEBUG LOGIC: ⚠️ No se encontró un nombre de extractor específico en el log. Usando el nombre genérico: **{final_name}**")
+        
+        # Devolver el nombre 'base' (o el nombre por defecto que definas)
+        return final_name, log_data
 
-        elif generic_used:
-            new_extractor_name = 'base_invoice_extractor'
-            used_extractor_path = 'extractors.base_invoice_extractor.BaseInvoiceExtractor'
-            trace_status = "⚠️ Extractor Genérico detectado: BaseInvoiceExtractor"
+    #def _determine_extractor_and_add_trace(self, log_data: str, fallback_name: str) -> Tuple[str, str]:
+    #    """Busca el extractor real usado en el log_data y añade la traza de decisión."""
+        
+    #    new_extractor_name = fallback_name
+    #    trace_status = "ADVERTENCIA (G. Extractor): El extractor real usado no se pudo determinar a partir del log."
+        
+    #    # 1. Búsqueda de Extractor Específico (Ej: extractors.aema_extractor.AemaExtractor -> aema_extractor)
+    #    specific_match = re.search(r'Extractor encontrado en mapeo:\s*extractors\.(\w+_extractor)\.\w+', log_data)
+        
+    #    # 2. Búsqueda de Extractor Genérico
+    #    generic_used = 'Using generic extraction function (BaseInvoiceExtractor)' in log_data
+        
+    #    used_extractor_path = None
+
+    #   if specific_match:
+    #        new_extractor_name = specific_match.group(1)
+    #        used_extractor_path = specific_match.group(0).split(':')[-1].strip() 
+    #        trace_status = f"✅ Extractor Específico detectado: {used_extractor_path}"
+
+    #    elif generic_used:
+    #        new_extractor_name = 'base_invoice_extractor'
+    #        used_extractor_path = 'extractors.base_invoice_extractor.BaseInvoiceExtractor'
+    #        trace_status = "⚠️ Extractor Genérico detectado: BaseInvoiceExtractor"
         
         # 3. Generar traza final
         
-        trace_line = "--- INFO (G. Extractor) ---\n"
-        trace_line += f"🔍 ESTADO DEL LOG: {trace_status}\n"
-        trace_line += f"🛠️ NOMBRE SUGERIDO PARA GENERACIÓN: {new_extractor_name}.py\n"
-        trace_line += f"⬅️ NOMBRE RECIBIDO (Fallback/Original): {fallback_name}.py\n"
-        trace_line += "---------------------------\n\n"
+    #    trace_line = "--- INFO (G. Extractor) ---\n"
+    #    trace_line += f"🔍 ESTADO DEL LOG: {trace_status}\n"
+    #    trace_line += f"🛠️ NOMBRE SUGERIDO PARA GENERACIÓN: {new_extractor_name}.py\n"
+    #    trace_line += f"⬅️ NOMBRE RECIBIDO (Fallback/Original): {fallback_name}.py\n"
+    #    trace_line += "---------------------------\n\n"
         
-        new_log_data = trace_line + log_data
+    #    new_log_data = trace_line + log_data
         
-        return new_extractor_name, new_log_data
+    #    return new_extractor_name, new_log_data
 
     
     def _parse_argv(self) -> Dict[str, Any]:
@@ -671,16 +716,27 @@ class InvoiceApp:
         
         # 1. Cargar datos de la BBDD
         new_data = self._load_invoice_data_from_db(new_file_path)
-
+        print("newdata",new_data)
         # Actualizar estados internos de la app
         self.data = new_data
         self.file_path = new_file_path
         
         # 2. Determinar extractor y log para el nuevo documento
+        #print("LLAMADA DE CONFIGURACION DE EXTRACTOR DENTRO DE load_invoice")
+        #self.extractor_name, self.log_data = self._determine_extractor_and_add_trace(
+        #    new_data.get('log_data', "Log no disponible"), 
+        #    new_data.get('extractor_name', 'NuevoExtractor')
+        #)
+
+        print("LLAMADA DE CONFIGURACION DE EXTRACTOR DENTRO DE load_invoice")
         self.extractor_name, self.log_data = self._determine_extractor_and_add_trace(
-            new_data.get('log_data', "Log no disponible"), 
-            new_data.get('extractor_name', 'NuevoExtractor')
+            self.data.get('log_data', self.log_data), 
+            self.data.get('extractor_name', self.extractor_name)
         )
+        # 3. 🚨 LLAMADA CRÍTICA: INICIAR LA CARGA DE REGLAS 🚨
+        # Esta llamada ejecuta self._load_current_extractor_rules()
+        # y almacena el resultado en self.current_extractor_mapping
+        self.current_extractor_mapping: Dict[str, List[Dict[str, Any]]] = self._load_current_extractor_rules()
         
         # 3. Actualizar la GUI
         if self.extractor_name_label_var:
@@ -705,7 +761,14 @@ class InvoiceApp:
         # 6. Actualizar etiqueta de posición de factura
         if self.invoice_position_label:
             self.invoice_position_label.config(text=f"Factura {self.current_invoice_index + 1} de {len(self.invoice_file_paths)}")
-            
+        # 7 .activar boton de validacion si es necesario si esta validado se queda bloquado
+        print("is_validated",self.data.get('is_validated'))
+        if  self.data.get('is_validated') != '1':
+            print("desbloquear")
+            self.validate_button.config(state=tk.NORMAL)  
+        else:
+           print("bloquear")
+           self.validate_button.config(state=tk.DISABLED)       
     def initial_load(self):
         """Carga inicial del documento en el visor, log y etiquetas al iniciar la GUI."""
         
@@ -882,7 +945,14 @@ class {class_name}(BaseInvoiceExtractor):
         self.canvas.bind('<B1-Motion>', self._on_selection_drag)
         self.canvas.bind('<ButtonRelease-1>', self._on_selection_release)
         self.canvas.bind('<Configure>', self._on_canvas_resize)
-        
+        # Enlace para zoom con la combinación Control + Rueda del Ratón.
+        # El evento '<Control-MouseWheel>' es el estándar para Tkinter en la mayoría de las plataformas.
+        if VIEWER_AVAILABLE:
+            self.canvas.bind('<Control-MouseWheel>', self._handle_mouse_wheel_zoom)
+
+        # Nota: En sistemas Linux/Unix muy antiguos, podría ser necesario enlazar 
+        # a '<Control-Button-4>' (zoom in) y '<Control-Button-5>' (zoom out) 
+        # si '<Control-MouseWheel>' no funciona.
         # 3. Frame de control (Botones de Zoom/Página y Navegación)
         # Usamos el frame de controles creado en el paso 2 (self.viewer_controls_frame)
         control_frame = ttk.Frame(self.viewer_controls_frame) 
@@ -957,39 +1027,132 @@ class {class_name}(BaseInvoiceExtractor):
 
 
 
+    # El código que sigue es la implementación de _display_page
     def _display_page(self):
-        # ... (código existente) ...
+        """Renderiza y muestra la página del documento actual en el canvas."""
         
-        # 2. Obtener la página y el pixmap
+        if not self.doc or not VIEWER_AVAILABLE:
+            return 
+
+        # --- 1. Limpiar el canvas y resetear el estado ---
+        self.canvas.delete(tk.ALL)
+        self.image_display = None # Reseteo para corregir los botones de navegación
+        
         try:
+            # --- 2. Preparación de la página y transformación ---
             page = self.doc[self.page_num]
-        except IndexError:
-            # ... (código existente) ...
-            return
-
-        # Renderizar la página como un pixmap (imagen de píxeles)
-        pix = page.get_pixmap(matrix=mat)
-        
-        # 🚨 MODIFICACIÓN CLAVE: Aplicar la rotación a la imagen
-        try:
-            img_bytes = pix.tobytes("ppm")
-            image = Image.open(io.BytesIO(img_bytes))
             
-            # Aplicar la rotación basada en self.rotation_angle
-            if self.rotation_angle != 0:
-                # El método rotate(angle) de PIL gira en sentido contrario a las agujas del reloj
-                # Por lo tanto, si self.rotation_angle es 90 (rotación CW), giramos -90
-                # O simplemente usamos el ángulo para el giro.
-                image = image.rotate(-self.rotation_angle, expand=True) # expand=True asegura que la imagen rotada no se corte
-
-            self.tk_image = ImageTk.PhotoImage(image=image)
-            self.canvas.create_image(0, 0, image=self.tk_image, anchor=tk.NW)
+            # 2a. Crear las matrices de transformación.
+            
+            # ✅ ZOOM: Usar self.zoom_level (ej. 1.0, 1.5)
+            zoom_matrix = fitz.Matrix(self.zoom_level, self.zoom_level)
+            
+            # ✅ ROTACIÓN: Usar self.rotation_angle (ej. 0, 90, 180, 270)
+            rotation_matrix = fitz.Matrix(1, 1).prerotate(self.rotation_angle)
+            
+            # Combinación de matrices
+            matrix = zoom_matrix * rotation_matrix 
+            
+            # Obtener el Pixmap (bitmap)
+            pix = page.get_pixmap(matrix=matrix, alpha=False)
+            
+            # --- 3. Conversión a imagen Tkinter ---
+            img_data = pix.tobytes("ppm")
+            image = Image.open(io.BytesIO(img_data))
+            self.tk_photo = ImageTk.PhotoImage(image)
+            
+            # --- 4. Mostrar en el Canvas ---
+            canvas_width = self.canvas.winfo_width()
+            canvas_height = self.canvas.winfo_height()
+            
+            x = canvas_width // 2
+            y = canvas_height // 2
+            
+            # Dibujar la imagen
+            self.image_display = self.canvas.create_image(
+                x, y, 
+                image=self.tk_photo, 
+                anchor=tk.CENTER
+            )
+            
+            # Ajustar la región de desplazamiento
             self.canvas.config(scrollregion=self.canvas.bbox(tk.ALL))
-
-        except Exception as e:
-            # ... (código existente) ...
-            return
             
+        except Exception as e:
+            # Manejo de errores
+            print(f"Error al renderizar la página {self.page_num}: {e}")
+            self.canvas.create_text(
+                self.canvas.winfo_width() // 2, 
+                self.canvas.winfo_height() // 2, 
+                text=f"Error al mostrar la página: {e}", 
+                fill="red"
+            )
+            
+        self._update_page_label()
+
+    def _update_page_label(self):
+        """Actualiza la etiqueta de la página actual y el total de páginas, y la posición de la factura."""
+        
+        # Lógica para la paginación del documento PDF
+        if hasattr(self, 'doc') and self.doc:
+            num_pages = len(self.doc)
+            # fitz/PyMuPDF usa índice base 0, la visualización debe ser base 1.
+            current_page_display = self.page_num + 1 
+        else:
+            num_pages = 0
+            current_page_display = 0
+
+        # Actualizar la etiqueta de página si existe (asumiendo que se llama self.page_label)
+        if hasattr(self, 'page_label'):
+            self.page_label.config(text=f"Página {current_page_display} de {num_pages}")
+        
+        # Lógica para la navegación de facturas (opcional, pero incluido para completar la funcionalidad)
+        if hasattr(self, 'invoices_list') and hasattr(self, 'current_invoice_index'):
+            total_invoices = len(self.invoices_list)
+            # La lista de facturas es base 0, la visualización debe ser base 1.
+            current_invoice_display = self.current_invoice_index + 1 if total_invoices > 0 else 0
+            
+            # Actualizar la etiqueta de posición de la factura si existe
+            if hasattr(self, 'invoice_position_label'):
+                self.invoice_position_label.config(text=f"Factura {current_invoice_display} de {total_invoices}")
+
+    def _open_document(self, file_path: str):
+        """
+        Carga el documento PDF especificado en el visor y lo inicializa.
+        """
+        if not VIEWER_AVAILABLE:
+            messagebox.showerror("Error de Visor", "PyMuPDF o Pillow no están instalados. Instale las dependencias.")
+            return
+
+        try:
+            # 1. Cerrar documento anterior si existe
+            if self.doc:
+                self.doc.close()
+            
+            # 2. Cargar el nuevo documento
+            self.doc = fitz.open(file_path)
+            
+            # 3. Reinicializar el estado del visor (CRÍTICO)
+            # Esto asegura que el zoom y la rotación vuelvan al estado por defecto
+            # cada vez que se carga un nuevo archivo.
+            self.file_path = file_path # Guardar la ruta del archivo
+            self.page_num = 0           # Empezar en la primera página
+            self.rotation_angle = 0     # Rotación a 0°
+            self.zoom_level = 1.0       # Zoom por defecto (100%)
+            
+            # 4. Mostrar la primera página
+            self._display_page()
+            
+            # Opcional: Actualizar el título de la ventana
+            self.master.title(f"Extractor/Generador de Facturas - {os.path.basename(file_path)}")
+
+        except fitz.EmptyFileError:
+            messagebox.showerror("Error de Archivo", "El archivo PDF está vacío o corrupto.")
+            self.doc = None
+        except Exception as e:
+            messagebox.showerror("Error al Abrir", f"No se pudo abrir el documento: {e}")
+            self.doc = None
+
     def _open_document(self, path: str):
         # [Cuerpo de _open_document - Mantenido]
         if not path or not VIEWER_AVAILABLE: return
@@ -1117,6 +1280,72 @@ class {class_name}(BaseInvoiceExtractor):
         self.active_data_field = None
         self.word_var.set("[Ninguna]")
 
+    def _handle_mouse_wheel_zoom(self, event):
+        """
+        Controla el zoom de la página al pulsar Control + Rueda del ratón.
+        """
+        # Asumimos que VIEWER_AVAILABLE está definido al inicio del archivo
+        if not self.doc or not VIEWER_AVAILABLE:
+            return
+            
+        ZOOM_INCREMENT = 1.10 # 10% de cambio por cada 'tick'
+        
+        # event.delta es el valor de desplazamiento (positivo para arriba, negativo para abajo).
+        # En Tkinter, delta puede ser un valor pequeño (Windows) o grande (macOS/Linux)
+        if event.delta > 0:
+            # Scroll hacia arriba (Zoom In)
+            self.zoom_level *= ZOOM_INCREMENT
+        else:
+            # Scroll hacia abajo (Zoom Out)
+            self.zoom_level /= ZOOM_INCREMENT
+            
+        # Opcional: Establecer límites razonables al zoom
+        self.zoom_level = max(0.1, min(10.0, self.zoom_level)) 
+
+        # Redibujar la página. Conservará la rotación actual.
+        self._display_page()
+
+    def _apply_selected_text_to_rule_value(self):
+        """
+        Aplica el texto seleccionado al campo 'value' y utiliza la lógica de sugerencia
+        inteligente para rellenar los demás campos de la regla.
+        """
+        if not hasattr(self, 'selected_text') or not self.selected_text:
+            messagebox.showwarning("Advertencia", "No hay texto seleccionado en el visor.")
+            return
+
+        target_field = self.rule_target_var.get()
+        if not target_field:
+            messagebox.showwarning("Advertencia", "Seleccione primero un campo de destino en el Editor de Reglas.")
+            return
+
+        # 1. Llamar a la función de sugerencia inteligente del módulo externo
+        suggested_rule = rule_suggester.suggest_best_rule(target_field, self.selected_text)
+        
+        if suggested_rule:
+            # 2. Rellenar TODOS los campos de la interfaz con la regla sugerida
+            self.rule_ref_text_var.set(suggested_rule.get('ref_text', ''))
+            self.rule_ref_regex_var.set(suggested_rule.get('ref_regex', ''))
+            self.rule_value_var.set(suggested_rule.get('value', self.selected_text))
+            self.rule_value_regex_var.set(suggested_rule.get('value_regex', ''))
+            
+            # Actualizar los parámetros de distancia (líneas y segmento)
+            self.rule_distance_lines_var.set(suggested_rule.get('distance_lines', 0))
+            self.rule_distance_segment_var.set(suggested_rule.get('distance_segment', 1))
+            
+            messagebox.showinfo("Sugerencia Inteligente", 
+                                f"Regla sugerida para '{target_field}'. Revise el 'ref_text' y las REGEXs.")
+        else:
+            # Fallback si la sugerencia falla o no devuelve nada
+            base_value_regex = rule_suggester.generate_basic_regex_for_value(self.selected_text, target_field)
+            self.rule_value_var.set(self.selected_text)
+            self.rule_value_regex_var.set(base_value_regex)
+            messagebox.showinfo("Información", f"Solo se aplicó el valor a 'value' y se generó una REGEX básica.")
+
+        # 3. Forzar el refresco de la vista de la regla generada (el JSON de la regla actual)
+        # Asumo que tienes este método de refresco:
+        if hasattr(self, '_update_generated_rule_view'):
+            self._update_generated_rule_view()
 
     def _apply_to_rule_field(self, target_key: str):
         # [Cuerpo de _apply_to_rule_field - Mantenido]
@@ -1240,7 +1469,30 @@ class {class_name}(BaseInvoiceExtractor):
         self.start_x = None
         self.start_y = None
 
+    def _load_current_extractor_rules(self) -> Dict[str, List[Dict[str, Any]]]:
+        """Carga el mapeo de reglas del extractor actual desde la BBDD."""
+        print(f"GUI TRACE: Iniciando carga de reglas de extracción para '{self.extractor_name}' desde BBDD.") # <-- NUEVA TRAZA
+        result = {}
+        try:
+            # Se asume que 'database' está importado.
+            if hasattr(database, 'get_extractor_configurations_by_name'):
+                # Llamada a la función de la BBDD
+                result = database.get_extractor_configurations_by_name(self.extractor_name) 
+                
+                # 🚨 TRAZA CLAVE 3: Muestra si la carga fue exitosa y qué campos se cargaron
+                print(f"GUI TRACE: Reglas cargadas correctamente. Total de campos con reglas: {len(result)}") 
+                print(f"GUI TRACE: Campos con reglas: {list(result.keys())}") 
 
+                return result
+            else:
+                print("GUI WARNING: La función 'get_extractor_configurations_by_name' no está disponible en el módulo database.")
+                return {}
+        except Exception as e:
+            # 🚨 TRAZA ERROR: Muestra el error si la carga falla
+            print(f"GUI ERROR: Fallo al cargar reglas de extracción de la BBDD en la GUI: {e}") 
+            # Opcional: imprimir el traceback completo para más detalles
+            # import traceback; traceback.print_exc() 
+            return {}
     # --- Funciones de Editor de Reglas ---
     def _get_current_rule_dict(self) -> Dict[str, Any]:
         # [Cuerpo de _get_current_rule_dict - Mantenido]
@@ -1278,11 +1530,16 @@ class {class_name}(BaseInvoiceExtractor):
             
         return rule_dict
 
+
     def _load_rules_for_selected_field(self, *args):
         # [Cuerpo de _load_rules_for_selected_field - Mantenido]
+
+        
         field_key = self.rule_target_var.get()
-        self.current_field_rules = MOCK_EXTRACTION_MAPPING.get(field_key, [])
-        self.current_rule_index = None # Resetear el índice de la regla activa
+        # self.current_field_rules = MOCK_EXTRACTION_MAPPING.get(field_key, [])
+        # self.current_rule_index = None # Resetear el índice de la regla activa
+        self.current_field_rules = self.current_extractor_mapping.get(field_key, []) #
+        self.current_rule_index = None # Deseleccionar cualquier regla activa
         
         # 1. Limpiar y rellenar Listbox
         self.rules_listbox.delete(0, tk.END)
@@ -1354,7 +1611,8 @@ class {class_name}(BaseInvoiceExtractor):
             try:
                 # Eliminar la regla del Mock Mapping
                 self.current_field_rules.pop(self.current_rule_index)
-                MOCK_EXTRACTION_MAPPING[field_key] = self.current_field_rules
+                self.current_extractor_mapping[field_key] = self.current_field_rules
+                #MOCK_EXTRACTION_MAPPING[field_key] = self.current_field_rules
                 messagebox.showinfo("Regla Eliminada", f"Regla {self.current_rule_index + 1} eliminada.")
                 
                 # Recargar la lista y el formulario de edición
@@ -1374,9 +1632,14 @@ class {class_name}(BaseInvoiceExtractor):
             return
 
         # Añadir al Mock Mapping
-        if field_key not in MOCK_EXTRACTION_MAPPING:
-            MOCK_EXTRACTION_MAPPING[field_key] = []
-        MOCK_EXTRACTION_MAPPING[field_key].append(new_rule)
+       # if field_key not in MOCK_EXTRACTION_MAPPING:
+       #     MOCK_EXTRACTION_MAPPING[field_key] = []
+        #MOCK_EXTRACTION_MAPPING[field_key].append(new_rule)
+        # 🚨 CAMBIO: Añadir al mapeo de la clase (en lugar de MOCK_EXTRACTION_MAPPING)
+        if field_key not in self.current_extractor_mapping:
+            self.current_extractor_mapping[field_key] = []
+            
+        self.current_extractor_mapping[field_key].append(new_rule)
         messagebox.showinfo("Regla Añadida", f"Nueva regla añadida al campo '{field_key}'.")
         
         # 1. Recargar la lista de reglas para reflejar el cambio
@@ -1403,7 +1666,9 @@ class {class_name}(BaseInvoiceExtractor):
 
         # Actualizar el Mock Mapping
         self.current_field_rules[self.current_rule_index] = updated_rule
-        MOCK_EXTRACTION_MAPPING[field_key] = self.current_field_rules
+        #MOCK_EXTRACTION_MAPPING[field_key] = self.current_field_rules
+        self.current_extractor_mapping[field_key] = self.current_field_rules
+        
         messagebox.showinfo("Regla Actualizada", f"Regla {self.current_rule_index + 1} actualizada para el campo '{field_key}'.")
         
         # Recargar la lista para reflejar el cambio visualmente
@@ -1447,8 +1712,8 @@ class {class_name}(BaseInvoiceExtractor):
                 self.validate_button.config(state=tk.DISABLED)
                 
                 # Llamar al callback para actualizar la tabla principal si existe
-                if self.load_callback and callable(self.load_callback):
-                    self.load_callback()
+              #  if self.load_callback and callable(self.load_callback):
+               #     self.load_callback()
 
             else:
                 messagebox.showerror("Error de BBDD", "No se pudo actualizar el estado de la factura. Compruebe la consola para ver errores.")
@@ -1558,8 +1823,11 @@ class {class_name}(BaseInvoiceExtractor):
         # Botones Condicionales
         ttk.Button(action_button_frame, text="➕ Añadir como NUEVA", command=self._add_new_rule ).pack(side=tk.RIGHT, expand=True, fill=tk.X, padx=(5, 0))
         ttk.Button(action_button_frame, text="💾 Actualizar SELECCIONADA", command=self._update_existing_rule ).pack(side=tk.RIGHT, expand=True, fill=tk.X, padx=(5, 5))
-
-
+        # Frame para Botones de Prueba y Guardado (NUEVO)
+        test_save_frame = ttk.LabelFrame(parent, text="5. Probar y Guardar (BBDD)", padding=10)
+        test_save_frame.pack(fill=tk.X, pady=5)
+        
+        
         # Bindings para regenerar el código al cambiar los campos
         for var in self.rule_vars.values():
             var.trace_add("write", lambda *args: self._generate_rule_code())
@@ -1592,6 +1860,148 @@ class {class_name}(BaseInvoiceExtractor):
         self.generated_rule_text.delete(1.0, tk.END)
         self.generated_rule_text.insert(tk.END, code)
         self.generated_rule_text.config(state=tk.DISABLED)
+
+
+    # --- AÑADIR DENTRO DE LA CLASE InvoiceApp ---
+
+    def _test_current_rule_logic(self):
+        """
+        Mecanismo de SANDBOX: Prueba la regla definida en la GUI contra el documento actual
+        SIN guardar nada en la base de datos.
+        """
+        # 1. Recuperar la regla tal cual está en los campos de texto
+        rule_dict = self._get_current_rule_dict()
+        if not rule_dict:
+            messagebox.showwarning("Prueba", "La regla está vacía o incompleta. Defina tipo y valores.")
+            return
+
+        # 2. Validar que tenemos un documento cargado
+        if not self.file_path or not os.path.exists(self.file_path):
+             messagebox.showerror("Error", "No hay un documento PDF cargado para realizar la prueba.")
+             return
+             
+        # 3. Leer las líneas del documento actual (usando tu función existente)
+        lines = _get_document_lines(self.file_path)
+        
+        print(f"DEBUG TEST: Probando regla en memoria: {rule_dict}")
+
+        try:
+            # 4. Instanciar el Extractor Base (Sandbox)
+            # Le pasamos las líneas del documento actual
+            extractor = BaseInvoiceExtractor(lines, self.file_path)
+            
+            # 5. Inyectar la regla MANUALMENTE para probarla
+            # No leemos de BBDD, le pasamos la regla "en caliente"
+            # El BaseInvoiceExtractor suele tener un método interno _extract_field o similar.
+            # Si no, usamos la lógica genérica de aplicar una lista de reglas:
+            
+            field_target = self.rule_target_var.get()
+            
+            # Simulamos que el mapeo para este campo es SOLO nuestra nueva regla
+            # Creamos una lista porque tu estructura soporta múltiples reglas por campo
+            rules_list = [rule_dict]
+            
+            # LLAMADA AL MOTOR DE EXTRACCIÓN
+            # Dependiendo de tu implementación de BaseInvoiceExtractor:
+            # Opción A: Si tienes un método público para extraer un campo dado unas reglas
+            # result = extractor.extract_field_with_rules(field_target, rules_list)
+            
+            # Opción B (Genérica): Usar la lógica interna si es accesible, o replicarla brevemente:
+            result = None
+            for rule in rules_list:
+                val = extractor._apply_rule(rule, field_target) # Asumiendo método _apply_rule
+                if val:
+                    result = val
+                    break
+            
+            # 6. Mostrar el resultado al usuario
+            if result:
+                messagebox.showinfo("✅ Resultado de la Prueba", f"La regla FUNCIONA.\n\nValor extraído: '{result}'\n\n¿Desea guardarla ahora?")
+            else:
+                messagebox.showwarning("⚠️ Resultado de la Prueba", "La regla NO extrajo ningún valor.\nRevise match, offset, o regex.")
+                
+        except Exception as e:
+            messagebox.showerror("Error en Prueba", f"Fallo al ejecutar el extractor: {e}")
+
+
+    def _save_rule_to_db_action(self):
+        """
+        Guarda la regla actual en la tabla 'extractor_configurations'.
+        """
+        # 1. Datos
+        extractor_name = self.extractor_name # viene de sys.argv o lógica interna
+        field_name = self.rule_target_var.get()
+        rule_dict = self._get_current_rule_dict()
+        
+        if not rule_dict:
+            return
+
+        # 2. Confirmación
+        if not messagebox.askyesno("Confirmar Guardado", f"¿Guardar esta regla en BBDD para '{extractor_name}' -> '{field_name}'?"):
+            return
+
+        # 3. Llamada a BBDD
+        if database.save_extractor_configuration(extractor_name, field_name, rule_dict):
+            messagebox.showinfo("Guardado", "Regla guardada correctamente en 'extractor_configurations'.")
+            # Recargar la lista visual para reflejar cambios si es necesario
+            # self._load_rules_for_selected_field() 
+        else:
+            messagebox.showerror("Error", "No se pudo guardar en la base de datos.")
+    # --- NUEVO MÉTODO DE PRUEBA ---
+    def _test_current_rule(self):
+        """
+        Prueba la regla actual contra el documento cargado sin guardar nada.
+        """
+        # 1. Obtener la regla definida en el formulario
+        rule_dict = self._get_current_rule_dict()
+        if not rule_dict:
+            messagebox.showwarning("Prueba", "La regla está vacía o incompleta.")
+            return
+
+        # 2. Obtener las líneas de texto del documento actual
+        # Usamos la función auxiliar que ya tienes o fitz directamente
+        if not self.file_path:
+             messagebox.showerror("Error", "No hay documento cargado para probar.")
+             return
+             
+        lines = _get_document_lines(self.file_path) # Esta función ya existe en tu código
+        
+        # 3. Simular la extracción usando BaseInvoiceExtractor
+        try:
+            # Instanciamos el extractor base (que tiene la lógica de aplicar reglas)
+            # Pasamos las líneas y un path dummy
+            extractor = BaseInvoiceExtractor(lines, self.file_path)
+            
+            # NOTA: Asumimos que BaseInvoiceExtractor tiene un método interno para aplicar 
+            # una lista de reglas a un campo. Si no, podemos simularlo así:
+            # El extractor suele iterar reglas. Aquí forzamos una sola.
+            
+            extracted_value = None
+            
+            # Lógica de simulación (debe coincidir con cómo tu BaseInvoiceExtractor procesa las reglas)
+            # Si tu extractor tiene un método 'apply_rules(field, rules_list)', úsalo.
+            # Si no, aquí replicamos la lógica básica:
+            
+            print(f"DEBUG TEST: Probando regla: {rule_dict}")
+            
+            # Inyectamos la regla temporalmente para probar
+            # Creamos un mapeo ficticio solo para este test
+            test_mapping = {'TEST_FIELD': [rule_dict]}
+            extractor.extraction_mapping = test_mapping
+            
+            # Ejecutamos la extracción solo de este campo
+            # (Esto depende de cómo sea tu método extract_data, aquí asumo uno genérico)
+            result = extractor._extract_field('TEST_FIELD', [rule_dict])
+            
+            # 4. Mostrar Resultado
+            if result:
+                messagebox.showinfo("✅ Éxito", f"La regla funciona.\n\nValor extraído: '{result}'")
+            else:
+                messagebox.showwarning("❌ Fallo", "La regla no extrajo ningún valor con la configuración actual.")
+                
+        except Exception as e:
+            messagebox.showerror("Error de Ejecución", f"Error al ejecutar la lógica de prueba: {e}")
+
 
 # --- Ejecución de la Aplicación ---
 if __name__ == '__main__':

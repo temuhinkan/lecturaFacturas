@@ -10,6 +10,9 @@ from tkinter.scrolledtext import ScrolledText
 from typing import Tuple, List, Optional, Any, Dict
 import io 
 
+# ⬇️ AÑADIR ESTA IMPORTACIÓN
+import split_pdf
+
 # Importaciones de dependencias para el visor de documentos
 try:
     import fitz # PyMuPDF
@@ -25,7 +28,9 @@ except ImportError:
 
 # Importar las partes refactorizadas
 # Asegúrese de que estos módulos existen en su entorno
-import database 
+import database
+database.setup_database() 
+database.initialize_extractors_data() 
 import logic
 from config import TESSERACT_CMD_PATH, DEFAULT_VAT_RATE_STR, DEFAULT_VAT_RATE
 from logic import extraer_datos
@@ -98,7 +103,41 @@ class InvoiceApp:
         except tk.TclError:
             pass
             
+    def _is_pradilla_multipage(self, file_path: str) -> bool:
+        """
+        Detecta si un PDF pertenece a Gestoría Pradilla.
+        1. Comprueba si el nombre del archivo contiene 'pradilla' (útil para escaneos).
+        2. Si no, lee la primera página buscando texto clave.
+        """
+        try:
+            if not file_path.lower().endswith('.pdf'):
+                return False
             
+            # 1. Chequeo por NOMBRE DE ARCHIVO (Prioritario para escaneos)
+            filename = os.path.basename(file_path).lower()
+            if "pradilla" in filename:
+                return True
+
+            # 2. Chequeo por CONTENIDO (Si tiene capa de texto)
+            try:
+                doc = fitz.open(file_path)
+                if len(doc) < 1:
+                    return False
+                first_page_text = doc[0].get_text().upper()
+                doc.close()
+                
+                KEYWORDS = ["GESTORIA PRADILLA", "B-80481369", "B80481369"]
+                for keyword in KEYWORDS:
+                    if keyword in first_page_text:
+                        return True
+            except Exception:
+                pass # Si falla la lectura, asumimos que no es texto o está corrupto
+
+            return False
+        except Exception as e:
+            print(f"Error detectando Pradilla en {file_path}: {e}")
+            return False
+
     def setup_gui(self):
         self.main_frame = ttk.Frame(self.master, padding="10")
         self.main_frame.pack(fill='both', expand=True)
@@ -236,7 +275,7 @@ class InvoiceApp:
         op_frame1 = ttk.LabelFrame(right_stack_frame, text="3. Acciones", padding="5")
         op_frame1.pack(side='top', fill='x', pady=(0, 5)) # Empaquetado arriba en el nuevo contenedor
         ttk.Button(op_frame1, text="Exportar a CSV", command=self.export_to_csv).pack(side='left', padx=5, pady=5)
-        ttk.Button(op_frame1, text="Editor de facturas", command=self.launch_extractor_generator).pack(side='left', padx=5, pady=5)
+        ttk.Button(op_frame1, text="Editor de facturas", command=self.abrir_ventana_editor).pack(side='left', padx=5, pady=5)
 
         # 4. Botones de Operación y Validar (debajo del 3)
         op_frame = ttk.LabelFrame(right_stack_frame, text="4. Operaciones", padding="5")
@@ -526,30 +565,53 @@ class InvoiceApp:
         if not self.files_to_process:
             messagebox.showwarning("Procesar", "Primero debe seleccionar archivos usando los botones '1. Seleccionar...'.")
             return
-            
-        file_paths = self.files_to_process 
+        self.filesProcess = []
+        initial_files = self.files_to_process 
         force_reprocess = self.reprocess_var.get()
         debug_mode = self.debug_var.get()
 
+        # --- 1. PRE-PROCESAMIENTO: Detectar y Dividir Facturas Múltiples (Pradilla) ---
+        final_processing_queue = []
+        
+        self.update_log_display(f"--- Analizando {len(initial_files)} archivos para detectar multipáginas... ---")
+        
+        for file_path in initial_files:
+            # Comprobar si es Pradilla
+            if self._is_pradilla_multipage(file_path):
+                self.update_log_display(f"🔍 Detectado PDF Multi-factura (Pradilla): {os.path.basename(file_path)}")
+                self.update_log_display(f"   ✂️ Dividiendo en facturas individuales...")
+                
+                # Definir carpeta de salida (misma carpeta que el original / split_invoices)
+                splitted_files = split_pdf.split_pdf_into_single_page_files(file_path)
+                
+                if splitted_files:
+                    final_processing_queue.extend(splitted_files)
+                    self.update_log_display(f"   ✅ Se generaron {len(splitted_files)} archivos individuales.")
+                else:
+                    self.update_log_display(f"   ❌ Falló la división. Se intentará procesar el original.")
+                    final_processing_queue.append(file_path)
+            else:
+                # Archivo normal, se pasa tal cual
+                final_processing_queue.append(file_path)
+
+        # --- 2. PROCESAMIENTO ESTÁNDAR ---
         total_processed = 0
-        self.update_log_display(f"--- Iniciando procesamiento de {len(file_paths)} archivos (Debug={debug_mode}, Forzar={force_reprocess})... ---", clear=True)
+        self.update_log_display(f"--- Iniciando extracción de {len(final_processing_queue)} facturas... ---", clear=False)
 
         KEYS = ['Tipo', 'Fecha', 'Número de Factura', 'Emisor', 'CIF Emisor','Cliente', 'CIF', 'Modelo', 'Matricula', 'Importe', 'Base', 'IVA', 'Tasas']
 
-        for i, file_path in enumerate(file_paths):
-            self.update_log_display(f"[{i+1}/{len(file_paths)}] Procesando: {os.path.basename(file_path)}...")
+        for i, file_path in enumerate(final_processing_queue):
+            self.update_log_display(f"[{i+1}/{len(final_processing_queue)}] Procesando: {os.path.basename(file_path)}...")
 
             if not force_reprocess and is_invoice_processed(file_path): 
-                self.update_log_display("  -> Ya procesado. Saltando.")
+                self.update_log_display("  -> Ya procesado (BBDD). Saltando.")
                 continue
 
             extraction_result = extraer_datos(file_path, debug_mode=debug_mode) 
 
-            if len(extraction_result) == 13:
-                print("tamaño",len(extraction_result))
-            if len(extraction_result) == 14:
+            # Manejo de la tupla de resultados
+            if len(extraction_result) == 14: # 13 campos + log
                 data_tuple, log_data = extraction_result[:-1], extraction_result[-1]
-
             else:
                 data_tuple = logic._pad_data(extraction_result) 
                 log_data = "Error de formato de resultado."
@@ -557,31 +619,33 @@ class InvoiceApp:
             data_dict = dict(zip(KEYS, data_tuple))
             data_dict['Archivo'] = os.path.basename(file_path)
             data_dict['DebugLines'] = log_data
+            
+            # --- Lógica específica para asignar CONCEPTO si no viene del extractor ---
+            # Si es una factura dividida de Pradilla, a veces el concepto se pierde o es genérico.
+            # Podrías añadir lógica extra aquí si quisieras forzar un concepto.
 
             try:
-                print("ante del insert")
                 insert_invoice_data(data_dict, original_path=file_path, is_validated=0) 
-                self.update_log_display(f"  -> Datos de factura guardados/actualizados: {data_dict.get('Número de Factura', 'N/A')}")
+                self.update_log_display(f"  -> Guardado: {data_dict.get('Número de Factura', 'N/A')}")
                 self.filesProcess.append(file_path)
                 total_processed += 1
-            except DuplicateInvoiceError as e: # type: ignore
-            # 🚨 ERROR CONTROLADO: Muestra el popup de duplicado.
-                messagebox.showerror("Error de Inserción", f"¡La factura es un duplicado!\n\n{str(e)}")
+            except DuplicateInvoiceError as e:
+                # Si es un duplicado en archivos split, suele ser seguro ignorarlo o avisar en log
+                self.update_log_display(f"  ⚠️ Duplicado detectado: {str(e)}")
                 continue
             except sqlite3.Error as e:
-            # Otros errores de BBDD
-                messagebox.showerror("Error de Base de Datos", f"Fallo al insertar la factura: {e}")
-        
+                messagebox.showerror("Error de Base de Datos", f"Fallo al insertar: {e}")
             except Exception as e:
-            # Cualquier otro error inesperado
-                messagebox.showerror("Error Inesperado", f"Ocurrió un error al procesar la factura: {e}")
+                messagebox.showerror("Error Inesperado", f"Error procesando {os.path.basename(file_path)}: {e}")
 
-
-        self.update_log_display(f"--- Procesamiento finalizado. {total_processed} archivos procesados/re-procesados. ---")
+        self.update_log_display(f"--- Finalizado. {total_processed} nuevas facturas procesadas. ---")
         self.load_data_to_tree()
-        self.launch_extractor_generatorProcesed()
+        # Limpiar lista original
         self.files_to_process = []
         self._update_process_buttons_text()
+        
+        # Opcional: Lanzar generador con el último procesado
+        self.abrir_ventana_editor()
 
 
     # ------------------------------------------------------------------
@@ -972,8 +1036,17 @@ class InvoiceApp:
         conn = sqlite3.connect(database.DB_NAME)
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM processed_invoices WHERE path = ?", (self.filesProcess[0],))
-        row = cursor.fetchone()
+        # 🟢 CORRECCIÓN: Cambiar self.filesProcess[0] por self.filesProcess[-1]
+        # Esto asegura que si procesas 5 facturas, abra la última, no la primera.
+        try:
+            cursor.execute("SELECT * FROM processed_invoices WHERE path = ?", (self.filesProcess[-1],))
+            row = cursor.fetchone()
+        finally:
+            conn.close() # Es buena práctica cerrar la conexión en un bloque finally o tras usarla
+
+        if not row:
+            # messagebox.showerror("Error", "No se encontraron datos...") # Opcional: silenciar si no hay datos
+            return
         conn.close()
         if not row:
             messagebox.showerror("Error", "No se encontraron datos completos para la fila seleccionada.")
@@ -1007,7 +1080,21 @@ class InvoiceApp:
             subprocess.Popen(comando)
         except Exception as e:
             messagebox.showerror("Error de Ejecución", f"No se pudo ejecutar 'extractor_generator_gui.py'.\nError: {e}")
+            
+    def abrir_ventana_editor(self):
+        from editor import abrir_editor
+        selected_item = self.tree.selection()
+        if not selected_item:
+            messagebox.showwarning("Atención", "Seleccione una factura de la lista.")
+            return
+            
+        # Obtener todas las rutas del Treeview para permitir navegación
+        todas_las_rutas = [self.tree.set(item, "path") for item in self.tree.get_children()]
+        ruta_seleccionada = self.tree.set(selected_item[0], "path")
+        indice_actual = todas_las_rutas.index(ruta_seleccionada)
 
+        # Ahora pasamos el master, la ruta, la lista completa y el índice
+        abrir_editor(self.master, ruta_seleccionada, todas_las_rutas, indice_actual)
 # --- PUNTO DE ENTRADA --
 if __name__ == "__main__":
     root = tk.Tk()

@@ -1,78 +1,51 @@
-import PyPDF2
+import fitz  # PyMuPDF
 import os
 
 def split_pdf_into_single_page_files(input_pdf_path, output_folder="split_invoices"):
     """
-    Divide un archivo PDF de varias páginas en archivos PDF individuales,
-    donde cada archivo de salida contiene una sola página del PDF original.
-
-    Args:
-        input_pdf_path (str): La ruta al archivo PDF de entrada.
-        output_folder (str): El nombre de la carpeta donde se guardarán los PDFs divididos.
-                              Si no existe, se creará.
-    Returns:
-        list: Una lista de las rutas completas a los archivos PDF de una sola página creados.
+    Divide un PDF y devuelve rutas absolutas de los archivos generados usando PyMuPDF.
     """
     output_pdf_paths = []
+    
+    # Asegurar ruta absoluta para la carpeta de salida
+    if not os.path.isabs(output_folder):
+        base_dir = os.path.dirname(os.path.abspath(input_pdf_path))
+        output_folder = os.path.join(base_dir, output_folder)
+
     if not os.path.exists(output_folder):
         os.makedirs(output_folder)
         print(f"Carpeta de salida creada: {output_folder}")
 
     try:
-        with open(input_pdf_path, 'rb') as infile:
-            reader = PyPDF2.PdfReader(infile)
-            num_pages = len(reader.pages)
-            print(f"El PDF '{os.path.basename(input_pdf_path)}' tiene {num_pages} páginas.")
+        # Abrir el documento original
+        src_doc = fitz.open(input_pdf_path)
+        base_name = os.path.splitext(os.path.basename(input_pdf_path))[0]
+        
+        print(f"Dividiendo '{base_name}' ({len(src_doc)} páginas)...")
 
-            for page_num in range(num_pages):
-                writer = PyPDF2.PdfWriter()
-                writer.add_page(reader.pages[page_num])
+        for i in range(len(src_doc)):
+            # Crear un nuevo documento vacío
+            new_doc = fitz.open()
+            # Copiar la página 'i' del original al nuevo
+            new_doc.insert_pdf(src_doc, from_page=i, to_page=i)
+            
+            # Nombre del archivo de salida
+            filename = f"{base_name}_page_{i + 1}.pdf"
+            output_path = os.path.join(output_folder, filename)
+            
+            # Guardar
+            new_doc.save(output_path)
+            new_doc.close()
+            
+            output_pdf_paths.append(os.path.abspath(output_path))
 
-                # Generar un nombre de archivo para la página individual
-                base_name = os.path.splitext(os.path.basename(input_pdf_path))[0]
-                output_pdf_path = os.path.join(output_folder, f"{base_name}_page_{page_num + 1}.pdf")
-
-                with open(output_pdf_path, 'wb') as outfile:
-                    writer.write(outfile)
-                print(f"Página {page_num + 1} guardada como '{output_pdf_path}'")
-                output_pdf_paths.append(output_pdf_path)
-
-        print(f"\n✅ ¡Proceso de división completado para '{os.path.basename(input_pdf_path)}'!")
+        src_doc.close()
+        print(f"✅ División completada. {len(output_pdf_paths)} facturas generadas.")
         return output_pdf_paths
 
-    except FileNotFoundError:
-        print(f"❌ Error: El archivo '{input_pdf_path}' no fue encontrado.")
-        return []
     except Exception as e:
-        print(f"❌ Ocurrió un error al procesar el PDF: {e}")
+        print(f"❌ Error al dividir PDF: {e}")
         return []
 
 if __name__ == "__main__":
-    # Ejemplo de uso:
-    # Asegúrate de reemplazar 'ruta/a/tu/archivo.pdf' con la ruta real de tu PDF de múltiples facturas.
-    # Puedes poner el PDF en la misma carpeta que este script, o especificar una ruta completa.
-    
-    # Crea un archivo PDF de ejemplo si no existe (solo para probar el script)
-    # import io
-    # from reportlab.lib.pagesizes import letter
-    # from reportlab.pdfgen import canvas
-    #
-    # def create_dummy_pdf(filepath, num_pages):
-    #     c = canvas.Canvas(filepath, pagesize=letter)
-    #     for i in range(num_pages):
-    #         c.drawString(100, 750, f"Esta es la factura de la página {i+1}")
-    #         c.drawString(100, 700, f"Contenido de la factura {i+1}...")
-    #         c.showPage()
-    #     c.save()
-    #
-    # dummy_pdf_path = "facturas_multiples.pdf"
-    # if not os.path.exists(dummy_pdf_path):
-    #     print(f"Creando un PDF de ejemplo: {dummy_pdf_path}")
-    #     create_dummy_pdf(dummy_pdf_path, 3) # Crea un PDF con 3 páginas de ejemplo
-
-    # Ruta de tu PDF real con múltiples facturas
-    input_pdf = "facturas_multiples.pdf" # Reemplaza con la ruta a tu PDF
-    split_pdf_into_single_page_files(input_pdf)
-
-    # Si tienes un archivo específico que quieres usar (por ejemplo, los de las facturas que hemos estado viendo):
-    # split_pdf_into_single_page_files("ruta/a/tu/otro_pdf_con_multiples_facturas.pdf", "facturas_sumauto_separadas")
+    pass

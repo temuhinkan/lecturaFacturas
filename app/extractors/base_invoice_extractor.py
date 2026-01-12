@@ -13,8 +13,19 @@ import database
 EXTRACTOR_KEY = "base"
 
 # EXTRACTION_MAPPING ahora es el mapeo COMPLETO con listas de reglas (si las hay)
-EXTRACTION_MAPPING: Dict[str, List[Dict[str, Any]]] = database.get_extractor_configuration(EXTRACTOR_KEY)
-print("EXTRACTION_MAPPING",EXTRACTION_MAPPING)
+# Definimos la variable vacía primero
+EXTRACTION_MAPPING = {}
+
+def reload_extraction_config():
+    """Función para cargar la configuración de forma segura después de que la DB exista."""
+    global EXTRACTION_MAPPING
+    try:
+        EXTRACTION_MAPPING = database.get_extractor_configuration(EXTRACTOR_KEY)
+    except Exception:
+        EXTRACTION_MAPPING = {}
+
+# Intentamos una carga inicial silenciosa
+reload_extraction_config()
 
 # ELIMINAMOS O COMENTAMOS EL BLOQUE QUE ANULABA LAS REGLAS ALTERNATIVAS (EL PROBLEMA)
 # -----------------------------------------------------------------------------------
