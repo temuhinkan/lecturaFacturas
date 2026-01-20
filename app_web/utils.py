@@ -1,0 +1,260 @@
+import re
+# Importa la constante desde el nuevo fichero de configuración
+from config import DEFAULT_VAT_RATE 
+
+# Para que el extractor pueda importarla si está en otro fichero
+VAT_RATE = DEFAULT_VAT_RATE 
+
+# --- Constantes ---
+MONTH_MAP = {
+    'enero': '01', 'febrero': '02', 'marzo': '03', 'abril': '04',
+    'mayo': '05', 'junio': '06', 'julio': '07', 'agosto': '08',
+    'septiembre': '09', 'octubre': '10', 'noviembre': '11', 'diciembre': '12'
+}
+
+# --- Funciones de Ayuda (Comunes) ---
+
+def extract_and_format_date(lineas):
+    """
+    Extracts a date from a line that might contain "Madrid Barajas, a DD Mes YYYY"
+    and formats it to DD-MM-YYYY.
+    """
+    date_found = None
+    date_regex = r'(?:^|\W)(?:a\s+)?(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})(?:$|\W)'
+
+    for linea in lineas:
+        match = re.search(date_regex, linea, re.IGNORECASE)
+        if match:
+            day, month_name, year = match.groups()
+            month_name_lower = month_name.lower()
+            
+            if month_name_lower in MONTH_MAP:
+                month_num = MONTH_MAP[month_name_lower]
+                formatted_day = day.zfill(2)
+                date_found = f"{formatted_day}-{month_num}-{year}"
+                break
+            else:
+                print(f"⚠️ Warning: Unrecognized month name '{month_name}' found in line: '{linea}'")
+    
+    return date_found
+
+# AÑADIDO: Función para extraer el importe numérico
+def _extract_amount(amount_str):
+    """
+    Extrae un importe numérico de una cadena de texto (ej. "24,79€", "30.00").
+    Maneja el formato europeo (coma como separador decimal).
+    """
+    if not amount_str:
+        return None
+    
+    # Patrón: Busca un número que puede tener separadores de miles (punto) y decimales (coma)
+    match = re.search(r'([+-]?\s*\d{1,3}(?:\.?\d{3})*(?:,\d+)?)\s*€?\b', amount_str.strip().replace(' ', ''))
+    
+    if match:
+        numeric_str = match.group(1)
+        # 1. Quitar separadores de miles (punto)
+        numeric_str = numeric_str.replace('.', '')
+        # 2. Reemplazar la coma decimal por punto decimal
+        numeric_str = numeric_str.replace(',', '.')
+        
+        try:
+            return float(numeric_str)
+        except ValueError:
+            return None
+    return None
+
+# AÑADIDO: Stub para evitar error de importación
+def _extract_nif_cif(line):
+    """
+    Función placeholder/stub si no se usa.
+    """
+    return None
+# ----------------------------------------------
+
+
+def _extract_from_line(line, regex_pattern, group=1):
+    """Helper to extract data using a regex from a single line."""
+    match = re.search(regex_pattern, line, re.IGNORECASE)
+    if match:
+        return match.group(group)
+    return None
+
+def _extract_from_lines_with_keyword(lines, keyword_patterns, regex_pattern, group=1, look_ahead=0):
+    """ Helper to find one of several keywords and extract data... """
+    if not isinstance(keyword_patterns, list):
+        keyword_patterns = [keyword_patterns]
+
+    for i, line in enumerate(lines):
+        line_lower = line.lower()
+        for pattern in keyword_patterns:
+            if pattern.lower() in line_lower:
+                target_index = i + look_ahead
+                if 0 <= target_index < len(lines):
+                    target_line = lines[target_index]
+                    return _extract_from_line(target_line, regex_pattern, group)
+    return None
+
+def calculate_total_and_vat(base_amount_str: str, vat_rate: float = DEFAULT_VAT_RATE):
+    """
+    Calculates the total amount and the VAT amount from the taxable base.
+    Uses the DEFAULT_VAT_RATE from config.py if no rate is provided.
+    """
+    if not base_amount_str:
+        return None, None 
+
+    try:
+        # 1. Preparación para la conversión numérica
+        numeric_base_str = base_amount_str.replace('.', '').replace(',', '.')
+        
+        # 2. Conversión a número flotante
+        base_amount = float(numeric_base_str)
+        
+        # 3. Cálculo del IVA y del importe total
+        vat_amount = base_amount * vat_rate
+        total_amount = base_amount + vat_amount
+        
+        # 4. Formateo de los resultados
+        formatted_vat_amount = f"{vat_amount:.2f}".replace('.', ',')
+        formatted_total_amount = f"{total_amount:.2f}".replace('.', ',')
+        
+        return formatted_total_amount, formatted_vat_amount
+    except ValueError:
+        print(f"⚠️ Warning: Could not calculate total and VAT for base amount '{base_amount_str}'. Invalid numeric format.")
+        return None, None
+
+def _calculate_base_from_total(total_amount_str, vat_rate=VAT_RATE):
+    """
+    Calculates the taxable base by removing VAT from the total amount.
+    """
+    if not total_amount_str:
+        return None
+    try:
+        # 1. Limpieza y conversión
+        numeric_total_str = total_amount_str.replace('.', '').replace(',', '.')
+        total_amount = float(numeric_total_str)
+        
+        # 2. Cálculo
+        base_calc = total_amount / (1 + vat_rate)
+        
+        # 3. Formateo
+        return f"{base_calc:.2f}".replace('.', ',')
+    except ValueError:
+        print(f"⚠️ Warning: Could not calculate base for total amount '{total_amount_str}'. Invalid numeric format.")
+        return None
+
+# NOTA: La función _calculate_total_from_base ha sido eliminada por ser 
+# idéntica a calculate_total_and_vat, para evitar duplicidad.
+
+def calculate_base_and_vat_from_total(total_amount_str: str):
+    """
+    Calcula la Base Imponible y el Importe del IVA a partir del Importe Total.
+    
+    Args:
+        total_amount_str: Cadena de texto con el importe total (ej. "1.210,00").
+
+    Returns:
+        Una tupla (base_imponible_formateada, importe_iva_formateado) o (None, None) en caso de error.
+    """
+    if not total_amount_str:
+        return None, None 
+
+    try:
+        # 1. Preparación para la conversión numérica
+        # Elimina separador de miles (punto) y convierte la coma en decimal (punto)
+        numeric_total_str = total_amount_str.replace('.', '').replace(',', '.')
+        
+        # 2. Conversión a número flotante
+        total_amount = float(numeric_total_str)
+        
+        # 3. Cálculo de la Base Imponible y el Importe del IVA
+        
+        # Base = Total / (1 + Tasa_IVA)
+        base_amount = total_amount / (1 + VAT_RATE)
+        
+        # Importe del IVA = Total - Base
+        vat_amount = total_amount - base_amount
+        
+        # 4. Formateo de los resultados
+        # Redondea a 2 decimales y usa coma como separador decimal
+        formatted_base_amount = f"{base_amount:.2f}".replace('.', ',')
+        formatted_vat_amount = f"{vat_amount:.2f}".replace('.', ',')
+        
+        # Se devuelve (Base, IVA)
+        return formatted_base_amount, formatted_vat_amount
+
+    except ValueError:
+        # Ocurre si la cadena no se puede convertir a float
+        return None, None
+    except Exception:
+        # Maneja cualquier otro error
+        return None, None
+    
+    def recalculate_invoice_amounts(changed_field: str,value_str: str,current_values: Dict[str, Any],vat_rate: Optional[float] = VAT_RATE) -> Dict[str, Optional[str]]:
+        """
+        Recalcula los importes de la factura (Base, Total, IVA) en función de 
+        cuál de los tres campos ha sido modificado.
+
+        Args:
+            changed_field: Clave del campo modificado ('base_amount', 'total_amount', o 'vat_amount').
+            value_str: El nuevo valor (formateado como string) introducido por el usuario para ese campo.
+            current_values: Diccionario con los valores actuales (incluyendo la tasa de IVA si no se pasa).
+            vat_rate: Tasa de IVA a utilizar (por defecto, VAT_RATE).
+
+        Returns:
+            Un diccionario con los importes actualizados y formateados. 
+            Ej: {'base_amount': '1.000,00', 'total_amount': '1.210,00', 'vat_amount': '210,00'}
+        """
+        
+        # 1. Preparar valores iniciales y tasa de IVA
+        updated_amounts = current_values.copy()
+        
+        # Usar la tasa pasada o la del diccionario si existe, si no, usar la por defecto
+        rate = vat_rate if vat_rate is not None else current_values.get('vat_rate', DEFAULT_VAT_RATE)
+
+        # 2. Asignar el nuevo valor introducido
+        # Es crucial que el valor introducido sea el punto de partida para el cálculo
+        updated_amounts[changed_field] = value_str
+
+        base_amount = None
+        total_amount = None
+        vat_amount = None
+
+        # 3. Lógica de Recálculo
+        if changed_field == 'base_amount':
+            # Si cambia la BASE, calculamos TOTAL e IVA.
+            total_amount, vat_amount = calculate_total_and_vat(value_str, rate)
+            base_amount = value_str
+
+        elif changed_field == 'total_amount':
+            # Si cambia el TOTAL, calculamos BASE e IVA.
+            base_amount, vat_amount = calculate_base_and_vat_from_total(value_str)
+            total_amount = value_str
+        
+        # NO: Si cambiara el importe del IVA (vat_amount), la lógica sería más compleja, 
+        # ya que se debe decidir si recalcular Base y Total o Total y Base.
+        # Por lo general, en interfaces de usuario, solo se permite editar Base o Total.
+        # Si fuera necesario, se podría implementar una lógica para recalcular 
+        # Base y Total a partir del nuevo IVA y un valor de Base/Total anterior, o 
+        # asumir que se quiere mantener el Total y recalcular la Base, o viceversa.
+        # Dejaremos esta rama sin recálculo por ahora, ya que suele ser inusual.
+        elif changed_field == 'vat_amount':
+            # Si el usuario cambia el IVA, asumiremos que no hay recálculo automático 
+            # de Base/Total, o se le pide que cambie uno de los otros dos.
+            # Si necesitas esta funcionalidad, necesitaríamos definir qué campo 
+            # (Base o Total) debe ser recalculado.
+            pass # No hacemos nada, mantenemos los valores existentes.
+
+        # 4. Actualizar el diccionario de resultados con los valores calculados
+        if base_amount is not None:
+            updated_amounts['base_amount'] = base_amount
+        if total_amount is not None:
+            updated_amounts['total_amount'] = total_amount
+        if vat_amount is not None:
+            updated_amounts['vat_amount'] = vat_amount
+
+        # Aseguramos que solo devolvemos los 3 campos de importe
+        return {
+            'base_amount': updated_amounts.get('base_amount'),
+            'total_amount': updated_amounts.get('total_amount'),
+            'vat_amount': updated_amounts.get('vat_amount'),
+        }

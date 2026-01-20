@@ -1,0 +1,1 @@
+pip install PyMuPDF Pillow easyocr pytesseract PyPDF2
